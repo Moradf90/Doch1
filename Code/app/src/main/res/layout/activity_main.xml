@@ -12,6 +12,7 @@
         android:layout_alignParentTop="true" >
 
         <LinearLayout
+            android:id="@+id/a_status_layout"
             android:layout_width="180dp"
             android:layout_height="match_parent"
             android:layout_alignParentLeft="true"
@@ -25,6 +26,7 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/b_status_layout"
             android:layout_width="180dp"
             android:layout_height="match_parent"
             android:layout_alignParentRight="true"
@@ -46,6 +48,7 @@
         android:layout_below="@+id/r3" >
 
         <LinearLayout
+            android:id="@+id/c_status_layout"
             android:layout_width="180dp"
             android:layout_height="match_parent"
             android:layout_alignParentLeft="true"
@@ -59,7 +62,7 @@
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/i4"
+            android:id="@+id/d_status_layout"
             android:layout_width="180dp"
             android:layout_height="match_parent"
             android:layout_alignParentRight="true"

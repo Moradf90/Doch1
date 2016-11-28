@@ -2,14 +2,16 @@ package t.a.m.com.doch1;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.View.OnTouchListener;
-import android.widget.AbsoluteLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import t.a.m.com.doch1.views.RoundedImageView;
 
@@ -22,6 +24,8 @@ public class MainActivity extends Activity {
 	private int _xDelta;
 	private int _yDelta;
 
+	Rect[] statusesRects;
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -32,52 +36,51 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 		rootLayout = (ViewGroup) findViewById(R.id.view_root);
 
-		RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(150, 150);
 
-//		for(int i=0;i<1;i++)
-//		{
-			RoundedImageView imgMorad = new RoundedImageView(this);
-			AbsoluteLayout.LayoutParams param = new AbsoluteLayout.LayoutParams(40, 40,10 , 10);
+		LinearLayout[] statusesLayouts = new LinearLayout[]
+				{
+						(LinearLayout) findViewById(R.id.a_status_layout),
+						(LinearLayout) findViewById(R.id.b_status_layout),
+						(LinearLayout) findViewById(R.id.c_status_layout),
+						(LinearLayout) findViewById(R.id.d_status_layout),
+				};
 
-			imgMorad.setLayoutParams(param);
-			imgMorad.setMaxHeight(10);
-			imgMorad.setMaxWidth(10);
-			imgMorad.setImageResource(R.drawable.morad72);
+		statusesRects = new Rect[statusesLayouts.length];
+
+		for(int i=0;i<statusesRects.length;i++) {
+			Rect rect = new Rect();
+			statusesLayouts[i].getHitRect(rect);
+			statusesRects[i] = rect;
+		}
+
+		int[] drawableRes = new int[]{R.drawable.morad72, R.drawable.tom72, R.drawable.michal72};
+
+		for(int i=0;i<3;i++)
+		{
+			RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(120, 120);
+
+			RoundedImageView soldierImage = new RoundedImageView(this);
+
+			soldierImage.setLayoutParams(layoutParams);
+			soldierImage.setMaxHeight(10);
+			soldierImage.setMaxWidth(10);
+			soldierImage.setX(i * 150);
+			soldierImage.setY(100);
+			soldierImage.setImageResource(drawableRes[i]);
 
 			// Adds the view to the layout
-			rootLayout.addView(imgMorad);
-			imgMorad.setLayoutParams(layoutParams);
-			imgMorad.setOnTouchListener(new ChoiceTouchListener());
+			rootLayout.addView(soldierImage);
+			soldierImage.setOnTouchListener(new ChoiceTouchListener());
 
-			imgMorad.setOnLongClickListener(new View.OnLongClickListener() {
+			soldierImage.setOnLongClickListener(new View.OnLongClickListener() {
 				@Override
 				public boolean onLongClick(View view) {
 					return false;
 				}
 			});
-//		}
-
-		RoundedImageView imgTom = new RoundedImageView(this);
-		AbsoluteLayout.LayoutParams param2 = new AbsoluteLayout.LayoutParams(120, 120,30, 30);
-		imgTom.setLayoutParams(param2);
-		imgTom.setMaxHeight(20);
-		imgTom.setMaxWidth(20);
-		imgTom.setImageResource(R.drawable.tom72);
-
-		// Adds the view to the layout
-		rootLayout.addView(imgTom);
-		imgTom.setLayoutParams(layoutParams);
-		imgTom.setOnTouchListener(new ChoiceTouchListener());
-
-		imgTom.setOnLongClickListener(new View.OnLongClickListener() {
-			@Override
-			public boolean onLongClick(View view) {
-				return false;
-			}
-		});
+		}
 	}
 
-	
 	private final class ChoiceTouchListener implements OnTouchListener {
 		public boolean onTouch(View view, MotionEvent event) {
 			ImageView touchedImage = (ImageView)view;
@@ -92,7 +95,6 @@ public class MainActivity extends Activity {
 				_xDelta = X - lParams.leftMargin;
 				_yDelta = Y - lParams.topMargin;
 
-
 				imgLayoutParams.width = 225;
 				imgLayoutParams.height = 225;
 				touchedImage.setLayoutParams(imgLayoutParams);
@@ -102,6 +104,7 @@ public class MainActivity extends Activity {
 				imgLayoutParams.width = 120;
 				imgLayoutParams.height = 120;
 				touchedImage.setLayoutParams(imgLayoutParams);
+				getStatusOfView(touchedImage);
 				break;
 			case MotionEvent.ACTION_POINTER_DOWN:
 				break;
@@ -125,6 +128,18 @@ public class MainActivity extends Activity {
 		}
 	}
 
+	private final void getStatusOfView(View view) {
+
+		Rect myViewRect = new Rect();
+		view.getHitRect(myViewRect);
+
+		for(int i=0; i<statusesRects.length; i++) {
+			if (Rect.intersects(myViewRect, statusesRects[i])) {
+				Toast.makeText(this, "status is number -> " + i, Toast.LENGTH_LONG);
+				break;
+			}
+		}
+	}
 }
 
 
