@@ -11,6 +11,8 @@ import android.widget.AbsoluteLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
+import t.a.m.com.doch1.views.RoundedImageView;
+
 //import com.skholingua.android.dragndrop_relativelayout.R;
 
 public class MainActivity extends Activity {
@@ -32,21 +34,47 @@ public class MainActivity extends Activity {
 
 		RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(150, 150);
 
-		for(int i=0;i<6;i++)
-		{
-			ImageView image = new ImageView(this);
-			AbsoluteLayout.LayoutParams param = new AbsoluteLayout.LayoutParams(120, 120,10 *i, 10* i);
+//		for(int i=0;i<1;i++)
+//		{
+			RoundedImageView imgMorad = new RoundedImageView(this);
+			AbsoluteLayout.LayoutParams param = new AbsoluteLayout.LayoutParams(40, 40,10 , 10);
 
-			image.setLayoutParams(param);
-			image.setMaxHeight(20);
-			image.setMaxWidth(20);
-			image.setImageResource(R.drawable.ic_launcher);
+			imgMorad.setLayoutParams(param);
+			imgMorad.setMaxHeight(10);
+			imgMorad.setMaxWidth(10);
+			imgMorad.setImageResource(R.drawable.morad72);
 
 			// Adds the view to the layout
-			rootLayout.addView(image);
-			image.setLayoutParams(layoutParams);
-			image.setOnTouchListener(new ChoiceTouchListener());
-		}
+			rootLayout.addView(imgMorad);
+			imgMorad.setLayoutParams(layoutParams);
+			imgMorad.setOnTouchListener(new ChoiceTouchListener());
+
+			imgMorad.setOnLongClickListener(new View.OnLongClickListener() {
+				@Override
+				public boolean onLongClick(View view) {
+					return false;
+				}
+			});
+//		}
+
+		RoundedImageView imgTom = new RoundedImageView(this);
+		AbsoluteLayout.LayoutParams param2 = new AbsoluteLayout.LayoutParams(120, 120,30, 30);
+		imgTom.setLayoutParams(param2);
+		imgTom.setMaxHeight(20);
+		imgTom.setMaxWidth(20);
+		imgTom.setImageResource(R.drawable.tom72);
+
+		// Adds the view to the layout
+		rootLayout.addView(imgTom);
+		imgTom.setLayoutParams(layoutParams);
+		imgTom.setOnTouchListener(new ChoiceTouchListener());
+
+		imgTom.setOnLongClickListener(new View.OnLongClickListener() {
+			@Override
+			public boolean onLongClick(View view) {
+				return false;
+			}
+		});
 	}
 
 	
