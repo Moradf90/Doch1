@@ -150,7 +150,7 @@ public class MainActivity extends Activity {
 
 		for(int i=0; i<statusesRects.length; i++) {
 			if (Rect.intersects(myViewRect, statusesRects[i])) {
-				Toast.makeText(this, "status is number -> " + i, Toast.LENGTH_SHORT).show();
+				Toast.makeText(this, "status is -> " + (char)('A' + i), Toast.LENGTH_SHORT).show();
 				break;
 			}
 		}
