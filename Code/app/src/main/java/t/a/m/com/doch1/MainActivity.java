@@ -37,21 +37,7 @@ public class MainActivity extends Activity {
 		rootLayout = (ViewGroup) findViewById(R.id.view_root);
 
 
-		LinearLayout[] statusesLayouts = new LinearLayout[]
-				{
-						(LinearLayout) findViewById(R.id.a_status_layout),
-						(LinearLayout) findViewById(R.id.b_status_layout),
-						(LinearLayout) findViewById(R.id.c_status_layout),
-						(LinearLayout) findViewById(R.id.d_status_layout),
-				};
 
-		statusesRects = new Rect[statusesLayouts.length];
-
-		for(int i=0;i<statusesRects.length;i++) {
-			Rect rect = new Rect();
-			statusesLayouts[i].getHitRect(rect);
-			statusesRects[i] = rect;
-		}
 
 		int[] drawableRes = new int[]{R.drawable.morad72, R.drawable.tom72, R.drawable.michal72};
 
@@ -78,6 +64,34 @@ public class MainActivity extends Activity {
 					return false;
 				}
 			});
+		}
+	}
+
+	@Override
+	public void onWindowFocusChanged (boolean hasFocus) {
+		LinearLayout[] statusesLayouts = new LinearLayout[]
+				{
+						(LinearLayout) findViewById(R.id.a_status_layout),
+						(LinearLayout) findViewById(R.id.b_status_layout),
+						(LinearLayout) findViewById(R.id.c_status_layout),
+						(LinearLayout) findViewById(R.id.d_status_layout),
+				};
+
+		statusesRects = new Rect[statusesLayouts.length];
+
+		for(int i=0;i<statusesRects.length;i++) {
+			int[] x= new int[2];
+			statusesLayouts[i].getLocationOnScreen(x);
+
+			int[] y = new int[2];
+			statusesLayouts[i].getLocationInWindow(y);
+
+
+			Rect rect = new Rect(statusesLayouts[i].getLeft(),
+					statusesLayouts[i].getTop(),
+					statusesLayouts[i].getRight(),
+					statusesLayouts[i].getBottom());
+			statusesRects[i] = rect;
 		}
 	}
 
@@ -128,6 +142,7 @@ public class MainActivity extends Activity {
 		}
 	}
 
+	// TODO :doesnt work, probably rectangles of layout arent good
 	private final void getStatusOfView(View view) {
 
 		Rect myViewRect = new Rect();
@@ -135,7 +150,7 @@ public class MainActivity extends Activity {
 
 		for(int i=0; i<statusesRects.length; i++) {
 			if (Rect.intersects(myViewRect, statusesRects[i])) {
-				Toast.makeText(this, "status is number -> " + i, Toast.LENGTH_LONG);
+				Toast.makeText(this, "status is number -> " + i, Toast.LENGTH_SHORT).show();
 				break;
 			}
 		}
