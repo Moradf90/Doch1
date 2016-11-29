@@ -61,14 +61,19 @@ public class LoginActivity extends Activity {
             passEditText.setError("Password must be more than 4 chars");
         }
 
-        else if(isValidEmail(email) && isValidPassword(pass))
-        {
+        else if(isValidEmail(email) && isValidPassword(pass)) {
             // TODO: get role from server if user exist, save on phone the role and name for next uses?
             if ((email.equals("tomdinur@gmail.com")) && pass.equals("12345")) {
-                Toast.makeText(LoginActivity.this, "Morad's turn", Toast.LENGTH_SHORT).show();
+
+
             }
         }
 
+        int value = 3;
+
+        Intent myIntent = new Intent(LoginActivity.this, MainActivity.class);
+        myIntent.putExtra("user", value); //Optional parameters
+        LoginActivity.this.startActivity(myIntent);
     }
 
     // validating email id
