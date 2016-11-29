@@ -1,28 +1,42 @@
 package t.a.m.com.doch1;
 
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.Rect;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.View.OnTouchListener;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import t.a.m.com.doch1.views.RoundedImageView;
 
-//import com.skholingua.android.dragndrop_relativelayout.R;
-
 public class MainActivity extends Activity {
 
-	private ImageView img;
 	private ViewGroup rootLayout;
 	private int _xDelta;
 	private int _yDelta;
+	private int _nImageSizeOnDrag = 280;
+	private int _nImageSizeOnDrop = 160;
+	final int DOUBLE_PRESS_INTERVAL = 500;
+	private static final Map<String, String[]> statusesMap;
+	static
+	{
+		statusesMap = new HashMap<String, String[]>();
+		statusesMap.put("A", new String[]{});
+		statusesMap.put("B", new String[]{"מיוחדת 1", "מחלה", "מחוץ ליחידה"});
+		statusesMap.put("C", new String[]{"הריון", "יום אבל", "מחלה בהצהרה"});
+		statusesMap.put("D", new String[]{"מיוחדת 3", "שחרור", "מטיול" , "יום סידורים", "חוץ לארץ"});
+	}
 
 	Rect[] statusesRects;
 
@@ -36,14 +50,11 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 		rootLayout = (ViewGroup) findViewById(R.id.view_root);
 
+		int[] drawableRes = new int[]{R.drawable.morad72, R.drawable.tom72, R.drawable.michal72, R.drawable.batel72, R.drawable.amit72, R.drawable.tal72};
 
-
-
-		int[] drawableRes = new int[]{R.drawable.morad72, R.drawable.tom72, R.drawable.michal72};
-
-		for(int i=0;i<3;i++)
+		for(int i=0;i<drawableRes.length;i++)
 		{
-			RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(120, 120);
+			RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(_nImageSizeOnDrop, _nImageSizeOnDrop);
 
 			RoundedImageView soldierImage = new RoundedImageView(this);
 
@@ -52,10 +63,12 @@ public class MainActivity extends Activity {
 			soldierImage.setMaxWidth(10);
 			soldierImage.setX(i * 150);
 			soldierImage.setY(100);
+			soldierImage.setTag(R.string.soldier_name, "Tom Dinur");
+			soldierImage.setTag(R.string.main_status, "A");
 			soldierImage.setImageResource(drawableRes[i]);
 
-			// Adds the view to the layout
-			rootLayout.addView(soldierImage);
+					// Adds the view to the layout
+					rootLayout.addView(soldierImage);
 			soldierImage.setOnTouchListener(new ChoiceTouchListener());
 
 			soldierImage.setOnLongClickListener(new View.OnLongClickListener() {
@@ -64,6 +77,39 @@ public class MainActivity extends Activity {
 					return false;
 				}
 			});
+		}
+	}
+
+	private void openSpinner(final View view) {
+		if (view.getTag(R.string.main_status) != null) {
+			String currentStatus = view.getTag(R.string.main_status).toString();
+
+			if (statusesMap.containsKey(currentStatus)) {
+				AlertDialog.Builder b = new AlertDialog.Builder(this);
+				b.setTitle(currentStatus + " status");
+//		String[] types = {"By Zip", "By Category"};
+
+				b.setItems(statusesMap.get(currentStatus), new DialogInterface.OnClickListener() {
+
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+
+						dialog.dismiss();
+						view.setTag(R.string.sub_status, which);
+						switch (which) {
+							case 0:
+//						onZipRequested();
+								break;
+							case 1:
+//						onCategoryRequested();
+								break;
+						}
+					}
+
+				});
+
+				b.show();
+			}
 		}
 	}
 
@@ -96,6 +142,7 @@ public class MainActivity extends Activity {
 	}
 
 	private final class ChoiceTouchListener implements OnTouchListener {
+
 		public boolean onTouch(View view, MotionEvent event) {
 			ImageView touchedImage = (ImageView)view;
 			final int X = (int) event.getRawX();
@@ -109,23 +156,33 @@ public class MainActivity extends Activity {
 				_xDelta = X - lParams.leftMargin;
 				_yDelta = Y - lParams.topMargin;
 
-				imgLayoutParams.width = 225;
-				imgLayoutParams.height = 225;
+				imgLayoutParams.width = _nImageSizeOnDrag;
+				imgLayoutParams.height = _nImageSizeOnDrag;
 				touchedImage.setLayoutParams(imgLayoutParams);
+
+				view.setTag(R.string.press_time, System.currentTimeMillis());
+
+				// If double click...
+				if ((view.getTag(R.string.last_press_time) != null) &&
+						(Long.valueOf(view.getTag(R.string.press_time).toString()) -
+								Long.valueOf(view.getTag(R.string.last_press_time).toString()) <=
+								DOUBLE_PRESS_INTERVAL)) {
+					openSpinner(view);
+				}
+
+				// record the last time the menu button was pressed.
+				view.setTag(R.string.last_press_time, view.getTag(R.string.press_time));
 
 				break;
 			case MotionEvent.ACTION_UP:
-				imgLayoutParams.width = 120;
-				imgLayoutParams.height = 120;
+				imgLayoutParams.width = _nImageSizeOnDrop;
+				imgLayoutParams.height = _nImageSizeOnDrop;
 				touchedImage.setLayoutParams(imgLayoutParams);
 				getStatusOfView(touchedImage);
 				break;
 			case MotionEvent.ACTION_POINTER_DOWN:
 				break;
 			case MotionEvent.ACTION_POINTER_UP:
-				imgLayoutParams.width = 120;
-				imgLayoutParams.height = 120;
-				touchedImage.setLayoutParams(imgLayoutParams);
 				break;
 			case MotionEvent.ACTION_MOVE:
 				RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) view
@@ -149,8 +206,20 @@ public class MainActivity extends Activity {
 		view.getHitRect(myViewRect);
 
 		for(int i=0; i<statusesRects.length; i++) {
-			if (Rect.intersects(myViewRect, statusesRects[i])) {
-				Toast.makeText(this, "status is -> " + (char)('A' + i), Toast.LENGTH_SHORT).show();
+			if (statusesRects[i].contains(myViewRect)) {
+				// If this is the A status - no subStatus needed
+				if (i == 0) {
+					((ImageView)view).setColorFilter(Color.argb(100, 0, 0, 0));
+				}
+				// Need subStatus so we 'highlight' the soldier
+				else if (i == 1){
+					((ImageView)view).setColorFilter(Color.argb(10, 0, 0, 0));
+				}
+				else if (i==2) {
+					((ImageView)view).setColorFilter(Color.argb(50, 0, 225, 255));
+				}
+				view.setTag(R.string.main_status, (char)('A' + i));
+//				Toast.makeText(this, "status is -> " + (char)('A' + i), Toast.LENGTH_SHORT).show();
 				break;
 			}
 		}

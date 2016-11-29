@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Doch1</string>
+    <string name="press_time">pressTime</string>
+    <string name="last_press_time">lastPressTime</string>
+    <string name="main_status">mainStatus</string>
+    <string name="sub_status">subStatus</string>
+    <string name="soldier_name">soldierName</string>
 </resources>
