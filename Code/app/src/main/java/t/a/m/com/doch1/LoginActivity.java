@@ -2,6 +2,7 @@ package t.a.m.com.doch1;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.media.MediaPlayer;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -20,10 +21,14 @@ public class LoginActivity extends Activity {
     private Button btnSignIn;
     private TextView btnForgotPassword;
 
+    MediaPlayer mp;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+        mp = MediaPlayer.create(this, R.raw.login_audio2);
+        mp.start();
 
         // Address the email and password field
         emailEditText = (EditText) findViewById(R.id.txt_username);
@@ -73,7 +78,10 @@ public class LoginActivity extends Activity {
 
         Intent myIntent = new Intent(LoginActivity.this, MainActivity.class);
         myIntent.putExtra("user", value); //Optional parameters
+        mp.stop();
+        mp.release();
         LoginActivity.this.startActivity(myIntent);
+        finish();
     }
 
     // validating email id

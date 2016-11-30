@@ -3,6 +3,9 @@ package t.a.m.com.doch1;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.TypedArray;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.os.Bundle;
@@ -11,13 +14,17 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
+import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import t.a.m.com.doch1.Adapters.GridViewAdapter;
+import t.a.m.com.doch1.Adapters.GridViewAdapter.*;
 import t.a.m.com.doch1.views.RoundedImageView;
 
 public class MainActivity extends Activity {
@@ -39,6 +46,9 @@ public class MainActivity extends Activity {
 	}
 
 	Rect[] statusesRects;
+
+	private GridView gridView;
+	private GridViewAdapter gridAdapter;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -67,7 +77,7 @@ public class MainActivity extends Activity {
 			soldierImage.setTag(R.string.main_status, "A");
 			soldierImage.setImageResource(drawableRes[i]);
 
-					// Adds the view to the layout
+			// Adds the view to the layout
 					rootLayout.addView(soldierImage);
 			soldierImage.setOnTouchListener(new ChoiceTouchListener());
 
@@ -78,6 +88,21 @@ public class MainActivity extends Activity {
 				}
 			});
 		}
+
+		gridView = (GridView) findViewById(R.id.gridView);
+		gridAdapter = new GridViewAdapter(this, R.layout.grid_item_layout, getData());
+		gridView.setAdapter(gridAdapter);
+	}
+
+	// Prepare some dummy data for gridview
+	private ArrayList<ImageItem> getData() {
+		final ArrayList<ImageItem> imageItems = new ArrayList<>();
+		TypedArray imgs = getResources().obtainTypedArray(R.array.image_ids);
+		for (int i = 0; i < imgs.length(); i++) {
+			Bitmap bitmap = BitmapFactory.decodeResource(getResources(), imgs.getResourceId(i, -1));
+			imageItems.add(new ImageItem(bitmap, "Image#" + i));
+		}
+		return imageItems;
 	}
 
 	private void openSpinner(final View view) {
@@ -117,7 +142,7 @@ public class MainActivity extends Activity {
 	public void onWindowFocusChanged (boolean hasFocus) {
 		LinearLayout[] statusesLayouts = new LinearLayout[]
 				{
-						(LinearLayout) findViewById(R.id.a_status_layout),
+//						(LinearLayout) findViewById(R.id.a_status_layout),
 						(LinearLayout) findViewById(R.id.b_status_layout),
 						(LinearLayout) findViewById(R.id.c_status_layout),
 						(LinearLayout) findViewById(R.id.d_status_layout),
