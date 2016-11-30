@@ -8,6 +8,45 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="AppTheme.Text">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:lineSpacingExtra">4sp</item>
+    </style>
+
+    <style name="AppTheme.Text.TextInputLayout">
+        <item name="android:paddingTop">8dp</item>
+    </style>
+
+    <style name="AppTheme.Text.HintText">
+        <item name="android:textColor">@color/inputLabelColor</item>
+    </style>
+
+    <style name="AppTheme.Text.ErrorText">
+        <item name="android:textColor">@color/errorColor</item>
+        <item name="android:paddingTop">4dp</item>
+        <item name="android:paddingBottom">4dp</item>
+    </style>
+
+    <style name="AppTheme.EditText">
+        <item name="android:textSize">16sp</item>
+        <item name="android:lineSpacingExtra">8sp</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFamily">sans-serif</item>
+
+    </style>
+
+    <style name="AppTheme.EditText.EmailField">
+        <item name="android:hint">Email</item>
+    </style>
+
+    <style name="AppTheme.EditText.PasswordField">
+        <item name="android:hint">Password</item>
+        <item name="android:inputType">textPassword</item>
+    </style>
 
 
 </resources>
