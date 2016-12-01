@@ -119,6 +119,7 @@ public class MainActivity extends Activity {
 			for (int i = 0; i < lstContainers.size(); i++) {
 				View currLayout = lstContainers.get(i).getContainer();
 				Rect rect;
+				// TODO: understand why the bottom layout starts from 0
 				if (i < 2) {
 					rect = new Rect(currLayout.getLeft(),
 							currLayout.getTop(),
@@ -156,6 +157,7 @@ public class MainActivity extends Activity {
 
 				view.setTag(R.string.press_time, System.currentTimeMillis());
 
+				// TODO: detect long click
 				// If double click...
 				if ((view.getTag(R.string.last_press_time) != null) &&
 						(Long.valueOf(view.getTag(R.string.press_time).toString()) -

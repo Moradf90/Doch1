@@ -68,14 +68,6 @@ public class LoginActivity extends Activity implements View.OnClickListener, Fir
             case R.id.btn_sign_in : checkLogin(view); break;
             case R.id.btn_forgot_password : forgotPassword(); break;
         }
-        int value = 3;
-
-        Intent myIntent = new Intent(LoginActivity.this, MainActivity.class);
-        myIntent.putExtra("user", value); //Optional parameters
-        mp.stop();
-        mp.release();
-        LoginActivity.this.startActivity(myIntent);
-        finish();
     }
 
     public void checkLogin(View arg0) {
@@ -138,6 +130,8 @@ public class LoginActivity extends Activity implements View.OnClickListener, Fir
 
     private void onSignin(){
         LoginActivity.this.startActivity(new Intent(this, MainActivity.class));
+        mp.stop();
+        mp.release();
         finish();
     }
 }

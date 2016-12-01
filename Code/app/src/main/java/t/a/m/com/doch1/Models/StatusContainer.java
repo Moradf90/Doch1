@@ -109,6 +109,8 @@ public class StatusContainer {
 
                 soldiers.get(i).setX(getRect().left + widthLevel * 160);
                 soldiers.get(i).setY(getRect().top + heightLevel * 160);
+//                soldiers.get(i).setX(getRect().left + widthLevel * soldiers.get(0).getMeasuredWidth());
+//                soldiers.get(i).setY(getRect().top + heightLevel * soldiers.get(0).getMeasuredHeight());
                 widthLevel++;
             }
         }
