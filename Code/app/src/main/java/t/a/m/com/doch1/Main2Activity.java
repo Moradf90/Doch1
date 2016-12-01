@@ -11,13 +11,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import t.a.m.com.doch1.views.RoundedImageView;
 
 public class Main2Activity extends AppCompatActivity {
 
     private ImageView myImage;
     private static final String IMAGEVIEW_TAG = "The Android Logo";
+    private int _nImageSizeOnDrop = 160;
 
     /** Called when the activity is first created. */
 
@@ -32,8 +36,43 @@ public class Main2Activity extends AppCompatActivity {
         // set the listener to the dragging data
         myImage.setOnLongClickListener(new MyClickListener());
 
-        findViewById(R.id.toplinear).setOnDragListener(new MyDragListener());
+        ImageView myImage2 = (ImageView)findViewById(R.id.image2);
+        // Sets the tag
+        myImage2.setTag(IMAGEVIEW_TAG + "#");
+
+        // set the listener to the dragging data
+        myImage2.setOnLongClickListener(new MyClickListener());
+
+        findViewById(R.id.a).setOnDragListener(new MyDragListener());
+        findViewById(R.id.b).setOnDragListener(new MyDragListener());
         findViewById(R.id.bottomlinear).setOnDragListener(new MyDragListener());
+//        findViewById(R.id.c_status_layout).setOnDragListener(new MyDragListener());
+//        findViewById(R.id.d_status_layout).setOnDragListener(new MyDragListener());
+
+        int[] drawableRes = new int[]{R.drawable.morad72, R.drawable.tom72, R.drawable.michal72, R.drawable.batel72, R.drawable.amit72, R.drawable.tal72};
+
+        for (int i = 0; i < drawableRes.length; i++) {
+            RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(_nImageSizeOnDrop, _nImageSizeOnDrop);
+
+            RoundedImageView soldierImage = new RoundedImageView(this);
+
+            soldierImage.setLayoutParams(layoutParams);
+            soldierImage.setX(i * 50);
+            soldierImage.setY(100);
+            soldierImage.setTag(IMAGEVIEW_TAG + i);
+
+            soldierImage.setTag(R.string.soldier_name, "Tom Dinur");
+            soldierImage.setImageResource(drawableRes[i]);
+
+            // Adds the view to the layout
+            LinearLayout aStatus = (LinearLayout) findViewById(R.id.bottomlinear);
+//			rootLayout.addView(soldierImage);
+            soldierImage.setOnLongClickListener(new MyClickListener());
+
+            aStatus.addView(soldierImage);
+
+//			lstContainers.get(0).addSoldier(soldierImage);
+        }
 
     }
 
@@ -89,7 +128,7 @@ public class Main2Activity extends AppCompatActivity {
                 //drag shadow has been released,the drag point is within the bounding box of the View
                 case DragEvent.ACTION_DROP:
                     // if the view is the bottomlinear, we accept the drag item
-                    if(v == findViewById(R.id.bottomlinear)) {
+                    if(v != findViewById(R.id.bottomlinear)) {
                         View view = (View) event.getLocalState();
                         ViewGroup viewgroup = (ViewGroup) view.getParent();
                         viewgroup.removeView(view);
