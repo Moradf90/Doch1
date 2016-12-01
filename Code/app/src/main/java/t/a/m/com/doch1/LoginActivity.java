@@ -15,8 +15,10 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 
@@ -80,7 +82,7 @@ public class LoginActivity extends Activity implements View.OnClickListener, Fir
 
         // validate
         if(mEmailValidator.validate() && mPassValidator.validate()){
-            mLoginDialog = ProgressDialog.show(this, "", "Login");
+            mLoginDialog = ProgressDialog.show(this, "", "Login...");
             FirebaseAuth.getInstance().signInWithEmailAndPassword(mEmailValidator.getValue(), mPassValidator.getValue())
                     .addOnFailureListener(this)
                     .addOnSuccessListener(this);
@@ -89,16 +91,21 @@ public class LoginActivity extends Activity implements View.OnClickListener, Fir
 
     private void forgotPassword() {
         if (mEmailValidator.validate()) {
-            Intent i = new Intent(Intent.ACTION_SEND);
-            i.setType("message/rfc822");
-            i.putExtra(Intent.EXTRA_EMAIL  , new String[]{mEmailValidator.getValue()});
-            i.putExtra(Intent.EXTRA_SUBJECT, "Password reset - Doch1 ");
-            i.putExtra(Intent.EXTRA_TEXT, "Your password is... 12345");
-            try {
-                startActivity(Intent.createChooser(i, "Send mail..."));
-            } catch (android.content.ActivityNotFoundException ex) {
-                Toast.makeText(LoginActivity.this, "There are no email clients installed.", Toast.LENGTH_SHORT).show();
-            }
+            final ProgressDialog dialog = ProgressDialog.show(this, "Reset Password", String.format("send password reset email for %s.", mEmailValidator.getValue()));
+            FirebaseAuth.getInstance().sendPasswordResetEmail(mEmailValidator.getValue())
+                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()) {
+                                Toast.makeText(LoginActivity.this, "password reset email sent successfully.", Toast.LENGTH_LONG).show();
+                            }
+                            else {
+                                Toast.makeText(LoginActivity.this, "Wrong email address.", Toast.LENGTH_LONG).show();
+                            }
+                            dialog.dismiss();
+                        }
+                    });
+
         }
 
     }
