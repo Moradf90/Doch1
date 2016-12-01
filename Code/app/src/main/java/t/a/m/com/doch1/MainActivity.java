@@ -58,8 +58,6 @@ public class MainActivity extends Activity {
 			RoundedImageView soldierImage = new RoundedImageView(this);
 
 			soldierImage.setLayoutParams(layoutParams);
-			soldierImage.setMaxHeight(10);
-			soldierImage.setMaxWidth(10);
 			soldierImage.setX(i * 150);
 			soldierImage.setY(100);
 			soldierImage.setTag(R.string.soldier_name, "Tom Dinur");

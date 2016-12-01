@@ -39,11 +39,11 @@ public class StatusContainer {
     }
 
     public String[] getSubStatuses() {
-        return subStatuses;
+        return subStatuses.clone();
     }
 
     public Rect getRect() {
-        return rect;
+        return new Rect(rect);
     }
 
     // Setters
@@ -90,9 +90,9 @@ public class StatusContainer {
 
             int nImagesInFloorCapacity = 3;
 
-            if  (soldiers.get(0) != null && soldiers.get(0).getMeasuredWidth() != 0) {
+            if  (soldiers.get(0) != null) {
                 // Check how many soldiers images fix into layout and set this many in each level
-                nImagesInFloorCapacity = ((getRect().right - getRect().left) / soldiers.get(0).getMeasuredWidth());
+                nImagesInFloorCapacity = ((getRect().right - getRect().left) / 160);
                 if (nImagesInFloorCapacity == 0) {
                     nImagesInFloorCapacity = 1;
                 }
@@ -107,8 +107,8 @@ public class StatusContainer {
                     widthLevel = 0;
                 }
 
-                soldiers.get(i).setX(getRect().left + widthLevel * soldiers.get(0).getMeasuredWidth());
-                soldiers.get(i).setY(getRect().top + heightLevel * soldiers.get(0).getMeasuredHeight());
+                soldiers.get(i).setX(getRect().left + widthLevel * 160);
+                soldiers.get(i).setY(getRect().top + heightLevel * 160);
                 widthLevel++;
             }
         }
