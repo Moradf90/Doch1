@@ -16,6 +16,8 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import com.google.firebase.auth.FirebaseAuth;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -41,8 +43,10 @@ public class MainActivity extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		Intent intent = getIntent();
-		String value = intent.getStringExtra("user"); //if it's a string you stored.
+//		Intent intent = getIntent();
+//		String value = intent.getStringExtra("user"); //if it's a string you stored.
+
+		// get user info -> FirebaseAuth.getInstance().getCurrentUser();
 
 		setContentView(R.layout.activity_main);
 		rootLayout = (ViewGroup) findViewById(R.id.view_root);
