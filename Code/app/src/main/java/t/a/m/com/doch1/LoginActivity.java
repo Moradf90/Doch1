@@ -4,32 +4,21 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
-<<<<<<< HEAD
 import android.media.MediaPlayer;
-=======
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputLayout;
->>>>>>> f8a732d49a51d8c47d2cf39c9e9aca98a9701efe
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.view.View;
-import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import t.a.m.com.doch1.common.validators.EmailValidator;
 import t.a.m.com.doch1.common.validators.PasswordValidator;
@@ -79,8 +68,6 @@ public class LoginActivity extends Activity implements View.OnClickListener, Fir
             case R.id.btn_sign_in : checkLogin(view); break;
             case R.id.btn_forgot_password : forgotPassword(); break;
         }
-<<<<<<< HEAD
-
         int value = 3;
 
         Intent myIntent = new Intent(LoginActivity.this, MainActivity.class);
@@ -89,8 +76,6 @@ public class LoginActivity extends Activity implements View.OnClickListener, Fir
         mp.release();
         LoginActivity.this.startActivity(myIntent);
         finish();
-=======
->>>>>>> f8a732d49a51d8c47d2cf39c9e9aca98a9701efe
     }
 
     public void checkLogin(View arg0) {

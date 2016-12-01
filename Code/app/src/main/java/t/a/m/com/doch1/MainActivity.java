@@ -3,28 +3,25 @@ package t.a.m.com.doch1;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.res.TypedArray;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
+import android.text.Layout;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
-import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import t.a.m.com.doch1.Adapters.GridViewAdapter;
-import t.a.m.com.doch1.Adapters.GridViewAdapter.*;
+import t.a.m.com.doch1.Models.StatusContainer;
 import t.a.m.com.doch1.views.RoundedImageView;
 
 public class MainActivity extends Activity {
@@ -35,20 +32,10 @@ public class MainActivity extends Activity {
 	private int _nImageSizeOnDrag = 280;
 	private int _nImageSizeOnDrop = 160;
 	final int DOUBLE_PRESS_INTERVAL = 500;
-	private static final Map<String, String[]> statusesMap;
-	static
-	{
-		statusesMap = new HashMap<String, String[]>();
-		statusesMap.put("A", new String[]{});
-		statusesMap.put("B", new String[]{"מיוחדת 1", "מחלה", "מחוץ ליחידה"});
-		statusesMap.put("C", new String[]{"הריון", "יום אבל", "מחלה בהצהרה"});
-		statusesMap.put("D", new String[]{"מיוחדת 3", "שחרור", "מטיול" , "יום סידורים", "חוץ לארץ"});
-	}
 
-	Rect[] statusesRects;
+	boolean bIsRectInit = false;
 
-	private GridView gridView;
-	private GridViewAdapter gridAdapter;
+	List<StatusContainer> lstContainers;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -60,10 +47,12 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 		rootLayout = (ViewGroup) findViewById(R.id.view_root);
 
+		lstContainers = new ArrayList<>();
+		initContainers();
+
 		int[] drawableRes = new int[]{R.drawable.morad72, R.drawable.tom72, R.drawable.michal72, R.drawable.batel72, R.drawable.amit72, R.drawable.tal72};
 
-		for(int i=0;i<drawableRes.length;i++)
-		{
+		for (int i = 0; i < drawableRes.length; i++) {
 			RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(_nImageSizeOnDrop, _nImageSizeOnDrop);
 
 			RoundedImageView soldierImage = new RoundedImageView(this);
@@ -74,47 +63,32 @@ public class MainActivity extends Activity {
 			soldierImage.setX(i * 150);
 			soldierImage.setY(100);
 			soldierImage.setTag(R.string.soldier_name, "Tom Dinur");
-			soldierImage.setTag(R.string.main_status, "A");
 			soldierImage.setImageResource(drawableRes[i]);
 
 			// Adds the view to the layout
-					rootLayout.addView(soldierImage);
+			rootLayout.addView(soldierImage);
+			lstContainers.get(0).addSoldier(soldierImage);
 			soldierImage.setOnTouchListener(new ChoiceTouchListener());
-
-			soldierImage.setOnLongClickListener(new View.OnLongClickListener() {
-				@Override
-				public boolean onLongClick(View view) {
-					return false;
-				}
-			});
 		}
-
-		gridView = (GridView) findViewById(R.id.gridView);
-		gridAdapter = new GridViewAdapter(this, R.layout.grid_item_layout, getData());
-		gridView.setAdapter(gridAdapter);
 	}
 
-	// Prepare some dummy data for gridview
-	private ArrayList<ImageItem> getData() {
-		final ArrayList<ImageItem> imageItems = new ArrayList<>();
-		TypedArray imgs = getResources().obtainTypedArray(R.array.image_ids);
-		for (int i = 0; i < imgs.length(); i++) {
-			Bitmap bitmap = BitmapFactory.decodeResource(getResources(), imgs.getResourceId(i, -1));
-			imageItems.add(new ImageItem(bitmap, "Image#" + i));
-		}
-		return imageItems;
+	private void initContainers() {
+		lstContainers.add(new StatusContainer((LinearLayout) findViewById(R.id.a_status_layout), "A", new String[]{}));
+		lstContainers.add(new StatusContainer((LinearLayout) findViewById(R.id.b_status_layout), "B", new String[]{"מיוחדת 1", "מחלה", "מחוץ ליחידה"}));
+		lstContainers.add(new StatusContainer((LinearLayout) findViewById(R.id.c_status_layout), "C", new String[]{"הריון", "יום אבל", "מחלה בהצהרה"}));
+		lstContainers.add(new StatusContainer((LinearLayout) findViewById(R.id.d_status_layout), "D", new String[]{"מיוחדת 3", "שחרור", "מטיול" , "יום סידורים", "חוץ לארץ"}));
 	}
 
 	private void openSpinner(final View view) {
 		if (view.getTag(R.string.main_status) != null) {
 			String currentStatus = view.getTag(R.string.main_status).toString();
+			StatusContainer mainStatusContainer = getContainerByStatus(currentStatus);
 
-			if (statusesMap.containsKey(currentStatus)) {
+			if (mainStatusContainer != null) {
 				AlertDialog.Builder b = new AlertDialog.Builder(this);
 				b.setTitle(currentStatus + " status");
-//		String[] types = {"By Zip", "By Category"};
 
-				b.setItems(statusesMap.get(currentStatus), new DialogInterface.OnClickListener() {
+				b.setItems(mainStatusContainer.getSubStatuses(), new DialogInterface.OnClickListener() {
 
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
@@ -140,33 +114,30 @@ public class MainActivity extends Activity {
 
 	@Override
 	public void onWindowFocusChanged (boolean hasFocus) {
-		LinearLayout[] statusesLayouts = new LinearLayout[]
-				{
-//						(LinearLayout) findViewById(R.id.a_status_layout),
-						(LinearLayout) findViewById(R.id.b_status_layout),
-						(LinearLayout) findViewById(R.id.c_status_layout),
-						(LinearLayout) findViewById(R.id.d_status_layout),
-				};
 
-		statusesRects = new Rect[statusesLayouts.length];
-
-		for(int i=0;i<statusesRects.length;i++) {
-			int[] x= new int[2];
-			statusesLayouts[i].getLocationOnScreen(x);
-
-			int[] y = new int[2];
-			statusesLayouts[i].getLocationInWindow(y);
-
-
-			Rect rect = new Rect(statusesLayouts[i].getLeft(),
-					statusesLayouts[i].getTop(),
-					statusesLayouts[i].getRight(),
-					statusesLayouts[i].getBottom());
-			statusesRects[i] = rect;
+		// TODO: understand why the rect sizes are changed
+		if (!bIsRectInit) {
+			bIsRectInit = true;
+			for (int i = 0; i < lstContainers.size(); i++) {
+				View currLayout = lstContainers.get(i).getContainer();
+				Rect rect;
+				if (i < 2) {
+					rect = new Rect(currLayout.getLeft(),
+							currLayout.getTop(),
+							currLayout.getRight(),
+							currLayout.getBottom());
+				} else {
+					rect = new Rect(currLayout.getLeft(),
+							currLayout.getTop() + lstContainers.get(0).getContainer().getBottom(),
+							currLayout.getRight(),
+							currLayout.getBottom() + lstContainers.get(0).getContainer().getBottom());
+				}
+				lstContainers.get(i).setRect(rect);
+			}
 		}
 	}
 
-	private final class ChoiceTouchListener implements OnTouchListener {
+	public final class ChoiceTouchListener implements OnTouchListener {
 
 		public boolean onTouch(View view, MotionEvent event) {
 			ImageView touchedImage = (ImageView)view;
@@ -230,24 +201,38 @@ public class MainActivity extends Activity {
 		Rect myViewRect = new Rect();
 		view.getHitRect(myViewRect);
 
-		for(int i=0; i<statusesRects.length; i++) {
-			if (statusesRects[i].contains(myViewRect)) {
-				// If this is the A status - no subStatus needed
-				if (i == 0) {
-					((ImageView)view).setColorFilter(Color.argb(100, 0, 0, 0));
-				}
-				// Need subStatus so we 'highlight' the soldier
-				else if (i == 1){
-					((ImageView)view).setColorFilter(Color.argb(10, 0, 0, 0));
-				}
-				else if (i==2) {
-					((ImageView)view).setColorFilter(Color.argb(50, 0, 225, 255));
-				}
-				view.setTag(R.string.main_status, (char)('A' + i));
-//				Toast.makeText(this, "status is -> " + (char)('A' + i), Toast.LENGTH_SHORT).show();
-				break;
+		// Remove from the old container
+		StatusContainer oldContainer = getContainerByStatus((String) view.getTag(R.string.main_status));
+		if (oldContainer != null) {
+			oldContainer.removeSoldier((RoundedImageView) view);
+		}
+		else {
+			int x = 4;
+		}
+
+		for(int i=0; i<lstContainers.size(); i++) {
+			if (lstContainers.get(i).getRect().contains(myViewRect)) {
+				lstContainers.get(i).addSoldier((RoundedImageView) view);
+
+				Toast.makeText(this, "status is -> " + (char)('A' + i), Toast.LENGTH_SHORT).show();
+				return;
+			}
+			else if (lstContainers.get(i).getRect().intersect(myViewRect)) {
+				lstContainers.get(i).addSoldier((RoundedImageView) view);
+
+				Toast.makeText(this, "status is -> " + (char)('A' + i), Toast.LENGTH_SHORT).show();
+				return;
 			}
 		}
+	}
+
+	private StatusContainer getContainerByStatus(final String status) {
+		for(StatusContainer con : lstContainers) {
+			if(con.getMainStatus().equals(status)) {
+				return con;
+			}
+		}
+		return null;
 	}
 }
 

@@ -1,94 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/view_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:splitMotionEvents="false"
-    android:weightSum="2">
+    android:layout_weight="1"
+    android:orientation="vertical"
+    android:splitMotionEvents="false">
 
-    <RelativeLayout
-        android:id="@+id/r3"
+    <LinearLayout
+        android:id="@+id/top_layout"
+        android:layout_above="@+id/tv_dummy"
         android:layout_width="match_parent"
-        android:layout_height="240dp"
-        android:layout_alignParentTop="true" >
+        android:layout_height="match_parent"
+        android:layout_weight="1">
 
-        <!--<LinearLayout-->
-            <!--android:id="@+id/a_status_layout"-->
-            <!--android:layout_width="180dp"-->
-            <!--android:layout_height="match_parent"-->
-            <!--android:layout_alignParentLeft="true"-->
-            <!--android:layout_alignParentTop="true"-->
-            <!--android:background="#5080ce">-->
-            <!--<TextView-->
-                <!--android:layout_width="match_parent"-->
-                <!--android:layout_height="match_parent"-->
-                <!--android:text="A status"/>-->
+        <LinearLayout
+            android:id="@+id/a_status_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="#5080ce">
 
-        <!--</LinearLayout>-->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="A status" />
 
-        <GridView
-            android:id="@+id/gridView"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="5dp"
-            android:columnWidth="100dp"
-            android:drawSelectorOnTop="true"
-            android:gravity="center"
-            android:numColumns="auto_fit"
-            android:stretchMode="columnWidth"
-            android:verticalSpacing="5dp"
-            android:focusable="true"
-            android:clickable="true"/>
+        </LinearLayout>
 
         <LinearLayout
             android:id="@+id/b_status_layout"
-            android:layout_width="180dp"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentTop="true"
+            android:layout_weight="1"
             android:background="#356dc6">
+
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:text="B status"/>
+                android:gravity="center"
+                android:text="B status" />
 
         </LinearLayout>
-    </RelativeLayout>
+    </LinearLayout>
 
-    <RelativeLayout
-        android:id="@+id/r2"
+    <TextView
+        android:id="@+id/tv_dummy"
+        android:layout_centerInParent="true"
+        android:background="#5080ce"
         android:layout_width="match_parent"
-        android:layout_height="240dp"
-        android:layout_alignParentBottom="true"
-        android:layout_below="@+id/r3" >
+        android:layout_height="0.1dp" />
+
+    <LinearLayout
+        android:id="@+id/bottom_layout"
+        android:layout_below="@+id/tv_dummy"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1">
 
         <LinearLayout
             android:id="@+id/c_status_layout"
-            android:layout_width="180dp"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentTop="true"
+            android:layout_weight="1"
             android:background="#325287">
+
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:text="C status"/>
+                android:gravity="center"
+                android:text="C status" />
 
         </LinearLayout>
 
         <LinearLayout
             android:id="@+id/d_status_layout"
-            android:layout_width="180dp"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentTop="true"
-            android:background="#26477c" >
+            android:layout_weight="1"
+            android:background="#26477c">
+
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:text="D status"/>
+                android:gravity="center"
+                android:text="D status" />
         </LinearLayout>
-    </RelativeLayout>
+    </LinearLayout>
 </RelativeLayout>
-
-
