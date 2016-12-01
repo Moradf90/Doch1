@@ -59,6 +59,8 @@ public class LoginActivity extends Activity implements View.OnClickListener, Fir
     @Override
     protected void onStop() {
         super.onStop();
+        mp.stop();
+        mp.release();
         FirebaseAuth.getInstance().removeAuthStateListener(this);
     }
 
@@ -130,8 +132,6 @@ public class LoginActivity extends Activity implements View.OnClickListener, Fir
 
     private void onSignin(){
         LoginActivity.this.startActivity(new Intent(this, MainActivity.class));
-        mp.stop();
-        mp.release();
         finish();
     }
 }
