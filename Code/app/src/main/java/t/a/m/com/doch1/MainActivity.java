@@ -6,17 +6,19 @@ import android.graphics.Canvas;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.view.DragEvent;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import org.apmem.tools.layouts.FlowLayout;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import t.a.m.com.doch1.views.RoundedImageView;
 
@@ -45,11 +47,6 @@ public class MainActivity extends Activity {
             FlowLayout btm = (FlowLayout) findViewById(R.id.topleft);
             btm.addView(soldierImage);
         }
-
-//        findViewById(R.id.topleft).setOnDragListener(new MyDragListener());
-//        findViewById(R.id.topright).setOnDragListener(new MyDragListener());
-//        findViewById(R.id.bottomleft).setOnDragListener(new MyDragListener());
-//        findViewById(R.id.bottomright).setOnDragListener(new MyDragListener());
 
         // Set drag listeners
         LinearLayout rootLinearLayout = (LinearLayout) findViewById(R.id.root);
@@ -90,7 +87,7 @@ public class MainActivity extends Activity {
                 // If double click..
                 long diff = pressTime - lastPressTime;
                 if (diff <= DOUBLE_PRESS_INTERVAL) {
-                    Toast.makeText(getApplicationContext(),String.valueOf(diff), Toast.LENGTH_SHORT).show();
+                    showPopup(view);
                 }
 
                 // record the last time the menu button was pressed.
@@ -106,9 +103,9 @@ public class MainActivity extends Activity {
         @Override
         public boolean onDrag(View v, DragEvent event) {
             int action = event.getAction();
-            View view = (View) event.getLocalState();
+            View imgSoldier = (View) event.getLocalState();
 
-            ViewGroup owner = (ViewGroup) view.getParent();
+            ViewGroup owner = (ViewGroup) imgSoldier.getParent();
 
             switch (event.getAction()) {
                 case DragEvent.ACTION_DRAG_STARTED:
@@ -120,10 +117,15 @@ public class MainActivity extends Activity {
                     break;
                 case DragEvent.ACTION_DROP:
 
-                    owner.removeView(view);
+                    owner.removeView(imgSoldier);
                     FlowLayout container = (FlowLayout) v;
-                    container.addView(view);
-                    view.setVisibility(View.VISIBLE);
+                    container.addView(imgSoldier);
+                    imgSoldier.setVisibility(View.VISIBLE);
+
+                    // Clear the sub status
+                    if (owner != container) {
+                        imgSoldier.setTag(R.string.sub_status, null);
+                    }
 
                     break;
                 case DragEvent.ACTION_DRAG_ENDED:
@@ -178,7 +180,41 @@ public class MainActivity extends Activity {
             canvas.scale(mScaleFactor.x/(float)getView().getWidth(), mScaleFactor.y/(float)getView().getHeight());
             getView().draw(canvas);
         }
+    }
 
+    public void showPopup(final View imgSoldier) {
+        String[] Company = {"תירוץ 1","תירוץ 2","תירוץ 3","תירוץ 4","תירוץ 5","תירוץ 6"};
+        LayoutInflater layoutInflater =
+                (LayoutInflater)getBaseContext()
+                        .getSystemService(LAYOUT_INFLATER_SERVICE);
+        View popupView = layoutInflater.inflate(R.layout.sub_status_popup, null);
+        final PopupWindow popupWindow = new PopupWindow(
+                popupView, LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        Spinner popupSpinner = (Spinner)popupView.findViewById(R.id.popupspinner);
+        ArrayAdapter<String> adapter =
+                new ArrayAdapter<String>(MainActivity.this,
+                        android.R.layout.simple_spinner_item, Company);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        popupSpinner.setAdapter(adapter);
+        // TODO: DOESNT WORK
+        // If there is already selected sub status - select it
+        if (imgSoldier.getTag(R.string.sub_status) != null) {
+            popupSpinner.setSelection(Integer.valueOf(imgSoldier.getTag(R.string.sub_status).toString()));
+        }
+
+        popupSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                imgSoldier.setTag(R.string.sub_status, i);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+        popupWindow.setFocusable(true);
+        popupWindow.showAsDropDown(imgSoldier, 50, -30);
     }
 }
 
