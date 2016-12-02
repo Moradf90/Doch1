@@ -50,4 +50,10 @@ public abstract class BaseValidator {
         }
         return "";
     }
+
+    public void setValue(CharSequence value){
+        if(mEditText != null){
+            mEditText.setText(value);
+        }
+    }
 }

@@ -9,5 +9,6 @@
     <string name="missing_email_address">Enter your email address to continue</string>
     <string name="password_length">Strong passwords have at least %1$d characters and a mix of letters and numbers</string>
     <string name="invalid_sigin">Invalid email or password, try again ...</string>
+    <string name="missing_data_string">this field cannot be blank</string>
 
 </resources>

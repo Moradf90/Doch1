@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "t.a.m.com.doch1"
-        minSdkVersion 23
+        minSdkVersion 21
         targetSdkVersion 25
         versionCode 1
         versionName "1.0"
@@ -26,6 +26,7 @@ dependencies {
     compile "com.android.support:design:25.0.0"
     compile "com.google.firebase:firebase-auth:9.6.0"
     compile 'com.google.firebase:firebase-core:9.6.0'
+    compile 'com.google.firebase:firebase-database:9.6.0'
 }
 
 apply plugin: 'com.google.gms.google-services'

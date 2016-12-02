@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#2672ff</color>
+    <color name="colorPrimary">#217e28</color>
+    <color name="colorPrimaryDark">#1B5E20</color>
+    <color name="colorAccent">#FFCC00</color>
 
+    <color name="colorPrimaryBackground">#401b5e20</color>
     <color name="inputLabelColor">#fff</color>
+    <color name="errorTextColor">#eb7d61</color>
     <color name="errorColor">#DD2C00</color>
 </resources>
