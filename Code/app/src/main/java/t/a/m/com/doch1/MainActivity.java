@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import org.apmem.tools.layouts.FlowLayout;
 
@@ -22,6 +23,7 @@ import t.a.m.com.doch1.views.RoundedImageView;
 public class MainActivity extends Activity {
 
     private static final int ENLARGE_ON_DARG = 2;
+    private static final long DOUBLE_PRESS_INTERVAL = 500;
     private int _nImageSizeOnDrop = 140;
 
     @Override
@@ -74,7 +76,25 @@ public class MainActivity extends Activity {
                 View.DragShadowBuilder shadowBuilder = new MyDragShadowBuilder(
                         view);
                 view.startDrag(data, shadowBuilder, view, 0);
-                view.setVisibility(View.INVISIBLE);
+                // TODO: if you click many times fast it remains invisible so think about timeout or something
+//                view.setVisibility(View.INVISIBLE);
+
+                // Detect double click:
+
+                // Get current time in nano seconds.
+                long pressTime = System.currentTimeMillis();
+                long lastPressTime = 0;
+                if (view.getTag(R.string.last_press_time) != null) {
+                    lastPressTime = Long.parseLong(view.getTag(R.string.last_press_time).toString());
+                }
+                // If double click..
+                long diff = pressTime - lastPressTime;
+                if (diff <= DOUBLE_PRESS_INTERVAL) {
+                    Toast.makeText(getApplicationContext(),String.valueOf(diff), Toast.LENGTH_SHORT).show();
+                }
+
+                // record the last time the menu button was pressed.
+                view.setTag(R.string.last_press_time, pressTime);
                 return true;
             } else {
                 return false;
