@@ -2,349 +2,163 @@ package t.a.m.com.doch1;
 
 import android.app.Activity;
 import android.content.ClipData;
-import android.content.ClipDescription;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.Rect;
+import android.graphics.Canvas;
+import android.graphics.Point;
 import android.os.Bundle;
-import android.support.v7.app.AlertDialog;
-import android.text.Layout;
 import android.view.DragEvent;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
-import android.widget.Toast;
 
-import com.google.firebase.auth.FirebaseAuth;
+import org.apmem.tools.layouts.FlowLayout;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import t.a.m.com.doch1.Models.StatusContainer;
 import t.a.m.com.doch1.views.RoundedImageView;
 
 public class MainActivity extends Activity {
 
-	private ViewGroup rootLayout;
-	private int _xDelta;
-	private int _yDelta;
-	private int _nImageSizeOnDrag = 280;
-	private int _nImageSizeOnDrop = 160;
-	final int DOUBLE_PRESS_INTERVAL = 500;
+    private static final int ENLARGE_ON_DARG = 2;
+    private int _nImageSizeOnDrop = 140;
 
-	boolean bIsRectInit = false;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
-	List<StatusContainer> lstContainers;
+        int[] drawableRes = new int[]{R.drawable.morad72, R.drawable.tom72, R.drawable.michal72, R.drawable.batel72, R.drawable.amit72, R.drawable.tal72};
 
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+        for (int i = 0; i < drawableRes.length; i++) {
+            RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(_nImageSizeOnDrop, _nImageSizeOnDrop);
 
-//		Intent intent = getIntent();
-//		String value = intent.getStringExtra("user"); //if it's a string you stored.
+            RoundedImageView soldierImage = new RoundedImageView(this);
 
-		// get user info -> FirebaseAuth.getInstance().getCurrentUser();
+            soldierImage.setLayoutParams(layoutParams);
+            soldierImage.setImageResource(drawableRes[i]);
 
+            soldierImage.setOnTouchListener(new MyTouchListener());
+            FlowLayout btm = (FlowLayout) findViewById(R.id.topleft);
+            btm.addView(soldierImage);
+        }
 
+//        findViewById(R.id.topleft).setOnDragListener(new MyDragListener());
+//        findViewById(R.id.topright).setOnDragListener(new MyDragListener());
+//        findViewById(R.id.bottomleft).setOnDragListener(new MyDragListener());
+//        findViewById(R.id.bottomright).setOnDragListener(new MyDragListener());
 
-		setContentView(R.layout.activity_main);
-		rootLayout = (ViewGroup) findViewById(R.id.view_root);
+        // Set drag listeners
+        LinearLayout rootLinearLayout = (LinearLayout) findViewById(R.id.root);
+        int countRoot = rootLinearLayout.getChildCount();
+        for (int i = 0; i < countRoot; i++) {
+            LinearLayout vParent = (LinearLayout) rootLinearLayout.getChildAt(i);
+            if (vParent instanceof LinearLayout) {
+                int countStatuses = rootLinearLayout.getChildCount();
+                for (int j = 0; j < countStatuses; j++) {
+                    View v = vParent.getChildAt(j);
+                    if (v instanceof org.apmem.tools.layouts.FlowLayout) {
+                        v.setOnDragListener(new MyDragListener());
+                    }
+                }
+            }
+        }
+    }
 
-//		ImageView myImage = (ImageView)findViewById(R.id.image1);
-//		myImage.setOnLongClickListener(new MyClickListener());
-//		myImage.setTag("kaki");
+    private final class MyTouchListener implements View.OnTouchListener {
+        public boolean onTouch(View view, MotionEvent motionEvent) {
+            if (motionEvent.getAction() == MotionEvent.ACTION_DOWN)
+            {
+                ClipData data = ClipData.newPlainText("", "");
+                View.DragShadowBuilder shadowBuilder = new MyDragShadowBuilder(
+                        view);
+                view.startDrag(data, shadowBuilder, view, 0);
+                view.setVisibility(View.INVISIBLE);
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
 
-		lstContainers = new ArrayList<>();
-		initContainers();
+    class MyDragListener implements View.OnDragListener {
+        @Override
+        public boolean onDrag(View v, DragEvent event) {
+            int action = event.getAction();
+            View view = (View) event.getLocalState();
 
-		int[] drawableRes = new int[]{R.drawable.morad72, R.drawable.tom72, R.drawable.michal72, R.drawable.batel72, R.drawable.amit72, R.drawable.tal72};
+            ViewGroup owner = (ViewGroup) view.getParent();
 
-		for (int i = 0; i < drawableRes.length; i++) {
-			RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(_nImageSizeOnDrop, _nImageSizeOnDrop);
+            switch (event.getAction()) {
+                case DragEvent.ACTION_DRAG_STARTED:
+                    // do nothing
+                    break;
+                case DragEvent.ACTION_DRAG_ENTERED:
+                    break;
+                case DragEvent.ACTION_DRAG_EXITED:
+                    break;
+                case DragEvent.ACTION_DROP:
 
-			RoundedImageView soldierImage = new RoundedImageView(this);
+                    owner.removeView(view);
+                    FlowLayout container = (FlowLayout) v;
+                    container.addView(view);
+                    view.setVisibility(View.VISIBLE);
 
-			soldierImage.setLayoutParams(layoutParams);
-			soldierImage.setX(i * 50);
-			soldierImage.setY(100);
-			soldierImage.setTag(R.string.soldier_name, "Tom Dinur");
-			soldierImage.setImageResource(drawableRes[i]);
+                    break;
+                case DragEvent.ACTION_DRAG_ENDED:
 
-			// Adds the view to the layout
-			LinearLayout aStatus = (LinearLayout) findViewById(R.id.a_status_layout);
-//			rootLayout.addView(soldierImage);
-			soldierImage.setOnLongClickListener(new MyClickListener());
+                default:
+                    break;
+            }
+            return true;
+        }
+    }
 
-			aStatus.addView(soldierImage);
+    private static class MyDragShadowBuilder extends View.DragShadowBuilder {
 
-//			lstContainers.get(0).addSoldier(soldierImage);
-		}
-	}
+        private Point mScaleFactor;
+        // Defines the constructor for myDragShadowBuilder
+        public MyDragShadowBuilder(View v) {
 
-	private void initContainers() {
-		findViewById(R.id.a_status_layout).setOnDragListener(new MyDragListener());
-		findViewById(R.id.b_status_layout).setOnDragListener(new MyDragListener());
-		findViewById(R.id.c_status_layout).setOnDragListener(new MyDragListener());
-		findViewById(R.id.d_status_layout).setOnDragListener(new MyDragListener());
+            // Stores the View parameter passed to myDragShadowBuilder.
+            super(v);
 
-//		lstContainers.add(new StatusContainer((LinearLayout) findViewById(R.id.a_status_layout), "A", new String[]{}));
-//		lstContainers.add(new StatusContainer((LinearLayout) findViewById(R.id.b_status_layout), "B", new String[]{"מיוחדת 1", "מחלה", "מחוץ ליחידה"}));
-//		lstContainers.add(new StatusContainer((LinearLayout) findViewById(R.id.c_status_layout), "C", new String[]{"הריון", "יום אבל", "מחלה בהצהרה"}));
-//		lstContainers.add(new StatusContainer((LinearLayout) findViewById(R.id.d_status_layout), "D", new String[]{"מיוחדת 3", "שחרור", "מטיול" , "יום סידורים", "חוץ לארץ"}));
-	}
+        }
 
-	private final class MyClickListener implements View.OnLongClickListener {
+        // Defines a callback that sends the drag shadow dimensions and touch point back to the
+        // system.
+        @Override
+        public void onProvideShadowMetrics (Point size, Point touch) {
+            // Defines local variables
+            int width;
+            int height;
 
-		// called when the item is long-clicked
-		@Override
-		public boolean onLongClick(View view) {
-			// TODO Auto-generated method stub
+            // Sets the width of the shadow to half the width of the original View
+            width = getView().getWidth() * ENLARGE_ON_DARG;
 
-			// create it from the object's tag
-			ClipData.Item item = new ClipData.Item((CharSequence)view.getTag());
+            // Sets the height of the shadow to half the height of the original View
+            height = getView().getHeight() * ENLARGE_ON_DARG;
 
-			String[] mimeTypes = { ClipDescription.MIMETYPE_TEXT_PLAIN };
-			ClipData data = new ClipData(view.getTag().toString(), mimeTypes, item);
-			View.DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(view);
+            // Sets the size parameter's width and height values. These get back to the system
+            // through the size parameter.
+            size.set(width, height);
 
-			view.startDrag( data, //data to be dragged
-					shadowBuilder, //drag shadow
-					view, //local data about the drag and drop operation
-					0   //no needed flags
-			);
+            // Sets size parameter to member that will be used for scaling shadow image.
+            mScaleFactor = size;
 
+            // Sets the touch point's position to be in the middle of the drag shadow
+            touch.set(width / ENLARGE_ON_DARG, height / ENLARGE_ON_DARG);
+        }
 
-			view.setVisibility(View.INVISIBLE);
-			return true;
-		}
-	}
+        @Override
+        public void onDrawShadow(Canvas canvas) {
 
-	class MyDragListener implements View.OnDragListener {
+            // Draws the ColorDrawable in the Canvas passed in from the system.
+            canvas.scale(mScaleFactor.x/(float)getView().getWidth(), mScaleFactor.y/(float)getView().getHeight());
+            getView().draw(canvas);
+        }
 
-		@Override
-		public boolean onDrag(View v, DragEvent event) {
-
-			// Handles each of the expected events
-			switch (event.getAction()) {
-
-				//signal for the start of a drag and drop operation.
-				case DragEvent.ACTION_DRAG_STARTED:
-					// do nothing
-					break;
-
-				//the drag point has entered the bounding box of the View
-				case DragEvent.ACTION_DRAG_ENTERED:
-					v.setBackgroundColor(Color.rgb(56,56,56));	//change the shape of the view
-					break;
-
-				//the user has moved the drag shadow outside the bounding box of the View
-				case DragEvent.ACTION_DRAG_EXITED:
-					v.setBackgroundColor(Color.rgb(176,176,176));	//change the shape of the view back to normal
-					break;
-
-				//drag shadow has been released,the drag point is within the bounding box of the View
-				case DragEvent.ACTION_DROP:
-					// if the view is the bottomlinear, we accept the drag item
-					if(v != findViewById(R.id.bottomlinear)) {
-						View view = (View) event.getLocalState();
-						ViewGroup viewgroup = (ViewGroup) view.getParent();
-						viewgroup.removeView(view);
-
-						//change the text
-//						TextView text = (TextView) v.findViewById(R.id.text);
-//						text.setText("The item is dropped");
-
-						LinearLayout containView = (LinearLayout) v;
-						containView.addView(view);
-						view.setVisibility(View.VISIBLE);
-					} else {
-						View view = (View) event.getLocalState();
-						view.setVisibility(View.VISIBLE);
-						Context context = getApplicationContext();
-						Toast.makeText(context, "You can't drop the image here",
-								Toast.LENGTH_LONG).show();
-						break;
-					}
-					break;
-
-				//the drag and drop operation has concluded.
-				case DragEvent.ACTION_DRAG_ENDED:
-					v.setBackgroundColor(Color.rgb(176,176,176));	//go back to normal shape
-
-				default:
-					break;
-			}
-			return true;
-		}
-	}
-
-	private void openSpinner(final View view) {
-//		if (view.getTag(R.string.main_status) != null) {
-//			String currentStatus = view.getTag(R.string.main_status).toString();
-//			StatusContainer mainStatusContainer = getContainerByStatus(currentStatus);
-//
-//			if (mainStatusContainer != null) {
-//				AlertDialog.Builder b = new AlertDialog.Builder(this);
-//				b.setTitle(currentStatus + " status");
-//
-//				b.setItems(mainStatusContainer.getSubStatuses(), new DialogInterface.OnClickListener() {
-//
-//					@Override
-//					public void onClick(DialogInterface dialog, int which) {
-//
-//						dialog.dismiss();
-//						view.setTag(R.string.sub_status, which);
-//						switch (which) {
-//							case 0:
-////						onZipRequested();
-//								break;
-//							case 1:
-////						onCategoryRequested();
-//								break;
-//						}
-//					}
-//
-//				});
-//
-//				b.show();
-//			}
-//		}
-	}
-
-//	@Override
-//	public void onWindowFocusChanged (boolean hasFocus) {
-//
-//		// TODO: understand why the rect sizes are changed
-//		if (!bIsRectInit) {
-//			bIsRectInit = true;
-//			for (int i = 0; i < lstContainers.size(); i++) {
-//				View currLayout = lstContainers.get(i).getContainer();
-//				Rect rect;
-//				// TODO: understand why the bottom layout starts from 0
-//				if (i < 2) {
-//					rect = new Rect(currLayout.getLeft(),
-//							currLayout.getTop(),
-//							currLayout.getRight(),
-//							currLayout.getBottom());
-//				} else {
-//					rect = new Rect(currLayout.getLeft(),
-//							currLayout.getTop() + lstContainers.get(0).getContainer().getBottom(),
-//							currLayout.getRight(),
-//							currLayout.getBottom() + lstContainers.get(0).getContainer().getBottom());
-//				}
-//				lstContainers.get(i).setRect(rect);
-//			}
-//		}
-//	}
-//
-//	public final class ChoiceTouchListener implements OnTouchListener {
-//
-//		public boolean onTouch(View view, MotionEvent event) {
-//			ImageView touchedImage = (ImageView)view;
-//			final int X = (int) event.getRawX();
-//			final int Y = (int) event.getRawY();
-//
-//			android.view.ViewGroup.LayoutParams imgLayoutParams = touchedImage.getLayoutParams();
-//
-//			switch (event.getAction() & MotionEvent.ACTION_MASK) {
-//			case MotionEvent.ACTION_DOWN:
-//				RelativeLayout.LayoutParams lParams = (RelativeLayout.LayoutParams) view.getLayoutParams();
-//				_xDelta = X - lParams.leftMargin;
-//				_yDelta = Y - lParams.topMargin;
-//
-//				imgLayoutParams.width = _nImageSizeOnDrag;
-//				imgLayoutParams.height = _nImageSizeOnDrag;
-//				touchedImage.setLayoutParams(imgLayoutParams);
-//
-//				view.setTag(R.string.press_time, System.currentTimeMillis());
-//
-//				// TODO: detect long click
-//				// If double click...
-//				if ((view.getTag(R.string.last_press_time) != null) &&
-//						(Long.valueOf(view.getTag(R.string.press_time).toString()) -
-//								Long.valueOf(view.getTag(R.string.last_press_time).toString()) <=
-//								DOUBLE_PRESS_INTERVAL)) {
-//					openSpinner(view);
-//				}
-//
-//				// record the last time the menu button was pressed.
-//				view.setTag(R.string.last_press_time, view.getTag(R.string.press_time));
-//
-//				break;
-//			case MotionEvent.ACTION_UP:
-//				imgLayoutParams.width = _nImageSizeOnDrop;
-//				imgLayoutParams.height = _nImageSizeOnDrop;
-//				touchedImage.setLayoutParams(imgLayoutParams);
-//				getStatusOfView(touchedImage);
-//				break;
-//			case MotionEvent.ACTION_POINTER_DOWN:
-//				break;
-//			case MotionEvent.ACTION_POINTER_UP:
-//				break;
-//			case MotionEvent.ACTION_MOVE:
-//				RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) view
-//						.getLayoutParams();
-//				layoutParams.leftMargin = X - _xDelta;
-//				layoutParams.topMargin = Y - _yDelta;
-//				layoutParams.rightMargin = -250;
-//				layoutParams.bottomMargin = -250;
-//				view.setLayoutParams(layoutParams);
-//				break;
-//			}
-//			rootLayout.invalidate();
-//			return true;
-//		}
-//	}
-//
-//	// TODO :doesnt work, probably rectangles of layout arent good
-//	private final void getStatusOfView(View view) {
-//
-//		Rect myViewRect = new Rect();
-//		view.getHitRect(myViewRect);
-//
-//		// Remove from the old container
-//		StatusContainer oldContainer = getContainerByStatus((String) view.getTag(R.string.main_status));
-//		if (oldContainer != null) {
-//			oldContainer.removeSoldier((RoundedImageView) view);
-//		}
-//		else {
-//			int x = 4;
-//		}
-//
-//		for(int i=0; i<lstContainers.size(); i++) {
-//			if (lstContainers.get(i).getRect().contains(myViewRect)) {
-//				lstContainers.get(i).addSoldier((RoundedImageView) view);
-//
-//				Toast.makeText(this, "status is -> " + (char)('A' + i), Toast.LENGTH_SHORT).show();
-//				return;
-//			}
-//			else if (lstContainers.get(i).getRect().intersect(myViewRect)) {
-//				lstContainers.get(i).addSoldier((RoundedImageView) view);
-//
-//				Toast.makeText(this, "status is -> " + (char)('A' + i), Toast.LENGTH_SHORT).show();
-//				return;
-//			}
-//		}
-//	}
-//
-//	private StatusContainer getContainerByStatus(final String status) {
-//		for(StatusContainer con : lstContainers) {
-//			if(con.getMainStatus().equals(status)) {
-//				return con;
-//			}
-//		}
-//		return null;
-//	}
+    }
 }
-
-
 

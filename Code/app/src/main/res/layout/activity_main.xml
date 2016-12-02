@@ -1,91 +1,100 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/view_root"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_weight="1"
     android:orientation="vertical"
-    android:splitMotionEvents="false">
+    android:id="@+id/root"
+    android:weightSum="3" >
 
     <LinearLayout
-        android:id="@+id/top_layout"
-        android:layout_above="@+id/tv_dummy"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="1">
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:weightSum="3" >
 
-        <LinearLayout
-            android:id="@+id/a_status_layout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+        <org.apmem.tools.layouts.FlowLayout
+            android:layout_width="0dp"
+            android:id="@+id/topleft"
+            android:layout_height="fill_parent"
             android:layout_weight="1"
-            android:background="#5080ce">
+            android:background="@color/aStatusColor"
+             />
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="center"
-                android:text="A status" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/b_status_layout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+        <org.apmem.tools.layouts.FlowLayout
+            android:layout_width="0dp"
+            android:id="@+id/bottomleft"
+            android:background="@color/bStatusColor"
+            android:layout_height="fill_parent"
             android:layout_weight="1"
-            android:background="#356dc6">
+            />
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="center"
-                android:text="B status" />
-
-        </LinearLayout>
+        <org.apmem.tools.layouts.FlowLayout
+            android:layout_width="0dp"
+            android:id="@+id/topright"
+            android:background="@color/cStatusColor"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+          />
     </LinearLayout>
-
-    <TextView
-        android:id="@+id/tv_dummy"
-        android:layout_centerInParent="true"
-        android:background="#5080ce"
-        android:layout_width="match_parent"
-        android:layout_height="0.1dp" />
 
     <LinearLayout
-        android:id="@+id/bottom_layout"
-        android:layout_below="@+id/tv_dummy"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="1">
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:weightSum="3" >
 
-        <LinearLayout
-            android:id="@+id/c_status_layout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+        <org.apmem.tools.layouts.FlowLayout
+            android:layout_width="0dp"
+            android:id="@+id/bottomright"
+            android:background="@color/bStatusColor"
+            android:layout_height="fill_parent"
             android:layout_weight="1"
-            android:background="#325287">
+             />
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="center"
-                android:text="C status" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/d_status_layout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+        <org.apmem.tools.layouts.FlowLayout
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:background="@color/cStatusColor"
             android:layout_weight="1"
-            android:background="#26477c">
+             />
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="center"
-                android:text="D status" />
-        </LinearLayout>
+        <org.apmem.tools.layouts.FlowLayout
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:background="@color/aStatusColor"
+            android:layout_weight="1"
+             />
     </LinearLayout>
-</RelativeLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:weightSum="3" >
+
+        <org.apmem.tools.layouts.FlowLayout
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:background="@color/cStatusColor"
+            android:layout_weight="1"
+            />
+
+        <org.apmem.tools.layouts.FlowLayout
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:background="@color/aStatusColor"
+            android:layout_weight="1"
+            />
+
+        <org.apmem.tools.layouts.FlowLayout
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:background="@color/bStatusColor"
+            android:layout_weight="1"
+           />
+    </LinearLayout>
+
+</LinearLayout>

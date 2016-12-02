@@ -6,4 +6,10 @@
 
     <color name="inputLabelColor">#fff</color>
     <color name="errorColor">#DD2C00</color>
+
+    <color name="aStatusColor">#5080ce</color>
+    <color name="bStatusColor">#356dc6</color>
+    <color name="cStatusColor">#325287</color>
+    <color name="dStatusColor">#26477c</color>
+    <color name="entered">#12ffff</color>
 </resources>

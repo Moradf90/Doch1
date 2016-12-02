@@ -40,7 +40,7 @@ public class LoginActivity extends Activity implements View.OnClickListener, Fir
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         mp = MediaPlayer.create(this, R.raw.login_audio2);
-        mp.start();
+//        mp.start();
 
         mEmailValidator = new EmailValidator((TextInputLayout) findViewById(R.id.email_layout));
         mPassValidator = new PasswordValidator((TextInputLayout) findViewById(R.id.password_layout), 4);
@@ -98,8 +98,7 @@ public class LoginActivity extends Activity implements View.OnClickListener, Fir
                         public void onComplete(@NonNull Task<Void> task) {
                             if (task.isSuccessful()) {
                                 Toast.makeText(LoginActivity.this, "password reset email sent successfully.", Toast.LENGTH_LONG).show();
-                            }
-                            else {
+                            } else {
                                 Toast.makeText(LoginActivity.this, "Wrong email address.", Toast.LENGTH_LONG).show();
                             }
                             dialog.dismiss();
@@ -138,7 +137,7 @@ public class LoginActivity extends Activity implements View.OnClickListener, Fir
     }
 
     private void onSignin(){
-        LoginActivity.this.startActivity(new Intent(this, Main3Activity.class));
+        LoginActivity.this.startActivity(new Intent(this, MainActivity.class));
         finish();
     }
 }
