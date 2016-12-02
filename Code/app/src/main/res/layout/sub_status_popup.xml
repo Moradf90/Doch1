@@ -2,14 +2,13 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:background="@android:color/background_light"
     android:orientation="vertical" >
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="1dp"
-        android:background="#e6e600"
-        android:orientation="vertical" >>
+        android:background="@drawable/spinner_layout_bg"
+        android:orientation="vertical" >
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -18,10 +17,14 @@
             <TextView
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
+                android:id="@+id/txt_soldier_name"
+                android:textSize="14dp" />
+            <TextView
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
                 android:text="בחר סטטוס משנה"
-                android:textSize="14dp"
-                />
-            <Spinner
+                android:textSize="14dp" />
+            <t.a.m.com.doch1.views.MySpinner
                 android:id="@+id/popupspinner"
                 android:spinnerMode="dialog"
                 android:layout_width="fill_parent"

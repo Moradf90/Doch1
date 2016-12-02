@@ -5,6 +5,7 @@ import android.content.ClipData;
 import android.graphics.Canvas;
 import android.graphics.Point;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.DragEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -16,10 +17,12 @@ import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.apmem.tools.layouts.FlowLayout;
 
+import t.a.m.com.doch1.views.MySpinner;
 import t.a.m.com.doch1.views.RoundedImageView;
 
 public class MainActivity extends Activity {
@@ -33,7 +36,12 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        int[] drawableRes = new int[]{R.drawable.morad72, R.drawable.tom72, R.drawable.michal72, R.drawable.batel72, R.drawable.amit72, R.drawable.tal72};
+        int[] drawableRes = new int[]
+                {R.drawable.morad72, R.drawable.tom72, R.drawable.michal72,
+//                 R.drawable.batel72, R.drawable.amit72,
+ R.drawable.yam36,
+                 R.drawable.shahar72, R.drawable.yoad72, R.drawable.omer72,
+                 R.drawable.yair72, R.drawable.lior72};
 
         for (int i = 0; i < drawableRes.length; i++) {
             RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(_nImageSizeOnDrop, _nImageSizeOnDrop);
@@ -42,6 +50,7 @@ public class MainActivity extends Activity {
 
             soldierImage.setLayoutParams(layoutParams);
             soldierImage.setImageResource(drawableRes[i]);
+            soldierImage.setTag(R.string.soldier_name, "טל איטח");
 
             soldierImage.setOnTouchListener(new MyTouchListener());
             FlowLayout btm = (FlowLayout) findViewById(R.id.topleft);
@@ -125,6 +134,9 @@ public class MainActivity extends Activity {
                     // Clear the sub status
                     if (owner != container) {
                         imgSoldier.setTag(R.string.sub_status, null);
+
+                        // Let user selected secondary status
+                        //showPopup(imgSoldier);
                     }
 
                     break;
@@ -190,22 +202,38 @@ public class MainActivity extends Activity {
         View popupView = layoutInflater.inflate(R.layout.sub_status_popup, null);
         final PopupWindow popupWindow = new PopupWindow(
                 popupView, LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        Spinner popupSpinner = (Spinner)popupView.findViewById(R.id.popupspinner);
+        MySpinner popupSpinner = (MySpinner)popupView.findViewById(R.id.popupspinner);
+        TextView txtSoldierName = (TextView) popupView.findViewById(R.id.txt_soldier_name);
+        if (imgSoldier.getTag(R.string.soldier_name) != null) {
+            txtSoldierName.setText(imgSoldier.getTag(R.string.soldier_name).toString());
+        }
         ArrayAdapter<String> adapter =
                 new ArrayAdapter<String>(MainActivity.this,
                         android.R.layout.simple_spinner_item, Company);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         popupSpinner.setAdapter(adapter);
-        // TODO: DOESNT WORK
-        // If there is already selected sub status - select it
-        if (imgSoldier.getTag(R.string.sub_status) != null) {
-            popupSpinner.setSelection(Integer.valueOf(imgSoldier.getTag(R.string.sub_status).toString()));
-        }
+
+        final Boolean[] bFirstTimeSeleceted = {true};
 
         popupSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 imgSoldier.setTag(R.string.sub_status, i);
+                if (!bFirstTimeSeleceted[0]) {
+                    final Handler handler = new Handler();
+
+                    final Runnable runnable = new Runnable() {
+                        @Override
+                        public void run() {
+                            if (popupWindow.isShowing()) {
+                                popupWindow.dismiss();
+                            }
+                        }
+                    };
+
+                    handler.postDelayed(runnable, 1000);
+                }
+                bFirstTimeSeleceted[0] = false;
             }
 
             @Override
@@ -213,6 +241,12 @@ public class MainActivity extends Activity {
 
             }
         });
+
+        // If there is already selected sub status - select it
+        if (imgSoldier.getTag(R.string.sub_status) != null) {
+            popupSpinner.setSelection(Integer.valueOf(imgSoldier.getTag(R.string.sub_status).toString()));
+        }
+
         popupWindow.setFocusable(true);
         popupWindow.showAsDropDown(imgSoldier, 50, -30);
     }
