@@ -32,13 +32,15 @@ public class LoginActivity extends Activity implements View.OnClickListener, Fir
     private EmailValidator mEmailValidator;
     private PasswordValidator mPassValidator;
     private ProgressDialog mLoginDialog;
-    private MediaPlayer mp;
+
+    MediaPlayer mp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         mp = MediaPlayer.create(this, R.raw.login_audio2);
+//        mp.start();
 
         mEmailValidator = new EmailValidator((TextInputLayout) findViewById(R.id.email_layout));
         mPassValidator = new PasswordValidator((TextInputLayout) findViewById(R.id.password_layout), 4);
@@ -53,17 +55,15 @@ public class LoginActivity extends Activity implements View.OnClickListener, Fir
     @Override
     protected void onStart() {
         super.onStart();
-        mp.start();
         FirebaseAuth.getInstance().addAuthStateListener(this);
     }
 
     @Override
     protected void onStop() {
-        FirebaseAuth.getInstance().removeAuthStateListener(this);
+        super.onStop();
         mp.stop();
         mp.release();
-        mp = null;
-        super.onStop();
+        FirebaseAuth.getInstance().removeAuthStateListener(this);
     }
 
     @Override
@@ -98,8 +98,7 @@ public class LoginActivity extends Activity implements View.OnClickListener, Fir
                         public void onComplete(@NonNull Task<Void> task) {
                             if (task.isSuccessful()) {
                                 Toast.makeText(LoginActivity.this, "password reset email sent successfully.", Toast.LENGTH_LONG).show();
-                            }
-                            else {
+                            } else {
                                 Toast.makeText(LoginActivity.this, "Wrong email address.", Toast.LENGTH_LONG).show();
                             }
                             dialog.dismiss();
@@ -138,7 +137,7 @@ public class LoginActivity extends Activity implements View.OnClickListener, Fir
     }
 
     private void onSignin(){
-        LoginActivity.this.startActivity(new Intent(this, Main2Activity.class));
+        LoginActivity.this.startActivity(new Intent(this, MainActivity.class));
         finish();
     }
 }
