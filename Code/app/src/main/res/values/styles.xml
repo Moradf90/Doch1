@@ -21,7 +21,7 @@
     </style>
 
     <style name="AppTheme.Text.HintText">
-        <item name="android:textColor">@color/inputLabelColor</item>
+        <item name="android:textColor">@color/colorPrimary</item>
     </style>
 
     <style name="AppTheme.Text.ErrorText">

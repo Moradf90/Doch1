@@ -9,5 +9,6 @@
     <string name="password_length">Strong passwords have at least %1$d characters and a mix of letters and numbers</string>
     <string name="invalid_sigin">Invalid email or password, try again ...</string>
     <string name="missing_data_string">this field cannot be blank</string>
-
+    <string name="no_display_name">No Display name</string>
+    <string name="edit_email_reauthenticate_message">Editing email address requires re-authentication by entering your password.</string>
 </resources>
