@@ -1,6 +1,6 @@
 package t.a.m.com.doch1;
 
-import android.app.Activity;
+import android.app.Fragment;
 import android.content.ClipData;
 import android.graphics.Canvas;
 import android.graphics.Point;
@@ -16,49 +16,51 @@ import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
-import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.apmem.tools.layouts.FlowLayout;
 
 import t.a.m.com.doch1.views.MySpinner;
 import t.a.m.com.doch1.views.RoundedImageView;
 
-public class MainActivity extends Activity {
+public class MainFragment extends Fragment {
 
     private static final int ENLARGE_ON_DARG = 2;
     private static final long DOUBLE_PRESS_INTERVAL = 500;
     private int _nImageSizeOnDrop = 140;
 
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+
+        View vFragmentLayout = inflater.inflate(R.layout.activity_main, container, false);
+
+        getActivity().setTitle("Filling Statuses");
 
         int[] drawableRes = new int[]
                 {R.drawable.morad72, R.drawable.tom72, R.drawable.michal72,
 //                 R.drawable.batel72, R.drawable.amit72,
- R.drawable.yam36,
-                 R.drawable.shahar72, R.drawable.yoad72, R.drawable.omer72,
-                 R.drawable.yair72, R.drawable.lior72};
+                        R.drawable.yam36,
+                        R.drawable.shahar72, R.drawable.yoad72, R.drawable.omer72,
+                        R.drawable.yair72, R.drawable.lior72};
 
         for (int i = 0; i < drawableRes.length; i++) {
             RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(_nImageSizeOnDrop, _nImageSizeOnDrop);
 
-            RoundedImageView soldierImage = new RoundedImageView(this);
+            RoundedImageView soldierImage = new RoundedImageView(getActivity());
 
             soldierImage.setLayoutParams(layoutParams);
             soldierImage.setImageResource(drawableRes[i]);
             soldierImage.setTag(R.string.soldier_name, "טל איטח");
 
             soldierImage.setOnTouchListener(new MyTouchListener());
-            FlowLayout btm = (FlowLayout) findViewById(R.id.topleft);
+            FlowLayout btm = (FlowLayout) vFragmentLayout.findViewById(R.id.topleft);
             btm.addView(soldierImage);
         }
 
         // Set drag listeners
-        LinearLayout rootLinearLayout = (LinearLayout) findViewById(R.id.root);
+        LinearLayout rootLinearLayout = (LinearLayout) vFragmentLayout.findViewById(R.id.root);
         int countRoot = rootLinearLayout.getChildCount();
         for (int i = 0; i < countRoot; i++) {
             LinearLayout vParent = (LinearLayout) rootLinearLayout.getChildAt(i);
@@ -72,7 +74,55 @@ public class MainActivity extends Activity {
                 }
             }
         }
+
+        return vFragmentLayout;
     }
+
+
+
+//    @Override
+//    public void onCreate(Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+//
+//
+//        int[] drawableRes = new int[]
+//                {R.drawable.morad72, R.drawable.tom72, R.drawable.michal72,
+////                 R.drawable.batel72, R.drawable.amit72,
+// R.drawable.yam36,
+//                 R.drawable.shahar72, R.drawable.yoad72, R.drawable.omer72,
+//                 R.drawable.yair72, R.drawable.lior72};
+//
+//        for (int i = 0; i < drawableRes.length; i++) {
+//            RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(_nImageSizeOnDrop, _nImageSizeOnDrop);
+//
+//            RoundedImageView soldierImage = new RoundedImageView(this);
+//
+//            soldierImage.setLayoutParams(layoutParams);
+//            soldierImage.setImageResource(drawableRes[i]);
+//            soldierImage.setTag(R.string.soldier_name, "טל איטח");
+//
+//            soldierImage.setOnTouchListener(new MyTouchListener());
+//            FlowLayout btm = (FlowLayout) findViewById(R.id.topleft);
+//            btm.addView(soldierImage);
+//        }
+//
+//        // Set drag listeners
+//        LinearLayout rootLinearLayout = (LinearLayout) findViewById(R.id.root);
+//        int countRoot = rootLinearLayout.getChildCount();
+//        for (int i = 0; i < countRoot; i++) {
+//            LinearLayout vParent = (LinearLayout) rootLinearLayout.getChildAt(i);
+//            if (vParent instanceof LinearLayout) {
+//                int countStatuses = rootLinearLayout.getChildCount();
+//                for (int j = 0; j < countStatuses; j++) {
+//                    View v = vParent.getChildAt(j);
+//                    if (v instanceof org.apmem.tools.layouts.FlowLayout) {
+//                        v.setOnDragListener(new MyDragListener());
+//                    }
+//                }
+//            }
+//        }
+//    }
 
     private final class MyTouchListener implements View.OnTouchListener {
         public boolean onTouch(View view, MotionEvent motionEvent) {
@@ -197,8 +247,7 @@ public class MainActivity extends Activity {
     public void showPopup(final View imgSoldier) {
         String[] Company = {"תירוץ 1","תירוץ 2","תירוץ 3","תירוץ 4","תירוץ 5","תירוץ 6"};
         LayoutInflater layoutInflater =
-                (LayoutInflater)getBaseContext()
-                        .getSystemService(LAYOUT_INFLATER_SERVICE);
+                LayoutInflater.from(getActivity());
         View popupView = layoutInflater.inflate(R.layout.sub_status_popup, null);
         final PopupWindow popupWindow = new PopupWindow(
                 popupView, LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
@@ -208,7 +257,7 @@ public class MainActivity extends Activity {
             txtSoldierName.setText(imgSoldier.getTag(R.string.soldier_name).toString());
         }
         ArrayAdapter<String> adapter =
-                new ArrayAdapter<String>(MainActivity.this,
+                new ArrayAdapter<String>(getActivity(),
                         android.R.layout.simple_spinner_item, Company);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         popupSpinner.setAdapter(adapter);

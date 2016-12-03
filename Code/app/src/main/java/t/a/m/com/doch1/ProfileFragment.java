@@ -3,6 +3,7 @@ package t.a.m.com.doch1;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Fragment;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -14,11 +15,11 @@ import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
-import android.view.Menu;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -36,7 +37,7 @@ import t.a.m.com.doch1.common.validators.EmailValidator;
 import t.a.m.com.doch1.common.validators.NotEmptyValidator;
 import t.a.m.com.doch1.views.RoundedImageView;
 
-public class ProfileActivity extends AppCompatActivity implements View.OnClickListener {
+public class ProfileFragment extends Fragment implements View.OnClickListener {
 
     private static final int PICK_IMAGE = 1233;
     private static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE_FOR_PICK_IMAGE = 36411; // must be 16 bit
@@ -60,37 +61,41 @@ public class ProfileActivity extends AppCompatActivity implements View.OnClickLi
     private Uri mPicUri;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_profile);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        View vFragmentLayout = inflater.inflate(R.layout.activity_profile, container, false);
 
-        setTitle("Profile");
+
+        getActivity().setTitle("Profile");
+
+//        mCurrentUser = getArguments().get("currentUser");
 
         mCurrentUser = FirebaseAuth.getInstance().getCurrentUser();
         if(mCurrentUser == null){
-            finish();
+//            finish();
         }
         else {
-            mProfilePictureView = (RoundedImageView) findViewById(R.id.picture);
-            mPicEditButton = (ImageButton) findViewById(R.id.edit_pic);
-            mProfileDisplayName = (TextView) findViewById(R.id.display_name_text);
-            mNameEditButton = (ImageButton) findViewById(R.id.display_name_edit);
-            mEditNameInputLayout = (TextInputLayout) findViewById(R.id.name_layout);
-            mNotEmptyValidator = new NotEmptyValidator(mEditNameInputLayout);
-            mDisplayNameView = findViewById(R.id.display_name_view);
+            mProfilePictureView = (RoundedImageView) vFragmentLayout.findViewById(R.id.picture);
+            mProfileDisplayName = (TextView) vFragmentLayout.findViewById(R.id.display_name_text);
+            mNameEditButton = (ImageButton) vFragmentLayout.findViewById(R.id.display_name_edit);
+            mEditNameInputLayout = (TextInputLayout) vFragmentLayout.findViewById(R.id.name_layout);
+            mPicEditButton = (ImageButton) vFragmentLayout.findViewById(R.id.edit_pic);
 
-            mProfileEmail = (TextView) findViewById(R.id.email_text);
-            mEmailEditButton = (ImageButton) findViewById(R.id.email_edit);
-            mEditEmailInputLayout = (TextInputLayout) findViewById(R.id.email_layout);
+            mNotEmptyValidator = new NotEmptyValidator(mEditNameInputLayout);
+            mDisplayNameView = vFragmentLayout.findViewById(R.id.display_name_view);
+
+            mProfileEmail = (TextView) vFragmentLayout.findViewById(R.id.email_text);
+            mEmailEditButton = (ImageButton) vFragmentLayout.findViewById(R.id.email_edit);
+            mEditEmailInputLayout = (TextInputLayout) vFragmentLayout.findViewById(R.id.email_layout);
             mEmailValidator = new EmailValidator(mEditEmailInputLayout);
-            mEmailView = findViewById(R.id.email_view);
+            mEmailView = vFragmentLayout.findViewById(R.id.email_view);
 
             if(mCurrentUser.getPhotoUrl() != null){
-                if (ContextCompat.checkSelfPermission(this,
+                if (ContextCompat.checkSelfPermission(getActivity(),
                         Manifest.permission.READ_EXTERNAL_STORAGE)
                         != PackageManager.PERMISSION_GRANTED) {
 
-                    ActivityCompat.requestPermissions(this,
+                    ActivityCompat.requestPermissions(getActivity(),
                             new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                             MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE_FOR_SET_IMAGE);
 
@@ -114,13 +119,15 @@ public class ProfileActivity extends AppCompatActivity implements View.OnClickLi
             mPicEditButton.setOnClickListener(this);
             mEmailEditButton.setOnClickListener(this);
         }
+
+        return vFragmentLayout;
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.profile_activity_menu, menu);
-        return true;
-    }
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        getActivity().getMenuInflater().inflate(R.menu.profile_activity_menu, menu);
+//        return true;
+//    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -175,11 +182,11 @@ public class ProfileActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void onPictureEditButtonClick(){
-        if (ContextCompat.checkSelfPermission(this,
+        if (ContextCompat.checkSelfPermission(getActivity(),
                 Manifest.permission.READ_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
 
-            ActivityCompat.requestPermissions(this,
+            ActivityCompat.requestPermissions(getActivity(),
                     new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                     MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE_FOR_PICK_IMAGE);
 
@@ -208,7 +215,7 @@ public class ProfileActivity extends AppCompatActivity implements View.OnClickLi
     private void onSaveChanges() {
 
         // hide the keyboard
-        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+        InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(mDisplayNameView.getWindowToken(), 0);
 
         UserProfileChangeRequest.Builder profileUpdatesBuilder = new UserProfileChangeRequest.Builder();
@@ -228,10 +235,10 @@ public class ProfileActivity extends AppCompatActivity implements View.OnClickLi
 
         if (mEmailValidator.validate() && !mCurrentUser.getEmail().equals(mEmailValidator.getValue())){
 
-            AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
+            AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getActivity());
             dialogBuilder.setTitle("Password to re-authenticate");
 
-            final EditText editText = new EditText(this);
+            final EditText editText = new EditText(getActivity());
             editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
             dialogBuilder.setView(editText);
 
