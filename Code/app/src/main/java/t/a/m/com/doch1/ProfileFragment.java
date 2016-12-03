@@ -2,6 +2,7 @@ package t.a.m.com.doch1;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -13,9 +14,11 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -33,7 +36,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import t.a.m.com.doch1.common.validators.NotEmptyValidator;
 import t.a.m.com.doch1.views.RoundedImageView;
 
-public class ProfileActivity extends AppCompatActivity implements View.OnClickListener, OnCompleteListener<Void> {
+public class ProfileFragment extends Fragment implements View.OnClickListener, OnCompleteListener<Void> {
 
     private static final int PICK_IMAGE = 1233;
     private static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 36411; // must be 16 bit
@@ -53,24 +56,25 @@ public class ProfileActivity extends AppCompatActivity implements View.OnClickLi
     private String mNewDisplayName;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_profile);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        View vFragmentLayout = inflater.inflate(R.layout.activity_profile, container, false);
 
-        setTitle("Profile");
+
+        getActivity().setTitle("Profile");
 
         mCurrentUser = FirebaseAuth.getInstance().getCurrentUser();
         if(mCurrentUser == null){
-            finish();
+//            finish();
         }
         else {
-            mProfilePictureView = (RoundedImageView) findViewById(R.id.picture);
-            mPicEditButton = (ImageButton) findViewById(R.id.edit_pic);
-            mProfileDisplayName = (TextView) findViewById(R.id.display_name_text);
-            mNameEditButton = (Button) findViewById(R.id.display_name_edit);
-            mEditNameInputLayout = (TextInputLayout) findViewById(R.id.name_layout);
+            mProfilePictureView = (RoundedImageView) vFragmentLayout.findViewById(R.id.picture);
+            mPicEditButton = (ImageButton) vFragmentLayout.findViewById(R.id.edit_pic);
+            mProfileDisplayName = (TextView) vFragmentLayout.findViewById(R.id.display_name_text);
+            mNameEditButton = (Button) vFragmentLayout.findViewById(R.id.display_name_edit);
+            mEditNameInputLayout = (TextInputLayout) vFragmentLayout.findViewById(R.id.name_layout);
             mNotEmptyValidator = new NotEmptyValidator(mEditNameInputLayout);
-            mDisplayNameView = findViewById(R.id.display_name_view);
+            mDisplayNameView = vFragmentLayout.findViewById(R.id.display_name_view);
 
             if(mCurrentUser.getPhotoUrl() != null){
                 mProfilePictureView.setImageURI(mCurrentUser.getPhotoUrl());
@@ -91,13 +95,15 @@ public class ProfileActivity extends AppCompatActivity implements View.OnClickLi
             mUserReference = database.getReference(mCurrentUser.getUid());
             mUserReference.setValue("skjdsk");
         }
+
+        return vFragmentLayout;
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.profile_activity_menu, menu);
-        return true;
-    }
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        getActivity().getMenuInflater().inflate(R.menu.profile_activity_menu, menu);
+//        return true;
+//    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -143,11 +149,11 @@ public class ProfileActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void onPictureEditButtonClick(){
-        if (ContextCompat.checkSelfPermission(this,
+        if (ContextCompat.checkSelfPermission(getActivity(),
                 Manifest.permission.READ_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
 
-            ActivityCompat.requestPermissions(this,
+            ActivityCompat.requestPermissions(getActivity(),
                     new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                     MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
 
@@ -171,7 +177,7 @@ public class ProfileActivity extends AppCompatActivity implements View.OnClickLi
     private void onSaveChanges() {
 
         // hide the keyboard
-        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+        InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(mDisplayNameView.getWindowToken(), 0);
 
         UserProfileChangeRequest.Builder profileUpdatesBuilder = new UserProfileChangeRequest.Builder();
