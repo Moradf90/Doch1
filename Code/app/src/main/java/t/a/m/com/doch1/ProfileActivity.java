@@ -43,7 +43,6 @@ public class ProfileActivity extends AppCompatActivity implements View.OnClickLi
     private static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE_FOR_SET_IMAGE = 36302;
 
     private FirebaseUser mCurrentUser;
-    private DatabaseReference mUserReference;
 
     private ImageButton mPicEditButton;
     private RoundedImageView mProfilePictureView;

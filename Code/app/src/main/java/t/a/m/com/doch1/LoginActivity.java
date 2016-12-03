@@ -22,6 +22,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 
+import t.a.m.com.doch1.common.connection.UserUtil;
 import t.a.m.com.doch1.common.validators.EmailValidator;
 import t.a.m.com.doch1.common.validators.PasswordValidator;
 
@@ -137,7 +138,8 @@ public class LoginActivity extends Activity implements View.OnClickListener, Fir
     }
 
     private void onSignin(){
-        LoginActivity.this.startActivity(new Intent(this, MainActivity.class));
+        UserUtil.init();
+        LoginActivity.this.startActivity(new Intent(this, ProfileActivity.class));
         finish();
     }
 }
