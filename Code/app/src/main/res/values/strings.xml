@@ -37,4 +37,6 @@
     <string name="dsc_main_statuses" >fill your soldiers statuses</string>
     <string name="send_statuses">Send</string>
 
+    <string name="no_display_name">No Display name</string>
+    <string name="edit_email_reauthenticate_message">Editing email address requires re-authentication by entering your password.</string>
 </resources>

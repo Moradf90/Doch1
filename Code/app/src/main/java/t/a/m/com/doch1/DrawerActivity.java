@@ -13,6 +13,8 @@ import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.Toast;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.mikepenz.fastadapter.commons.utils.RecyclerViewCacheUtil;
 import com.mikepenz.fontawesome_typeface_library.FontAwesome;
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
@@ -48,15 +50,15 @@ public class DrawerActivity extends AppCompatActivity {
     //save our header or result
     private AccountHeader headerResult = null;
     private Drawer result = null;
+    private FirebaseUser mCurrentUser;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sample_dark_toolbar);
 
-        Bundle extras = getIntent().getExtras();
-        String email = extras.getString("email");
-        String userName = extras.getString("userName");
+        mCurrentUser = FirebaseAuth.getInstance().getCurrentUser();
 
         //Remove line to test RTL support
         //getWindow().getDecorView().setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
@@ -67,7 +69,7 @@ public class DrawerActivity extends AppCompatActivity {
 
         // Create a few sample profile
         // NOTE you have to define the loader logic too. See the CustomApplication for more details
-        final IProfile profile = new ProfileDrawerItem().withName(userName).withEmail(email).withIcon(getDrawable(R.drawable.morad72)).withIdentifier(100);
+        final IProfile profile = new ProfileDrawerItem().withName(mCurrentUser.getDisplayName()).withEmail(mCurrentUser.getEmail()).withIcon(mCurrentUser.getPhotoUrl()).withIdentifier(100);
 
         // Create the AccountHeader
         headerResult = new AccountHeaderBuilder()
@@ -151,45 +153,6 @@ public class DrawerActivity extends AppCompatActivity {
 
                         if (drawerItem != null) {
                             selectItem((int) drawerItem.getIdentifier());
-
-//                            Intent intent = null;
-//                            if (drawerItem.getIdentifier() == 1) {
-//                                intent = new Intent(DrawerActivity.this, MainFragment.class);
-//                            } else if (drawerItem.getIdentifier() == 2) {
-//                            }
-//                            else if (drawerItem.getIdentifier() == 3) {
-//                                intent = new Intent(DrawerActivity.this, MultiDrawerActivity.class);
-//                            } else if (drawerItem.getIdentifier() == 4) {
-//                                intent = new Intent(DrawerActivity.this, NonTranslucentDrawerActivity.class);
-//                            } else if (drawerItem.getIdentifier() == 5) {
-//                                intent = new Intent(DrawerActivity.this, AdvancedActivity.class);
-//                            } else if (drawerItem.getIdentifier() == 7) {
-//                                intent = new Intent(DrawerActivity.this, EmbeddedDrawerActivity.class);
-//                            } else if (drawerItem.getIdentifier() == 8) {
-//                                intent = new Intent(DrawerActivity.this, FullscreenDrawerActivity.class);
-//                            } else if (drawerItem.getIdentifier() == 9) {
-//                                intent = new Intent(DrawerActivity.this, CustomContainerActivity.class);
-//                            } else if (drawerItem.getIdentifier() == 10) {
-//                                intent = new Intent(DrawerActivity.this, MenuDrawerActivity.class);
-//                            } else if (drawerItem.getIdentifier() == 11) {
-//                                intent = new Intent(DrawerActivity.this, MiniDrawerActivity.class);
-//                            } else if (drawerItem.getIdentifier() == 12) {
-//                                intent = new Intent(DrawerActivity.this, FragmentActivity.class);
-//                            } else if (drawerItem.getIdentifier() == 13) {
-//                                intent = new Intent(DrawerActivity.this, CollapsingToolbarActivity.class);
-//                            } else if (drawerItem.getIdentifier() == 14) {
-//                                intent = new Intent(DrawerActivity.this, PersistentDrawerActivity.class);
-//                            } else if (drawerItem.getIdentifier() == 15) {
-//                                intent = new Intent(DrawerActivity.this, CrossfadeDrawerLayoutActvitiy.class);
-//                            } else if (drawerItem.getIdentifier() == 20) {
-//                                intent = new LibsBuilder()
-//                                        .withFields(R.string.class.getFields())
-//                                        .withActivityStyle(Libs.ActivityStyle.LIGHT_DARK_TOOLBAR)
-//                                        .intent(DrawerActivity.this);
-//                            }
-//                            if (intent != null) {
-//                                DrawerActivity.this.startActivity(intent);
-//                            }
                         }
 
                         return false;
@@ -236,14 +199,14 @@ public class DrawerActivity extends AppCompatActivity {
         if (position == 1) {
             fragment = new ProfileFragment();
         }
-        if (position == 2) {
+        else if (position == 2) {
             fragment = new MainFragment();
         }
-        if (position == 9) {
+        else if (position == 9) {
             Toast.makeText(DrawerActivity.this, "Send...", Toast.LENGTH_SHORT).show();
             fragment = new MainFragment();
         }
-        if (position == 21) {
+        else if (position == 21) {
             Toast.makeText(DrawerActivity.this, "Call Morad", Toast.LENGTH_SHORT).show();
             fragment = new MainFragment();
         }

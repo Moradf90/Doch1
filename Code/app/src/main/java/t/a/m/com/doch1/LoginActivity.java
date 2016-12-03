@@ -137,18 +137,7 @@ public class LoginActivity extends Activity implements View.OnClickListener, Fir
     }
 
     private void onSignin(){
-        // Todo: send the email
-
-        Intent i = new Intent(LoginActivity.this, DrawerActivity.class);
-
-        String email = "moradFaris@doch1.com";
-        i.putExtra("email", email);
-
-        String userName = "morad Faris";
-        i.putExtra("userName", userName);
-        startActivity(i);
-
-//        LoginActivity.this.startActivity(new Intent(this, DrawerActivity.class));
+        LoginActivity.this.startActivity(new Intent(this, DrawerActivity.class));
         finish();
     }
 }
