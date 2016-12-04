@@ -45,6 +45,7 @@ public class DrawerActivity extends AppCompatActivity {
     public static FirebaseUser mCurrentUser;
     List<IDrawerItem>  lstSoldiersToExpand;
     ExpandableDrawerItem SoldiersDrawerItem;
+    IProfile profile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,7 +64,9 @@ public class DrawerActivity extends AppCompatActivity {
         // Create a few sample profile
         // NOTE you have to define the loader logic too. See the CustomApplication for more details
 //        final IProfile profile = new ProfileDrawerItem().withName(mCurrentUser.getDisplayName()).withEmail(mCurrentUser.getEmail()).withIcon(R.drawable.snowflake36).withIdentifier(100);
-        final IProfile profile = new ProfileDrawerItem().withName(mCurrentUser.getDisplayName()).withEmail(mCurrentUser.getEmail()).withIcon(mCurrentUser.getPhotoUrl()).withIdentifier(100);
+
+        initProfileInDrawer(mCurrentUser);
+
 
         // Create the AccountHeader
         headerResult = new AccountHeaderBuilder()
@@ -103,15 +106,8 @@ public class DrawerActivity extends AppCompatActivity {
         PrimaryDrawerItem MyProfileDrawerItem = new PrimaryDrawerItem().withName(R.string.profile_fragment).withIcon(GoogleMaterial.Icon.gmd_account).withIdentifier(1).withSelectable(false);
         PrimaryDrawerItem FillStatusesDrawerItem = new PrimaryDrawerItem().withName(R.string.main_fragment).withDescription(R.string.dsc_main_statuses).withIcon(FontAwesome.Icon.faw_wheelchair).withIdentifier(2).withSelectable(false);
 
-
-//        ExpandableDrawerItem SoldiersDrawerItem = new ExpandableDrawerItem().withName("My Soldiers").withIcon(GoogleMaterial.Icon.gmd_accounts_list).withIdentifier(19).withSelectable(false).withSubItems(
-//                new SecondaryDrawerItem().withName("Amit Hanuch").withLevel(2).withIcon(getDrawable(R.drawable.amit72)).withIdentifier(2002).withSelectable(false),
-//                new SecondaryDrawerItem().withName("Tal Itah").withLevel(2).withIcon(getDrawable(R.drawable.tal72)).withDescription("Status A - excuse 2").withIdentifier(2005).withSelectable(false).withTextColor(Color.rgb(47, 183, 47)),
-//                new SecondaryDrawerItem().withName("Omer Haimovich").withDescription("Status C - excuse 2").withTextColor(Color.rgb(255, 14, 14)).withLevel(2).withIcon(getDrawable(R.drawable.omer72)).withIdentifier(2009).withSelectable(false));
-
-        SoldiersDrawerItem = new ExpandableDrawerItem().withName("My Soldiers").withIcon(GoogleMaterial.Icon.gmd_accounts_list).withIdentifier(19).withSelectable(false);
+        SoldiersDrawerItem = new ExpandableDrawerItem().withName("My Soldiers").withIcon(GoogleMaterial.Icon.gmd_accounts_list).withIdentifier(19);
         initSoldiersDrawer();
-
 
         final PrimaryDrawerItem SendDrawerItem = new PrimaryDrawerItem().withName(R.string.send_statuses).withEnabled(true).withIcon(Octicons.Icon.oct_radio_tower).withIdentifier(9);
 
@@ -192,22 +188,35 @@ public class DrawerActivity extends AppCompatActivity {
 
     }
 
+    private void initProfileInDrawer(FirebaseUser user) {
+        profile = new ProfileDrawerItem().withName(user.getDisplayName()).withEmail(user.getEmail()).withIcon(user.getPhotoUrl()).withIdentifier(100);
+    }
+
+    public void updateProfileInDrawer(FirebaseUser user) {
+        initProfileInDrawer(user);
+        headerResult.updateProfile(profile);
+    }
+
     private void initSoldiersDrawer() {
         lstSoldiersToExpand = new ArrayList<>();
         for (Soldier sld : GlobalsTemp.MySoldiers) {
-            SecondaryDrawerItem temp = new SecondaryDrawerItem().withName(sld.getFullName()).withLevel(2).withIcon(sld.getPicture()).withIdentifier(2002);
+            SecondaryDrawerItem temp = new SecondaryDrawerItem().withName(sld.getFullName()).withLevel(2).withIcon(sld.getPicture()).withIdentifier(sld.getSoldierID()).withSelectable(false);
             // If there is main status
             if (!sld.getMainStatus().equals("")) {
-                temp.withSelectable(false).withDescription(sld.getDisplayStatus()).withTextColor(Color.rgb(20, 170, 20));
+                temp.withDescription(sld.getDisplayStatus()).withTextColor(Color.rgb(20, 170, 20));
             }
             else {
-                temp.withTextColor(Color.rgb(170, 20, 20));
+                temp.withDescription(R.string.no_status).withTextColor(Color.rgb(170, 20, 20));
             }
             lstSoldiersToExpand.add(temp);
         }
 
         SoldiersDrawerItem.withSubItems(lstSoldiersToExpand);
-//                new ExpandableDrawerItem().withName("My Soldiers").withIcon(GoogleMaterial.Icon.gmd_accounts_list).withIdentifier(19).withSelectable(false).withSubItems(lstSoldiersToExpand);
+    }
+
+    public void updateSoldiersStatuses() {
+        initSoldiersDrawer();
+        result.updateItem(SoldiersDrawerItem);
     }
 
 //    private OnCheckedChangeListener onCheckedChangeListener = new OnCheckedChangeListener() {
@@ -295,9 +304,6 @@ public class DrawerActivity extends AppCompatActivity {
         }
     }
 
-    public void updateSoldiersStatuses() {
-        initSoldiersDrawer();
-        result.updateItem(SoldiersDrawerItem);
-    }
+
 
 }

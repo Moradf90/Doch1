@@ -41,4 +41,5 @@
     <string name="edit_email_reauthenticate_message">Editing email address requires re-authentication by entering your password.</string>
     <string name="morad_phone_number">0504866816</string>
     <string name="soldier">soldier</string>
+    <string name="no_status">Status not yet entered</string>
 </resources>

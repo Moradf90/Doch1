@@ -11,11 +11,13 @@ public class Soldier {
     private String mainStatus;
     private String subStatus;
     private Integer picture;
+    private Long soldierID;
 
     // Ctors
-    public Soldier(String firstName, String lastName, Integer picture) {
+    public Soldier(String firstName, String lastName, Long soldierID, Integer picture) {
         this.firstName = firstName;
         this.lastName = lastName;
+        this.soldierID = soldierID;
         this.picture = picture;
     }
 
@@ -40,6 +42,10 @@ public class Soldier {
         return picture;
     }
 
+    public Long getSoldierID() {
+        return soldierID;
+    }
+
     // Setters
     public void setFirstName(String firstName) {
         this.firstName = firstName;
@@ -61,6 +67,10 @@ public class Soldier {
 
     public void setPicture(Integer picture) {
         this.picture = picture;
+    }
+
+    public void setSoldierID(Long soldierID) {
+        this.soldierID = soldierID;
     }
 
     // Methods
