@@ -39,4 +39,5 @@
 
     <string name="no_display_name">No Display name</string>
     <string name="edit_email_reauthenticate_message">Editing email address requires re-authentication by entering your password.</string>
+    <string name="morad_phone_number">0504866816</string>
 </resources>

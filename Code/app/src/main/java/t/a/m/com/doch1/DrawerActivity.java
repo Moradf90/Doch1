@@ -2,15 +2,11 @@ package t.a.m.com.doch1;
 
 import android.app.Fragment;
 import android.app.FragmentManager;
-import android.content.Intent;
 import android.graphics.Color;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.View;
-import android.widget.CompoundButton;
 import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -18,30 +14,19 @@ import com.google.firebase.auth.FirebaseUser;
 import com.mikepenz.fastadapter.commons.utils.RecyclerViewCacheUtil;
 import com.mikepenz.fontawesome_typeface_library.FontAwesome;
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
-import com.mikepenz.iconics.IconicsDrawable;
 import com.mikepenz.itemanimators.AlphaCrossFadeAnimator;
 import com.mikepenz.materialdrawer.AccountHeader;
 import com.mikepenz.materialdrawer.AccountHeaderBuilder;
 import com.mikepenz.materialdrawer.Drawer;
 import com.mikepenz.materialdrawer.DrawerBuilder;
-import com.mikepenz.materialdrawer.holder.BadgeStyle;
-import com.mikepenz.materialdrawer.holder.StringHolder;
-import com.mikepenz.materialdrawer.interfaces.OnCheckedChangeListener;
 import com.mikepenz.materialdrawer.model.DividerDrawerItem;
-import com.mikepenz.materialdrawer.model.ExpandableBadgeDrawerItem;
 import com.mikepenz.materialdrawer.model.ExpandableDrawerItem;
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
 import com.mikepenz.materialdrawer.model.ProfileDrawerItem;
-import com.mikepenz.materialdrawer.model.ProfileSettingDrawerItem;
 import com.mikepenz.materialdrawer.model.SecondaryDrawerItem;
-import com.mikepenz.materialdrawer.model.SecondarySwitchDrawerItem;
-import com.mikepenz.materialdrawer.model.SecondaryToggleDrawerItem;
 import com.mikepenz.materialdrawer.model.SectionDrawerItem;
-import com.mikepenz.materialdrawer.model.SwitchDrawerItem;
-import com.mikepenz.materialdrawer.model.ToggleDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IProfile;
-import com.mikepenz.materialdrawer.model.interfaces.Nameable;
 import com.mikepenz.octicons_typeface_library.Octicons;
 
 public class DrawerActivity extends AppCompatActivity {
@@ -50,8 +35,7 @@ public class DrawerActivity extends AppCompatActivity {
     //save our header or result
     private AccountHeader headerResult = null;
     private Drawer result = null;
-    private FirebaseUser mCurrentUser;
-
+    public static FirebaseUser mCurrentUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,15 +89,20 @@ public class DrawerActivity extends AppCompatActivity {
                 .withSavedInstance(savedInstanceState)
                 .build();
 
-        ExpandableDrawerItem soldiersDrawerItem = new ExpandableDrawerItem().withName("My Soldiers").withIcon(GoogleMaterial.Icon.gmd_accounts_list).withIdentifier(19).withSelectable(false).withSubItems(
-                new SecondaryDrawerItem().withName("Amit Hanuch").withLevel(2).withIcon(getDrawable(R.drawable.amit72)).withIdentifier(2002),
-//                new SecondaryDrawerItem().withName("Tom Dinur").withLevel(2).withIcon(getDrawable(R.drawable.tom72)).withIdentifier(2003),
-//                new SecondaryDrawerItem().withName("Michal Teverovsky ").withLevel(2).withIcon(getDrawable(R.drawable.michal72)).withIdentifier(2004),
-                new SecondaryDrawerItem().withName("Tal Itah").withLevel(2).withIcon(getDrawable(R.drawable.tal72)).withIdentifier(2005),
-//                new SecondaryDrawerItem().withName("Batel Daudi").withLevel(2).withIcon(getDrawable(R.drawable.batel72)).withIdentifier(2006),
-//                new SecondaryDrawerItem().withName("Yair Vered").withLevel(2).withIcon(getDrawable(R.drawable.yair72)).withIdentifier(2007),
-//                new SecondaryDrawerItem().withName("Lior Hirch").withLevel(2).withIcon(getDrawable(R.drawable.lior72)).withIdentifier(2008),
-                new SecondaryDrawerItem().withName("Omer Haimovich").withLevel(2).withIcon(getDrawable(R.drawable.omer72)).withIdentifier(2009));
+        PrimaryDrawerItem MyProfileDrawerItem = new PrimaryDrawerItem().withName(R.string.profile_fragment).withIcon(GoogleMaterial.Icon.gmd_account).withIdentifier(1).withSelectable(false);
+        PrimaryDrawerItem FillStatusesDrawerItem = new PrimaryDrawerItem().withName(R.string.main_fragment).withDescription(R.string.dsc_main_statuses).withIcon(FontAwesome.Icon.faw_wheelchair).withIdentifier(2).withSelectable(false);
+
+        ExpandableDrawerItem SoldiersDrawerItem = new ExpandableDrawerItem().withName("My Soldiers").withIcon(GoogleMaterial.Icon.gmd_accounts_list).withIdentifier(19).withSelectable(false).withSubItems(
+                new SecondaryDrawerItem().withName("Amit Hanuch").withLevel(2).withIcon(getDrawable(R.drawable.amit72)).withIdentifier(2002).withSelectable(false),
+                new SecondaryDrawerItem().withName("Tal Itah").withLevel(2).withIcon(getDrawable(R.drawable.tal72)).withDescription("Status A - excuse 2").withIdentifier(2005).withSelectable(false).withTextColor(Color.rgb(47, 183, 47)),
+                new SecondaryDrawerItem().withName("Omer Haimovich").withDescription("Status C - excuse 2").withTextColor(Color.rgb(255, 14, 14)).withLevel(2).withIcon(getDrawable(R.drawable.omer72)).withIdentifier(2009).withSelectable(false));
+
+        final PrimaryDrawerItem SendDrawerItem = new PrimaryDrawerItem().withName(R.string.send_statuses).withEnabled(true).withIcon(Octicons.Icon.oct_radio_tower).withIdentifier(9);
+
+        ExpandableDrawerItem contactDrawerItem = new ExpandableDrawerItem().withName("Contact developer").withIcon(GoogleMaterial.Icon.gmd_code).withIdentifier(25).withSelectable(false).withSubItems(
+                new SecondaryDrawerItem().withName("By Phone").withLevel(2).withIcon(GoogleMaterial.Icon.gmd_phone).withIdentifier(2501),
+                new SecondaryDrawerItem().withName("By SMS").withLevel(2).withIcon(GoogleMaterial.Icon.gmd_tumblr).withIdentifier(2502),
+                new SecondaryDrawerItem().withName("By Email").withLevel(2).withIcon(GoogleMaterial.Icon.gmd_email).withIdentifier(2503));
 
 
         //Create the drawer
@@ -124,17 +113,17 @@ public class DrawerActivity extends AppCompatActivity {
                 .withItemAnimator(new AlphaCrossFadeAnimator())
                 .withAccountHeader(headerResult) //set the AccountHeader we created earlier for the header
                 .addDrawerItems(
-                        new PrimaryDrawerItem().withName(R.string.profile_fragment).withIcon(GoogleMaterial.Icon.gmd_account).withIdentifier(1).withSelectable(false),
-                        new PrimaryDrawerItem().withName(R.string.main_fragment).withDescription(R.string.dsc_main_statuses).withIcon(FontAwesome.Icon.faw_wheelchair).withIdentifier(2).withSelectable(false),
+                        MyProfileDrawerItem,
+                        FillStatusesDrawerItem,
 //                        new PrimaryDrawerItem().withName(R.string.drawer_item_multi_drawer).withDescription(R.string.drawer_item_multi_drawer_desc).withIcon(FontAwesome.Icon.faw_gamepad).withIdentifier(3).withSelectable(false),
                         new SectionDrawerItem().withName(R.string.drawer_item_section_header),
 
-                        soldiersDrawerItem,
-                        new PrimaryDrawerItem().withName(R.string.send_statuses).withIcon(Octicons.Icon.oct_radio_tower).withIdentifier(9),
+                        SoldiersDrawerItem,
+                        SendDrawerItem,
                         new DividerDrawerItem(),
 
-                        new SecondaryDrawerItem().withName(R.string.drawer_item_contact).withIcon(GoogleMaterial.Icon.gmd_phone).withIdentifier(21).withTag("Bullhorn")
-//                        new SwitchDrawerItem().withName("Switch").withIcon(Octicons.Icon.oct_tools).withChecked(true).withOnCheckedChangeListener(onCheckedChangeListener),
+                        contactDrawerItem
+                        //                        new SwitchDrawerItem().withName("Switch").withIcon(Octicons.Icon.oct_tools).withChecked(true).withOnCheckedChangeListener(onCheckedChangeListener),
 //                        new SwitchDrawerItem().withName("Switch2").withIcon(Octicons.Icon.oct_tools).withChecked(true).withOnCheckedChangeListener(onCheckedChangeListener).withSelectable(false),
 //                        new ToggleDrawerItem().withName("Toggle").withIcon(Octicons.Icon.oct_tools).withChecked(true).withOnCheckedChangeListener(onCheckedChangeListener),
 //                        new DividerDrawerItem(),
@@ -153,6 +142,11 @@ public class DrawerActivity extends AppCompatActivity {
 
                         if (drawerItem != null) {
                             selectItem((int) drawerItem.getIdentifier());
+                        }
+
+                        if (drawerItem.getIdentifier() == 9) {
+                            SendDrawerItem.withName("Sent...").withDescription("You can update your doch1").withIcon(GoogleMaterial.Icon.gmd_airplane);
+                            result.updateItem(SendDrawerItem);
                         }
 
                         return false;
@@ -177,7 +171,9 @@ public class DrawerActivity extends AppCompatActivity {
             headerResult.setActiveProfile(profile);
         }
 
-        result.updateBadge(4, new StringHolder(10 + ""));
+//        result.updateBadge(4, new StringHolder(10 + ""));
+
+
     }
 
 //    private OnCheckedChangeListener onCheckedChangeListener = new OnCheckedChangeListener() {
@@ -192,22 +188,38 @@ public class DrawerActivity extends AppCompatActivity {
 //    };
 
     /** Swaps fragments in the main content view */
-    private void selectItem(int position) {
+    private void selectItem(int identifier) {
 
         Fragment fragment;
         // Create a new fragment and specify the planet to show based on position
-        if (position == 1) {
+        if (identifier == 1) {
             fragment = new ProfileFragment();
         }
-        else if (position == 2) {
+        else if (identifier == 2) {
             fragment = new MainFragment();
         }
-        else if (position == 9) {
+        else if (identifier == 9) {
             Toast.makeText(DrawerActivity.this, "Send...", Toast.LENGTH_SHORT).show();
             fragment = new MainFragment();
         }
-        else if (position == 21) {
+        else if (identifier == 21) {
             Toast.makeText(DrawerActivity.this, "Call Morad", Toast.LENGTH_SHORT).show();
+            fragment = new MainFragment();
+        }
+        // Call morad
+        else if (identifier == 2501) {
+            Toast.makeText(DrawerActivity.this, "Call Morad", Toast.LENGTH_SHORT).show();
+            fragment = new MainFragment();
+        }
+        // sms Morad
+        else if (identifier == 2502) {
+            Toast.makeText(DrawerActivity.this, "sms Morad", Toast.LENGTH_SHORT).show();
+
+            fragment = new MainFragment();
+        }
+        // email morad
+        else if (identifier == 2503) {
+            Toast.makeText(DrawerActivity.this, "mail Morad", Toast.LENGTH_SHORT).show();
             fragment = new MainFragment();
         }
         else {

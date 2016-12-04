@@ -17,6 +17,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.text.InputType;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -66,12 +67,11 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
                              Bundle savedInstanceState) {
         View vFragmentLayout = inflater.inflate(R.layout.activity_profile, container, false);
 
-
         getActivity().setTitle("Profile");
 
 //        mCurrentUser = getArguments().get("currentUser");
 
-        mCurrentUser = FirebaseAuth.getInstance().getCurrentUser();
+        mCurrentUser = DrawerActivity.mCurrentUser;
         if(mCurrentUser == null){
 //            finish();
         }

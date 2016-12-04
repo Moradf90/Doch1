@@ -39,10 +39,12 @@ public class MainFragment extends Fragment {
         getActivity().setTitle("Filling Statuses");
 
         int[] drawableRes = new int[]
-                {R.drawable.morad72, R.drawable.tom72, R.drawable.michal72,
-//                 R.drawable.batel72, R.drawable.amit72,
-                        R.drawable.yam36,
-                        R.drawable.shahar72, R.drawable.yoad72, R.drawable.omer72,
+                {R.drawable.morad72, R.drawable.tom72,
+//                        R.drawable.michal72,
+//                 R.drawable.batel72,
+                        R.drawable.amit72,
+//                        R.drawable.yam36,
+//                        R.drawable.shahar72, R.drawable.yoad72, R.drawable.omer72,
                         R.drawable.yair72, R.drawable.lior72};
 
         for (int i = 0; i < drawableRes.length; i++) {
