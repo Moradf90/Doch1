@@ -8,7 +8,9 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
@@ -18,6 +20,7 @@ import android.support.v4.content.ContextCompat;
 import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -46,46 +49,50 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
 
     private FirebaseUser mCurrentUser;
 
-    private ImageButton mPicEditButton;
     private RoundedImageView mProfilePictureView;
     private TextView mProfileDisplayName;
-    private ImageButton mNameEditButton;
     private TextInputLayout mEditNameInputLayout;
     private NotEmptyValidator mNotEmptyValidator;
     private View mDisplayNameView;
     private TextView mProfileEmail;
-    private ImageButton mEmailEditButton;
     private TextInputLayout mEditEmailInputLayout;
     private EmailValidator mEmailValidator;
     private View mEmailView;
 
     private Uri mPicUri;
 
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View vFragmentLayout = inflater.inflate(R.layout.activity_profile, container, false);
 
+
         getActivity().setTitle("Profile");
 
-//        mCurrentUser = getArguments().get("currentUser");
-
-        mCurrentUser = DrawerActivity.mCurrentUser;
+        mCurrentUser = FirebaseAuth.getInstance().getCurrentUser();
         if(mCurrentUser == null){
-//            finish();
+            startActivity(new Intent(getActivity(), LoginActivity.class));
+            getActivity().finish();
         }
         else {
             mProfilePictureView = (RoundedImageView) vFragmentLayout.findViewById(R.id.picture);
             mProfileDisplayName = (TextView) vFragmentLayout.findViewById(R.id.display_name_text);
-            mNameEditButton = (ImageButton) vFragmentLayout.findViewById(R.id.display_name_edit);
+            ImageButton mNameEditButton = (ImageButton) vFragmentLayout.findViewById(R.id.display_name_edit);
             mEditNameInputLayout = (TextInputLayout) vFragmentLayout.findViewById(R.id.name_layout);
-            mPicEditButton = (ImageButton) vFragmentLayout.findViewById(R.id.edit_pic);
+            ImageButton mPicEditButton = (ImageButton) vFragmentLayout.findViewById(R.id.edit_pic);
 
             mNotEmptyValidator = new NotEmptyValidator(mEditNameInputLayout);
             mDisplayNameView = vFragmentLayout.findViewById(R.id.display_name_view);
 
             mProfileEmail = (TextView) vFragmentLayout.findViewById(R.id.email_text);
-            mEmailEditButton = (ImageButton) vFragmentLayout.findViewById(R.id.email_edit);
+            ImageButton mEmailEditButton = (ImageButton) vFragmentLayout.findViewById(R.id.email_edit);
             mEditEmailInputLayout = (TextInputLayout) vFragmentLayout.findViewById(R.id.email_layout);
             mEmailValidator = new EmailValidator(mEditEmailInputLayout);
             mEmailView = vFragmentLayout.findViewById(R.id.email_view);
@@ -95,9 +102,10 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
                         Manifest.permission.READ_EXTERNAL_STORAGE)
                         != PackageManager.PERMISSION_GRANTED) {
 
-                    ActivityCompat.requestPermissions(getActivity(),
-                            new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                            MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE_FOR_SET_IMAGE);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                                MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE_FOR_SET_IMAGE);
+                    }
 
                 }
                 else
@@ -123,11 +131,11 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
         return vFragmentLayout;
     }
 
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        getActivity().getMenuInflater().inflate(R.menu.profile_activity_menu, menu);
-//        return true;
-//    }
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.profile_activity_menu, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -233,7 +241,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
             else return;
         }
 
-        if (mEmailValidator.validate() && !mCurrentUser.getEmail().equals(mEmailValidator.getValue())){
+        if (mEmailValidator.validate() && mCurrentUser.getEmail()!= null && !mCurrentUser.getEmail().equals(mEmailValidator.getValue())){
 
             AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getActivity());
             dialogBuilder.setTitle("Password to re-authenticate");
