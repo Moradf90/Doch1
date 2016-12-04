@@ -3,6 +3,7 @@ package t.a.m.com.doch1;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -29,6 +30,12 @@ import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IProfile;
 import com.mikepenz.octicons_typeface_library.Octicons;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import t.a.m.com.doch1.Models.GlobalsTemp;
+import t.a.m.com.doch1.Models.Soldier;
+
 public class DrawerActivity extends AppCompatActivity {
     private static final int PROFILE_SETTING = 100000;
 
@@ -36,6 +43,8 @@ public class DrawerActivity extends AppCompatActivity {
     private AccountHeader headerResult = null;
     private Drawer result = null;
     public static FirebaseUser mCurrentUser;
+    List<IDrawerItem>  lstSoldiersToExpand;
+    ExpandableDrawerItem SoldiersDrawerItem;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +62,7 @@ public class DrawerActivity extends AppCompatActivity {
 
         // Create a few sample profile
         // NOTE you have to define the loader logic too. See the CustomApplication for more details
+//        final IProfile profile = new ProfileDrawerItem().withName(mCurrentUser.getDisplayName()).withEmail(mCurrentUser.getEmail()).withIcon(R.drawable.snowflake36).withIdentifier(100);
         final IProfile profile = new ProfileDrawerItem().withName(mCurrentUser.getDisplayName()).withEmail(mCurrentUser.getEmail()).withIcon(mCurrentUser.getPhotoUrl()).withIdentifier(100);
 
         // Create the AccountHeader
@@ -66,36 +76,42 @@ public class DrawerActivity extends AppCompatActivity {
 //                        new ProfileSettingDrawerItem().withName("Add Account").withDescription("Add new GitHub Account").withIcon(new IconicsDrawable(this, GoogleMaterial.Icon.gmd_plus).actionBar().paddingDp(5).colorRes(R.color.material_drawer_primary_text)).withIdentifier(PROFILE_SETTING),
 //                        new ProfileSettingDrawerItem().withName("Manage Account").withIcon(GoogleMaterial.Icon.gmd_settings).withIdentifier(100001)
                 )
-                .withOnAccountHeaderListener(new AccountHeader.OnAccountHeaderListener() {
-                    @Override
-                    public boolean onProfileChanged(View view, IProfile profile, boolean current) {
-                        //sample usage of the onProfileChanged listener
-                        //if the clicked item has the identifier 1 add a new profile ;)
-                        if (profile instanceof IDrawerItem && profile.getIdentifier() == PROFILE_SETTING) {
-                            int count = 100 + headerResult.getProfiles().size() + 1;
-                            IProfile newProfile = new ProfileDrawerItem().withNameShown(true).withName("Batman" + count).withEmail("batman" + count + "@gmail.com").withIcon(R.drawable.profile5).withIdentifier(count);
-                            if (headerResult.getProfiles() != null) {
-                                //we know that there are 2 setting elements. set the new profile above them ;)
-                                headerResult.addProfile(newProfile, headerResult.getProfiles().size() - 2);
-                            } else {
-                                headerResult.addProfiles(newProfile);
-                            }
-                        }
-
-                        //false if you have not consumed the event and it should close the drawer
-                        return false;
-                    }
-                })
+//                .withOnAccountHeaderListener(new AccountHeader.OnAccountHeaderListener() {
+//                    @Override
+//                    public boolean onProfileChanged(View view, IProfile profile, boolean current) {
+//                        //sample usage of the onProfileChanged listener
+//                        //if the clicked item has the identifier 1 add a new profile ;)
+//                        if (profile instanceof IDrawerItem && profile.getIdentifier() == PROFILE_SETTING) {
+//                            int count = 100 + headerResult.getProfiles().size() + 1;
+//                            IProfile newProfile = new ProfileDrawerItem().withNameShown(true).withName("Batman" + count).withEmail("batman" + count + "@gmail.com").withIcon(R.drawable.profile5).withIdentifier(count);
+//                            if (headerResult.getProfiles() != null) {
+//                                //we know that there are 2 setting elements. set the new profile above them ;)
+//                                headerResult.addProfile(newProfile, headerResult.getProfiles().size() - 2);
+//                            } else {
+//                                headerResult.addProfiles(newProfile);
+//                            }
+//                        }
+//
+//                        //false if you have not consumed the event and it should close the drawer
+//                        return false;
+//                    }
+//                }
+//                )
                 .withSavedInstance(savedInstanceState)
                 .build();
 
         PrimaryDrawerItem MyProfileDrawerItem = new PrimaryDrawerItem().withName(R.string.profile_fragment).withIcon(GoogleMaterial.Icon.gmd_account).withIdentifier(1).withSelectable(false);
         PrimaryDrawerItem FillStatusesDrawerItem = new PrimaryDrawerItem().withName(R.string.main_fragment).withDescription(R.string.dsc_main_statuses).withIcon(FontAwesome.Icon.faw_wheelchair).withIdentifier(2).withSelectable(false);
 
-        ExpandableDrawerItem SoldiersDrawerItem = new ExpandableDrawerItem().withName("My Soldiers").withIcon(GoogleMaterial.Icon.gmd_accounts_list).withIdentifier(19).withSelectable(false).withSubItems(
-                new SecondaryDrawerItem().withName("Amit Hanuch").withLevel(2).withIcon(getDrawable(R.drawable.amit72)).withIdentifier(2002).withSelectable(false),
-                new SecondaryDrawerItem().withName("Tal Itah").withLevel(2).withIcon(getDrawable(R.drawable.tal72)).withDescription("Status A - excuse 2").withIdentifier(2005).withSelectable(false).withTextColor(Color.rgb(47, 183, 47)),
-                new SecondaryDrawerItem().withName("Omer Haimovich").withDescription("Status C - excuse 2").withTextColor(Color.rgb(255, 14, 14)).withLevel(2).withIcon(getDrawable(R.drawable.omer72)).withIdentifier(2009).withSelectable(false));
+
+//        ExpandableDrawerItem SoldiersDrawerItem = new ExpandableDrawerItem().withName("My Soldiers").withIcon(GoogleMaterial.Icon.gmd_accounts_list).withIdentifier(19).withSelectable(false).withSubItems(
+//                new SecondaryDrawerItem().withName("Amit Hanuch").withLevel(2).withIcon(getDrawable(R.drawable.amit72)).withIdentifier(2002).withSelectable(false),
+//                new SecondaryDrawerItem().withName("Tal Itah").withLevel(2).withIcon(getDrawable(R.drawable.tal72)).withDescription("Status A - excuse 2").withIdentifier(2005).withSelectable(false).withTextColor(Color.rgb(47, 183, 47)),
+//                new SecondaryDrawerItem().withName("Omer Haimovich").withDescription("Status C - excuse 2").withTextColor(Color.rgb(255, 14, 14)).withLevel(2).withIcon(getDrawable(R.drawable.omer72)).withIdentifier(2009).withSelectable(false));
+
+        SoldiersDrawerItem = new ExpandableDrawerItem().withName("My Soldiers").withIcon(GoogleMaterial.Icon.gmd_accounts_list).withIdentifier(19).withSelectable(false);
+        initSoldiersDrawer();
+
 
         final PrimaryDrawerItem SendDrawerItem = new PrimaryDrawerItem().withName(R.string.send_statuses).withEnabled(true).withIcon(Octicons.Icon.oct_radio_tower).withIdentifier(9);
 
@@ -176,6 +192,24 @@ public class DrawerActivity extends AppCompatActivity {
 
     }
 
+    private void initSoldiersDrawer() {
+        lstSoldiersToExpand = new ArrayList<>();
+        for (Soldier sld : GlobalsTemp.MySoldiers) {
+            SecondaryDrawerItem temp = new SecondaryDrawerItem().withName(sld.getFullName()).withLevel(2).withIcon(sld.getPicture()).withIdentifier(2002);
+            // If there is main status
+            if (!sld.getMainStatus().equals("")) {
+                temp.withSelectable(false).withDescription(sld.getDisplayStatus()).withTextColor(Color.rgb(20, 170, 20));
+            }
+            else {
+                temp.withTextColor(Color.rgb(170, 20, 20));
+            }
+            lstSoldiersToExpand.add(temp);
+        }
+
+        SoldiersDrawerItem.withSubItems(lstSoldiersToExpand);
+//                new ExpandableDrawerItem().withName("My Soldiers").withIcon(GoogleMaterial.Icon.gmd_accounts_list).withIdentifier(19).withSelectable(false).withSubItems(lstSoldiersToExpand);
+    }
+
 //    private OnCheckedChangeListener onCheckedChangeListener = new OnCheckedChangeListener() {
 //        @Override
 //        public void onCheckedChanged(IDrawerItem drawerItem, CompoundButton buttonView, boolean isChecked) {
@@ -187,7 +221,7 @@ public class DrawerActivity extends AppCompatActivity {
 //        }
 //    };
 
-    /** Swaps fragments in the main content view */
+        /** Swaps fragments in the main content view */
     private void selectItem(int identifier) {
 
         Fragment fragment;
@@ -259,6 +293,11 @@ public class DrawerActivity extends AppCompatActivity {
         } else {
             super.onBackPressed();
         }
+    }
+
+    public void updateSoldiersStatuses() {
+        initSoldiersDrawer();
+        result.updateItem(SoldiersDrawerItem);
     }
 
 }

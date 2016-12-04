@@ -20,6 +20,8 @@ import android.widget.TextView;
 
 import org.apmem.tools.layouts.FlowLayout;
 
+import t.a.m.com.doch1.Models.GlobalsTemp;
+import t.a.m.com.doch1.Models.Soldier;
 import t.a.m.com.doch1.views.MySpinner;
 import t.a.m.com.doch1.views.RoundedImageView;
 
@@ -38,23 +40,24 @@ public class MainFragment extends Fragment {
 
         getActivity().setTitle("Filling Statuses");
 
-        int[] drawableRes = new int[]
-                {R.drawable.morad72, R.drawable.tom72,
-//                        R.drawable.michal72,
-//                 R.drawable.batel72,
-                        R.drawable.amit72,
-//                        R.drawable.yam36,
-//                        R.drawable.shahar72, R.drawable.yoad72, R.drawable.omer72,
-                        R.drawable.yair72, R.drawable.lior72};
+//        int[] drawableRes = new int[]
+//                {R.drawable.morad72, R.drawable.tom72,
+////                        R.drawable.michal72,
+////                 R.drawable.batel72,
+//                        R.drawable.amit72,
+////                        R.drawable.yam36,
+////                        R.drawable.shahar72, R.drawable.yoad72, R.drawable.omer72,
+//                        R.drawable.yair72, R.drawable.lior72};
 
-        for (int i = 0; i < drawableRes.length; i++) {
+        for (int i = 0; i < GlobalsTemp.MySoldiers.size(); i++) {
             RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(_nImageSizeOnDrop, _nImageSizeOnDrop);
 
             RoundedImageView soldierImage = new RoundedImageView(getActivity());
 
             soldierImage.setLayoutParams(layoutParams);
-            soldierImage.setImageResource(drawableRes[i]);
-            soldierImage.setTag(R.string.soldier_name, "טל איטח");
+            soldierImage.setImageResource(GlobalsTemp.MySoldiers.get(i).getPicture());
+//            soldierImage.setTag(R.string.soldier_name, GlobalsTemp.MySoldiers.get(i).getFullName());
+            soldierImage.setTag(R.string.soldier, GlobalsTemp.MySoldiers.get(i));
 
             soldierImage.setOnTouchListener(new MyTouchListener());
             FlowLayout btm = (FlowLayout) vFragmentLayout.findViewById(R.id.topleft);
@@ -185,7 +188,11 @@ public class MainFragment extends Fragment {
 
                     // Clear the sub status
                     if (owner != container) {
-                        imgSoldier.setTag(R.string.sub_status, null);
+//                        imgSoldier.setTag(R.string.sub_status, null);
+                        ((Soldier)imgSoldier.getTag(R.string.soldier)).setSubStatus(null);
+
+                        // Update drawer
+                        ((DrawerActivity)getActivity()).updateSoldiersStatuses();
 
                         // Let user selected secondary status
                         //showPopup(imgSoldier);
@@ -247,16 +254,26 @@ public class MainFragment extends Fragment {
     }
 
     public void showPopup(final View imgSoldier) {
-        String[] Company = {"תירוץ 1","תירוץ 2","תירוץ 3","תירוץ 4","תירוץ 5","תירוץ 6"};
+        String[] Company = {"תירוץ 1", "תירוץ 2", "תירוץ 3", "תירוץ 4", "תירוץ 5", "תירוץ 6"};
         LayoutInflater layoutInflater =
                 LayoutInflater.from(getActivity());
         View popupView = layoutInflater.inflate(R.layout.sub_status_popup, null);
         final PopupWindow popupWindow = new PopupWindow(
                 popupView, LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        MySpinner popupSpinner = (MySpinner)popupView.findViewById(R.id.popupspinner);
+        MySpinner popupSpinner = (MySpinner) popupView.findViewById(R.id.popupspinner);
         TextView txtSoldierName = (TextView) popupView.findViewById(R.id.txt_soldier_name);
-        if (imgSoldier.getTag(R.string.soldier_name) != null) {
-            txtSoldierName.setText(imgSoldier.getTag(R.string.soldier_name).toString());
+//        if (imgSoldier.getTag(R.string.soldier_name) != null) {
+//            txtSoldierName.setText(imgSoldier.getTag(R.string.soldier_name).toString());
+//        }
+
+        Soldier sld = null;
+        // If there is already selected sub status - select it
+        if (imgSoldier.getTag(R.string.soldier) != null) {
+            sld = ((Soldier) imgSoldier.getTag(R.string.soldier));
+        }
+
+        if (sld != null) {
+            txtSoldierName.setText(((Soldier) imgSoldier.getTag(R.string.soldier)).getFullName());
         }
         ArrayAdapter<String> adapter =
                 new ArrayAdapter<String>(getActivity(),
@@ -269,7 +286,11 @@ public class MainFragment extends Fragment {
         popupSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                imgSoldier.setTag(R.string.sub_status, i);
+//                imgSoldier.setTag(R.string.sub_status, i);
+                ((Soldier) imgSoldier.getTag(R.string.soldier)).setSubStatus(String.valueOf(i));
+                // Update drawer
+                ((DrawerActivity) getActivity()).updateSoldiersStatuses();
+
                 if (!bFirstTimeSeleceted[0]) {
                     final Handler handler = new Handler();
 
@@ -294,9 +315,14 @@ public class MainFragment extends Fragment {
         });
 
         // If there is already selected sub status - select it
-        if (imgSoldier.getTag(R.string.sub_status) != null) {
-            popupSpinner.setSelection(Integer.valueOf(imgSoldier.getTag(R.string.sub_status).toString()));
+        if ((sld != null) && (!sld.getSubStatus().equals(""))) {
+            popupSpinner.setSelection(Integer.valueOf(sld.getSubStatus()));
         }
+
+//        // If there is already selected sub status - select it
+//        if (imgSoldier.getTag(R.string.sub_status) != null) {
+//            popupSpinner.setSelection(Integer.valueOf(imgSoldier.getTag(R.string.sub_status).toString()));
+//        }
 
         popupWindow.setFocusable(true);
         popupWindow.showAsDropDown(imgSoldier, 50, -30);
