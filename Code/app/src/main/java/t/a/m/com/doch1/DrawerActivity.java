@@ -34,7 +34,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import t.a.m.com.doch1.Models.GlobalsTemp;
+import t.a.m.com.doch1.Models.MainStatus;
 import t.a.m.com.doch1.Models.Soldier;
+import t.a.m.com.doch1.common.connection.StatusUtils;
 
 public class DrawerActivity extends AppCompatActivity {
     private static final int PROFILE_SETTING = 100000;
@@ -54,6 +56,8 @@ public class DrawerActivity extends AppCompatActivity {
 
         mCurrentUser = FirebaseAuth.getInstance().getCurrentUser();
 
+        List<MainStatus> x = StatusUtils.getAllMainStatuses();
+
         //Remove line to test RTL support
         //getWindow().getDecorView().setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
 
@@ -66,7 +70,6 @@ public class DrawerActivity extends AppCompatActivity {
 //        final IProfile profile = new ProfileDrawerItem().withName(mCurrentUser.getDisplayName()).withEmail(mCurrentUser.getEmail()).withIcon(R.drawable.snowflake36).withIdentifier(100);
 
         initProfileInDrawer(mCurrentUser);
-
 
         // Create the AccountHeader
         headerResult = new AccountHeaderBuilder()
