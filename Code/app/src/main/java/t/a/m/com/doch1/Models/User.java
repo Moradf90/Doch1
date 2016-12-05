@@ -12,7 +12,11 @@ public class User {
     public static final String USERS_REFERENCE_KEY = "users";
     public static final String ID_PROPERTY = "id";
     public static final String NAME_PROPERTY = "name";
+    public static final String GROUP_ID = "group_id";
+    public static final String PERSONAL_ID = "personal_id";
     public static final String EMAIL_PROPERTY = "email";
+    public static final String PHONE = "phone";
+    public static final String ROLES = "roles";
     public static final String IS_MANAGER_PROPERTY = "isManager";
 
     @PropertyName(ID_PROPERTY)

@@ -103,7 +103,7 @@ public class DrawerActivity extends AppCompatActivity {
                 .withSavedInstance(savedInstanceState)
                 .build();
 
-        PrimaryDrawerItem MyProfileDrawerItem = new PrimaryDrawerItem().withName(R.string.profile_fragment).withIcon(GoogleMaterial.Icon.gmd_account).withIdentifier(1).withSelectable(false);
+        PrimaryDrawerItem MyProfileDrawerItem = new PrimaryDrawerItem().withName(R.string.profile_fragment).withIcon(GoogleMaterial.Icon.gmd_account).withIdentifier(1);
         PrimaryDrawerItem FillStatusesDrawerItem = new PrimaryDrawerItem().withName(R.string.main_fragment).withDescription(R.string.dsc_main_statuses).withIcon(FontAwesome.Icon.faw_wheelchair).withIdentifier(2).withSelectable(false);
 
         SoldiersDrawerItem = new ExpandableDrawerItem().withName("My Soldiers").withIcon(GoogleMaterial.Icon.gmd_accounts_list).withIdentifier(19);
@@ -273,16 +273,20 @@ public class DrawerActivity extends AppCompatActivity {
 //        args.putInt(MainFragment.ARG_PLANET_NUMBER, position);
 //        fragment.setArguments(args);
 
-        // Insert the fragment by replacing any existing fragment
-        FragmentManager fragmentManager = getFragmentManager();
-        fragmentManager.beginTransaction()
-                .replace(R.id.frame_container, fragment)
-                .commit();
+        // Get the current displayed fragment
+        Fragment fCurrentDisplayedFragment = getFragmentManager().findFragmentById(R.id.frame_container);
 
-        // Highlight the selected item, update the title, and close the drawer
-//        mDrawerList.setItemChecked(position, true);
-//        setTitle(mPlanetTitles[position]);
-//        mDrawerLayout.closeDrawer(mDrawerList);
+        // If the current displayed is the same as the one we want to switch to - do nothing. else - switch.
+        if ((fCurrentDisplayedFragment == null) ||
+            (!fCurrentDisplayedFragment.getClass().getSimpleName().equals(fragment.getClass().getSimpleName()))) {
+
+            // Insert the fragment by replacing any existing fragment
+            FragmentManager fragmentManager = getFragmentManager();
+            fragmentManager.beginTransaction()
+                    .replace(R.id.frame_container, fragment, fragment.getClass().getSimpleName())
+                    .commit();
+
+        }
     }
 
     @Override
