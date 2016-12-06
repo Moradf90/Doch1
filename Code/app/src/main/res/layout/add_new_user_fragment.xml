@@ -1,0 +1,76 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center_horizontal">
+
+    <FrameLayout
+        android:layout_weight="1"
+        android:clickable="true"
+        android:background="@color/disabled_black_color"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"></FrameLayout>
+    
+    <LinearLayout
+        android:background="@color/background_gray"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <android.support.design.widget.TextInputLayout android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_margin="5dp"
+            android:id="@+id/name_layout">
+
+            <EditText android:hint="Name"
+                style="@style/AppTheme.EditText"/>
+
+        </android.support.design.widget.TextInputLayout>
+
+        <android.support.design.widget.TextInputLayout android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_margin="5dp"
+            android:id="@+id/email_layout">
+
+            <EditText style="@style/AppTheme.EditText.EmailField" />
+
+        </android.support.design.widget.TextInputLayout>
+
+        <android.support.design.widget.TextInputLayout android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_margin="5dp"
+            android:id="@+id/personal_id_layout">
+
+            <EditText android:hint="Personal Id"
+                style="@style/AppTheme.EditText"/>
+
+        </android.support.design.widget.TextInputLayout>
+
+        <android.support.design.widget.TextInputLayout android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_margin="5dp"
+            android:id="@+id/phone_layout">
+
+            <EditText android:hint="Phone"
+                style="@style/AppTheme.EditText"/>
+
+        </android.support.design.widget.TextInputLayout>
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <Button
+                android:id="@+id/save_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Save">
+            </Button>
+            <Button
+                android:id="@+id/cancel_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cancel">
+            </Button>
+        </LinearLayout>
+
+
+    </LinearLayout>
+
+</LinearLayout>

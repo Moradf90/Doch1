@@ -283,6 +283,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
             });
 
             dialogBuilder.create().show();
+            
         }
 
         if(update){

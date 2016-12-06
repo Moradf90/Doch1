@@ -83,6 +83,7 @@
                     style="@style/AppTheme.EditText"
                     android:drawablePadding="10dp"
                     android:hint="Display Name"
+                    android:maxLines="1"
                     android:id="@+id/name" />
 
             </android.support.design.widget.TextInputLayout>

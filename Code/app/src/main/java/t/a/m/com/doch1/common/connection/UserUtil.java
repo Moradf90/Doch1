@@ -30,7 +30,7 @@ public class UserUtil {
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             if(dataSnapshot.exists()){
                                 for (DataSnapshot user : dataSnapshot.getChildren()) {
-                                    mCurrentUserData = user.getValue(User.class);
+                                        mCurrentUserData = user.getValue(User.class);
                                     break;
                                 }
                             }
@@ -44,4 +44,5 @@ public class UserUtil {
         }
     }
 
+    
 }
