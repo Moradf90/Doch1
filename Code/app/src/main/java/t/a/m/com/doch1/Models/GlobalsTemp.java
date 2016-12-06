@@ -10,8 +10,8 @@ import t.a.m.com.doch1.R;
  */
 public class GlobalsTemp {
     public static List<Soldier> MySoldiers = new ArrayList<Soldier>() {{
-        add(new Soldier("Amit", "Hanuch", R.drawable.amit72));
-        add(new Soldier("Tom", "Dinur", R.drawable.tom72));
-        add(new Soldier("Morad", "Faris", R.drawable.morad72));
+        add(new Soldier("Amit", "Hanoch", (long) 1234567, R.drawable.amit72));
+        add(new Soldier("Tom", "Dinur", (long) 7647694, R.drawable.tom72));
+        add(new Soldier("Morad", "Faris", (long) 51879251, R.drawable.morad72));
     }};
 }

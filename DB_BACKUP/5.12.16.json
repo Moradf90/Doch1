@@ -1,0 +1,86 @@
+{
+  "groups" : [ null, {
+    "id" : 1,
+    "name" : "מטכ\"ל"
+  }, {
+    "id" : 2,
+    "name" : "שוב\"ל",
+    "parent_id" : 1,
+    "soldiers" : [ 1, 2, 3 ]
+  }, {
+    "id" : 3,
+    "name" : "של\"ג",
+    "parent_id" : 2,
+    "soldiers" : [ 4, 5, 6 ]
+  }, {
+    "id" : 4,
+    "name" : "אטלס",
+    "parent_id" : 4,
+    "soldiers" : [ 7, 8, 9 ]
+  }, {
+    "id" : 5,
+    "name" : "יהלו\"ם",
+    "parent_id" : 2,
+    "soldiers" : [ 10, 11, 12 ]
+  } ],
+  "roles" : [ null, "מנהל מערכת", "מנהל", "א' דוח 1" ],
+  "statuses" : [ null, {
+    "name" : "ביחידה"
+  }, {
+    "name" : "מחוץ ליחידה",
+    "subStatuses" : [ "אחרי משמרת ערב", "תורנות", "תפקיד מחוץ ליחידה" ]
+  }, {
+    "name" : "מיוחדת",
+    "subStatuses" : [ "בהריון", "מחלה" ]
+  } ],
+  "users" : {
+    "19cdd20f-da64-43dd-ade0-f10da3b5a8cc" : {
+      "email" : "tomdinur@gmail.com",
+      "group_id" : 3,
+      "id" : "19cdd20f-da64-43dd-ade0-f10da3b5a8cc",
+      "name" : "Tom Dinur",
+      "personal_id" : "7647694",
+      "phone" : "0525834490",
+      "roles" : [ {
+        "group" : 1,
+        "role" : 1
+      } ]
+    },
+    "b9e7624d-c5bd-4d57-8361-9db66bf13685" : {
+      "email" : "michal@gmail.com",
+      "group_id" : 3,
+      "id" : "b9e7624d-c5bd-4d57-8361-9db66bf13685",
+      "name" : "Michal teve",
+      "personal_id" : "33333",
+      "phone" : "111166336"
+    },
+    "b9e7624d-c5bd-4d57-8361-9db66bf13686" : {
+      "email" : "tal@gmail.com",
+      "group_id" : 3,
+      "id" : "b9e7624d-c5bd-4d57-8361-9db66bf13686",
+      "name" : "Tal Itah",
+      "personal_id" : "22222",
+      "phone" : "111166816"
+    },
+    "b9e7624d-c5bd-4d57-8361-9db66bf13687" : {
+      "email" : "amit@gmail.com",
+      "group_id" : 3,
+      "id" : "b9e7624d-c5bd-4d57-8361-9db66bf13687",
+      "name" : "Amit Hanoch",
+      "personal_id" : "111111",
+      "phone" : "111166816"
+    },
+    "b9e7624d-c5bd-4d57-8361-9db66bf13688" : {
+      "email" : "morad.f.90@gmail.com",
+      "group_id" : 3,
+      "id" : "b9e7624d-c5bd-4d57-8361-9db66bf13688",
+      "name" : "Morad Faris",
+      "personal_id" : "6001292",
+      "phone" : "0504866816",
+      "roles" : [ {
+        "group" : 1,
+        "role" : 1
+      } ]
+    }
+  }
+}

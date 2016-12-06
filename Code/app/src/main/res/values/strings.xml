@@ -43,4 +43,5 @@
     <string name="soldier">soldier</string>
     <string name="invalid_phone_number">invalid phone number</string>
     <string name="missing_phone_number">Enter phone  number</string>
+    <string name="no_status">Status not yet entered</string>
 </resources>

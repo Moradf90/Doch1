@@ -303,5 +303,9 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
                         }
                     });
         }
+
+        // TODO: update the changes synchronize after changes in server and not before
+        // This line updates the header in the navigation drawer - the profile data.
+        ((DrawerActivity)getActivity()).updateProfileInDrawer(mCurrentUser);
     }
 }
