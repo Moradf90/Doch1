@@ -38,16 +38,7 @@ public class MainFragment extends Fragment {
 
         View vFragmentLayout = inflater.inflate(R.layout.activity_main, container, false);
 
-        getActivity().setTitle("Filling Statuses");
-
-//        int[] drawableRes = new int[]
-//                {R.drawable.morad72, R.drawable.tom72,
-////                        R.drawable.michal72,
-////                 R.drawable.batel72,
-//                        R.drawable.amit72,
-////                        R.drawable.yam36,
-////                        R.drawable.shahar72, R.drawable.yoad72, R.drawable.omer72,
-//                        R.drawable.yair72, R.drawable.lior72};
+        getActivity().setTitle(R.string.main_fragment_title);
 
         for (int i = 0; i < GlobalsTemp.MySoldiers.size(); i++) {
             RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(_nImageSizeOnDrop, _nImageSizeOnDrop);
@@ -56,7 +47,6 @@ public class MainFragment extends Fragment {
 
             soldierImage.setLayoutParams(layoutParams);
             soldierImage.setImageResource(GlobalsTemp.MySoldiers.get(i).getPicture());
-//            soldierImage.setTag(R.string.soldier_name, GlobalsTemp.MySoldiers.get(i).getFullName());
             soldierImage.setTag(R.string.soldier, GlobalsTemp.MySoldiers.get(i));
 
             soldierImage.setOnTouchListener(new MyTouchListener());
@@ -82,52 +72,6 @@ public class MainFragment extends Fragment {
 
         return vFragmentLayout;
     }
-
-
-
-//    @Override
-//    public void onCreate(Bundle savedInstanceState) {
-//        super.onCreate(savedInstanceState);
-//        setContentView(R.layout.activity_main);
-//
-//
-//        int[] drawableRes = new int[]
-//                {R.drawable.morad72, R.drawable.tom72, R.drawable.michal72,
-////                 R.drawable.batel72, R.drawable.amit72,
-// R.drawable.yam36,
-//                 R.drawable.shahar72, R.drawable.yoad72, R.drawable.omer72,
-//                 R.drawable.yair72, R.drawable.lior72};
-//
-//        for (int i = 0; i < drawableRes.length; i++) {
-//            RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(_nImageSizeOnDrop, _nImageSizeOnDrop);
-//
-//            RoundedImageView soldierImage = new RoundedImageView(this);
-//
-//            soldierImage.setLayoutParams(layoutParams);
-//            soldierImage.setImageResource(drawableRes[i]);
-//            soldierImage.setTag(R.string.soldier_name, "טל איטח");
-//
-//            soldierImage.setOnTouchListener(new MyTouchListener());
-//            FlowLayout btm = (FlowLayout) findViewById(R.id.topleft);
-//            btm.addView(soldierImage);
-//        }
-//
-//        // Set drag listeners
-//        LinearLayout rootLinearLayout = (LinearLayout) findViewById(R.id.root);
-//        int countRoot = rootLinearLayout.getChildCount();
-//        for (int i = 0; i < countRoot; i++) {
-//            LinearLayout vParent = (LinearLayout) rootLinearLayout.getChildAt(i);
-//            if (vParent instanceof LinearLayout) {
-//                int countStatuses = rootLinearLayout.getChildCount();
-//                for (int j = 0; j < countStatuses; j++) {
-//                    View v = vParent.getChildAt(j);
-//                    if (v instanceof org.apmem.tools.layouts.FlowLayout) {
-//                        v.setOnDragListener(new MyDragListener());
-//                    }
-//                }
-//            }
-//        }
-//    }
 
     private final class MyTouchListener implements View.OnTouchListener {
         public boolean onTouch(View view, MotionEvent motionEvent) {
@@ -318,11 +262,6 @@ public class MainFragment extends Fragment {
         if ((sld != null) && (!sld.getSubStatus().equals(""))) {
             popupSpinner.setSelection(Integer.valueOf(sld.getSubStatus()));
         }
-
-//        // If there is already selected sub status - select it
-//        if (imgSoldier.getTag(R.string.sub_status) != null) {
-//            popupSpinner.setSelection(Integer.valueOf(imgSoldier.getTag(R.string.sub_status).toString()));
-//        }
 
         popupWindow.setFocusable(true);
         popupWindow.showAsDropDown(imgSoldier, 50, -30);

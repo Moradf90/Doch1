@@ -37,6 +37,7 @@ import t.a.m.com.doch1.Models.GlobalsTemp;
 import t.a.m.com.doch1.Models.MainStatus;
 import t.a.m.com.doch1.Models.Soldier;
 import t.a.m.com.doch1.common.connection.StatusUtils;
+import t.a.m.com.doch1.management.ManagementFragment;
 
 public class DrawerActivity extends AppCompatActivity {
     private static final int PROFILE_SETTING = 100000;
@@ -55,8 +56,6 @@ public class DrawerActivity extends AppCompatActivity {
         setContentView(R.layout.activity_sample_dark_toolbar);
 
         mCurrentUser = FirebaseAuth.getInstance().getCurrentUser();
-
-        List<MainStatus> x = StatusUtils.getAllMainStatuses();
 
         //Remove line to test RTL support
         //getWindow().getDecorView().setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
@@ -107,6 +106,8 @@ public class DrawerActivity extends AppCompatActivity {
                 .build();
 
         PrimaryDrawerItem MyProfileDrawerItem = new PrimaryDrawerItem().withName(R.string.profile_fragment).withIcon(GoogleMaterial.Icon.gmd_account).withIdentifier(1);
+        PrimaryDrawerItem ManagementGroupsDrawerItem = new PrimaryDrawerItem().withName(R.string.managment_fragment).withIcon(GoogleMaterial.Icon.gmd_accounts_list_alt).withIdentifier(3);
+
         PrimaryDrawerItem FillStatusesDrawerItem = new PrimaryDrawerItem().withName(R.string.main_fragment).withDescription(R.string.dsc_main_statuses).withIcon(FontAwesome.Icon.faw_wheelchair).withIdentifier(2).withSelectable(false);
 
         SoldiersDrawerItem = new ExpandableDrawerItem().withName("My Soldiers").withIcon(GoogleMaterial.Icon.gmd_accounts_list).withIdentifier(19);
@@ -129,10 +130,9 @@ public class DrawerActivity extends AppCompatActivity {
                 .withAccountHeader(headerResult) //set the AccountHeader we created earlier for the header
                 .addDrawerItems(
                         MyProfileDrawerItem,
-                        FillStatusesDrawerItem,
-//                        new PrimaryDrawerItem().withName(R.string.drawer_item_multi_drawer).withDescription(R.string.drawer_item_multi_drawer_desc).withIcon(FontAwesome.Icon.faw_gamepad).withIdentifier(3).withSelectable(false),
+                        ManagementGroupsDrawerItem,
                         new SectionDrawerItem().withName(R.string.drawer_item_section_header),
-
+                        FillStatusesDrawerItem,
                         SoldiersDrawerItem,
                         SendDrawerItem,
                         new DividerDrawerItem(),
@@ -243,6 +243,9 @@ public class DrawerActivity extends AppCompatActivity {
         }
         else if (identifier == 2) {
             fragment = new MainFragment();
+        }
+        else if (identifier == 3) {
+            fragment = new ManagementFragment();
         }
         else if (identifier == 9) {
             Toast.makeText(DrawerActivity.this, "Send...", Toast.LENGTH_SHORT).show();

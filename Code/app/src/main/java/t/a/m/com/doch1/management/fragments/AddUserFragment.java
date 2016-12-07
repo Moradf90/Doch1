@@ -2,17 +2,18 @@ package t.a.m.com.doch1.management.fragments;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.Fragment;
+import android.app.FragmentManager;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.design.widget.TextInputLayout;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -163,7 +164,7 @@ public class AddUserFragment extends Fragment implements View.OnClickListener {
     }
 
     private void closeFragment() {
-        FragmentManager manager = getActivity().getSupportFragmentManager();
+        FragmentManager manager = getActivity().getFragmentManager();
         Fragment fragment = manager.findFragmentByTag(AddUserFragment.TAG);
 
         if(fragment != null){
@@ -176,8 +177,10 @@ public class AddUserFragment extends Fragment implements View.OnClickListener {
                 Manifest.permission.READ_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
 
-            requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                    MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE_FOR_PICK_IMAGE);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                        MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE_FOR_PICK_IMAGE);
+            }
 
         }
         else {
@@ -226,23 +229,6 @@ public class AddUserFragment extends Fragment implements View.OnClickListener {
 //            }
 //        }
     }
-
-    public String getRealPathFromURI(Uri uri) {
-        String filePath = uri.getPath();
-
-        String pathSegments[] = uri.getLastPathSegment().split(":");
-        String documentID = pathSegments[pathSegments.length - 1];
-
-        String mediaPath = MediaStore.Images.Media.DATA;
-        Cursor imageCursor = getActivity().getContentResolver()
-                .query(uri, new String[]{mediaPath}, MediaStore.Images.Media._ID + "=" + documentID, null, null);
-        if (imageCursor.moveToFirst()) {
-            filePath = imageCursor.getString(imageCursor.getColumnIndex(mediaPath));
-        }
-
-        return filePath;
-    }
-
 
     public interface CurrentDataGetter{
         AndroidTreeView getTreeView();

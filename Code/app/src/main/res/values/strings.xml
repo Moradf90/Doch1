@@ -44,4 +44,7 @@
     <string name="invalid_phone_number">invalid phone number</string>
     <string name="missing_phone_number">Enter phone  number</string>
     <string name="no_status">Status not yet entered</string>
+    <string name="managment_fragment">Manage Groups</string>
+    <string name="main_fragment_title">Filling Statuses</string>
+    <string name="managmen_fragment_title">Manage groups</string>
 </resources>

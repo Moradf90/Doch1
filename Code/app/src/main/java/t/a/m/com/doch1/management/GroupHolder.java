@@ -29,9 +29,11 @@ public class GroupHolder extends TreeNode.BaseNodeViewHolder<Group> implements V
     private PrintView mArrowView;
     private Group mGroup;
     private TreeNode mNode;
+    private OnAddButtonClicked mListener;
 
-    public GroupHolder(Context context) {
+    public GroupHolder(Context context, OnAddButtonClicked listener) {
         super(context);
+        mListener = listener;
     }
 
     @Override
@@ -67,8 +69,8 @@ public class GroupHolder extends TreeNode.BaseNodeViewHolder<Group> implements V
 
             if (mNode.getChildren().size() == 0) {
                 String groupId = mGroup.getId();
-                final TreeNode groups = new TreeNode("Loaging groups ...");
-                final TreeNode users = new TreeNode("Loaging users ...");
+                final TreeNode groups = new TreeNode("Loading groups ...");
+                final TreeNode users = new TreeNode("Loading users ...");
                 if (mGroup.getUsers() != null && mGroup.getUsers().size() > 0) {
                     mNode.addChild(users);
 
@@ -107,7 +109,7 @@ public class GroupHolder extends TreeNode.BaseNodeViewHolder<Group> implements V
                                 if (dataSnapshot.exists()) {
                                     for (DataSnapshot ds : dataSnapshot.getChildren()) {
                                         Group g = ds.getValue(Group.class);
-                                        TreeNode child = new TreeNode(g).setViewHolder(new GroupHolder(context));
+                                        TreeNode child = new TreeNode(g).setViewHolder(new GroupHolder(context, mListener));
                                         getTreeView().addNode(mNode, child);
                                     }
                                 }
@@ -132,8 +134,9 @@ public class GroupHolder extends TreeNode.BaseNodeViewHolder<Group> implements V
     }
 
     private void onAddClicked() {
-        if(context instanceof OnAddButtonClicked){
-            ((OnAddButtonClicked) context).onAddButtonClicked(mNode, mGroup);
+
+        if(mListener != null){
+            mListener.onAddButtonClicked(mNode, mGroup);
         }
     }
 
@@ -144,7 +147,7 @@ public class GroupHolder extends TreeNode.BaseNodeViewHolder<Group> implements V
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        FirebaseDatabase.getInstance().getReference("groups")
+                        FirebaseDatabase.getInstance().getReference(Group.GROUPS_REFERENCE_KEY)
                                 .child(mGroup.getId())
                                 .removeValue(new DatabaseReference.CompletionListener() {
                                     @Override
@@ -155,7 +158,7 @@ public class GroupHolder extends TreeNode.BaseNodeViewHolder<Group> implements V
 
                         if(mGroup.getUsers() != null && mGroup.getUsers().size() > 0){
                             for (String id : mGroup.getUsers()) {
-                                FirebaseDatabase.getInstance().getReference("users").child(id);
+                                FirebaseDatabase.getInstance().getReference(User.USERS_REFERENCE_KEY).child(id);
                             }
                         }
                     }
