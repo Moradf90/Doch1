@@ -55,7 +55,7 @@ public class UserHolder extends TreeNode.BaseNodeViewHolder<User> implements Vie
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        FirebaseDatabase.getInstance().getReference("users")
+                        FirebaseDatabase.getInstance().getReference(User.USERS_REFERENCE_KEY)
                                 .child(mUser.getId())
                                 .removeValue(new DatabaseReference.CompletionListener() {
                                     @Override
@@ -71,7 +71,7 @@ public class UserHolder extends TreeNode.BaseNodeViewHolder<User> implements Vie
                                 if(group.getUsers().indexOf(mUser.getId()) != -1)
                                 {
                                     group.getUsers().remove(mUser.getId());
-                                    FirebaseDatabase.getInstance().getReference("groups")
+                                    FirebaseDatabase.getInstance().getReference(Group.GROUPS_REFERENCE_KEY)
                                             .child(mUser.getGroupId()).child(Group.USERS_PROPERTY)
                                             .setValue(group.getUsers());
                                 }

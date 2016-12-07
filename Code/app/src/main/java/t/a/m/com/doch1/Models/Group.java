@@ -12,6 +12,9 @@ import java.util.List;
 @IgnoreExtraProperties
 public class Group {
 
+    public static final String GROUPS_REFERENCE_KEY = "groups";
+
+
     public static final String ID_PROPERTY = "id";
     public static final String NAME_PROPERTY = "name";
     public static final String PARENT_ID_PROPERTY = "parentId";

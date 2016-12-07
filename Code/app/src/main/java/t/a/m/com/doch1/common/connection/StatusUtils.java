@@ -31,6 +31,8 @@ public class StatusUtils {
                 for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
                     lst.add(postSnapshot.getValue(MainStatus.class));
                 }
+                //notifyDataSetChanged
+
             }
 
             @Override
