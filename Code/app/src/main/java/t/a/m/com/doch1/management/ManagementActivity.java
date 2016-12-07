@@ -4,14 +4,11 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
-import android.view.View;
 import android.widget.EditText;
 import android.widget.FrameLayout;
-import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -25,11 +22,10 @@ import com.unnamed.b.atv.view.AndroidTreeView;
 import java.util.UUID;
 
 import t.a.m.com.doch1.Models.Group;
-import t.a.m.com.doch1.Models.User;
 import t.a.m.com.doch1.R;
 import t.a.m.com.doch1.management.fragments.AddUserFragment;
 
-public class ManagementActivity extends AppCompatActivity implements GroupHolder.OnAddButtonClicked, AddUserFragment.OnAddUserEvents {
+public class ManagementActivity extends AppCompatActivity implements GroupHolder.OnAddButtonClicked, AddUserFragment.CurrentDataGetter {
 
     private AndroidTreeView mTreeView;
     private TreeNode mCurrentParentNode;
@@ -134,32 +130,17 @@ public class ManagementActivity extends AppCompatActivity implements GroupHolder
     }
 
     @Override
-    public void onSaveClicked(final User user) {
-        if(user != null){
-            user.setGroupId(mCurrentGroup.getId());
-
-            FirebaseDatabase.getInstance().getReference("users").child(user.getId()).setValue(user)
-                    .addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            onCancelClicked(); // close the bottom sheet
-                            mTreeView.addNode(mCurrentParentNode, new TreeNode(user).setViewHolder(new UserHolder(ManagementActivity.this)));
-                        }
-                    });
-
-            mCurrentGroup.addUser(user.getId());
-            FirebaseDatabase.getInstance().getReference("groups").child(mCurrentGroup.getId())
-                    .child(Group.USERS_PROPERTY).setValue(mCurrentGroup.getUsers());
-        }
+    public AndroidTreeView getTreeView() {
+        return mTreeView;
     }
 
     @Override
-    public void onCancelClicked() {
-        FragmentManager manager = getSupportFragmentManager();
-        Fragment fragment = manager.findFragmentByTag(AddUserFragment.TAG);
+    public Group getCurrentGroup() {
+        return mCurrentGroup;
+    }
 
-        if(fragment != null){
-            manager.beginTransaction().remove(fragment).commit();
-        }
+    @Override
+    public TreeNode getCurrentParentTreeNode() {
+        return mCurrentParentNode;
     }
 }

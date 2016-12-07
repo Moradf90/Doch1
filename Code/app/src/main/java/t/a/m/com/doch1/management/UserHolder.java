@@ -5,16 +5,19 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.squareup.picasso.Picasso;
 import com.unnamed.b.atv.model.TreeNode;
 
 import t.a.m.com.doch1.Models.Group;
 import t.a.m.com.doch1.Models.User;
 import t.a.m.com.doch1.R;
+import t.a.m.com.doch1.views.RoundedImageView;
 
 /**
  * Created by Morad on 12/5/2016.
@@ -36,6 +39,11 @@ public class UserHolder extends TreeNode.BaseNodeViewHolder<User> implements Vie
 
         TextView text = (TextView) view.findViewById(R.id.name);
         text.setText(value.getName());
+
+        if(value.getImage() != null) {
+            RoundedImageView image = (RoundedImageView) view.findViewById(R.id.image);
+            Picasso.with(context).load(value.getImage()).into(image);
+        }
 
         view.findViewById(R.id.delete).setOnClickListener(this);
 

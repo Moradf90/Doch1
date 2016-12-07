@@ -19,6 +19,7 @@ public class User {
     public static final String GROUP_ID_PROPERTY = "groupId";
     public static final String PHONE_PROPERTY = "phone";
     public static final String LAST_UPDATE_DATE_PROPERTY = "lastUpdateDate";
+    public static final String IMAGE_PROPERTY = "image";
 
     @PropertyName(ID_PROPERTY)
     private String mId;
@@ -34,6 +35,8 @@ public class User {
     private String mPhone;
     @PropertyName(LAST_UPDATE_DATE_PROPERTY)
     private Date mlastUpdateDate;
+    @PropertyName(IMAGE_PROPERTY)
+    private String mImage;
 
     public User(){}
 
@@ -91,5 +94,13 @@ public class User {
 
     public void setLastUpdateDate(Date mlastUpdateDate) {
         this.mlastUpdateDate = mlastUpdateDate;
+    }
+
+    public void setImage(String mImage) {
+        this.mImage = mImage;
+    }
+
+    public String getImage() {
+        return mImage;
     }
 }
