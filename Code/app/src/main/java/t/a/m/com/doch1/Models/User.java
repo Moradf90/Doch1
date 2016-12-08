@@ -1,5 +1,6 @@
 package t.a.m.com.doch1.Models;
 
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.IgnoreExtraProperties;
 import com.google.firebase.database.PropertyName;
 
@@ -130,6 +131,15 @@ public class User {
     // Method
     private String valueOrEmpty(String value) {
         return value != null ? value : "";
+    }
+
+    // Update the user in the DB
+    public void update() {
+        FirebaseDatabase.getInstance().getReference(User.USERS_REFERENCE_KEY)
+                .child(this.getId())
+                .setValue(this);
+
+        // todo: maybe update groups collection in case the groupId has changed
     }
 
 }

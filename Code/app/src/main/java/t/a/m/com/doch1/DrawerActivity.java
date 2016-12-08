@@ -218,7 +218,6 @@ public class DrawerActivity extends AppCompatActivity {
     }
 
     private void initSoldiersDrawer() {
-
         FirebaseDatabase.getInstance().getReference(User.USERS_REFERENCE_KEY).orderByChild(User.GROUP_ID_PROPERTY)
                 // TODO: change
                 .equalTo("21827933-d057-4ada-a51e-816cd46a586d")

@@ -65,8 +65,8 @@ public class MainFragment extends Fragment {
         lstMain = new ArrayList<>();
 
         final ProgressDialog progress = new ProgressDialog(getActivity());
-        progress.setTitle("Loading");
-        progress.setMessage("Wait while loading...");
+        progress.setTitle(getString(R.string.loading_title));
+        progress.setMessage(getString(R.string.loading_message));
         progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
         progress.show();
 
@@ -91,28 +91,9 @@ public class MainFragment extends Fragment {
 
 
             private void buildLayout() {
-                int rowsSize = -1;
-                int colsSize = -1;
-                int nMinSheerit = lstMain.size();
-                for (int i = (int) Math.sqrt(lstMain.size()); i >= 2; i--) {
-                    int y = lstMain.size() / i;
-                    if (y * i == lstMain.size()) {
-                        rowsSize = y;
-                        colsSize = i;
-                        nMinSheerit = 0;
-                        break;
-                    } else if (lstMain.size() - (y * i) < nMinSheerit) {
-                        rowsSize = y;
-                        colsSize = i;
-                        nMinSheerit = lstMain.size() - (y * i);
-                    }
-                }
 
-                int l = rowsSize * colsSize;
-                int r = nMinSheerit;
-
-                colsSize = 3;
-                rowsSize = lstMain.size() / colsSize;
+                int colsSize = 3;
+                int rowsSize = lstMain.size() / colsSize;
 
                 rootLinearLayout.setWeightSum(rowsSize);
 
@@ -157,16 +138,6 @@ public class MainFragment extends Fragment {
 
                     rootLinearLayout.addView(newRow);
 
-//                            LinearLayout.LayoutParams lparams = new LinearLayout.LayoutParams(
-//                                    LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-//                            TextView tv=new TextView(getActivity());
-//                            tv.setLayoutParams(lparams);
-//                            tv.setText("test");
-//                            rootLinearLayout.addView(tv);
-
-//                            rootLinearLayout.invalidate();
-//                            vFragmentLayout.invalidate();
-//                        progress2.dismiss();
                 }
             }
 
@@ -201,47 +172,6 @@ public class MainFragment extends Fragment {
             }
         });
 
-//        for (int i = 0; i < GlobalsTemp.MySoldiers.size(); i++) {
-//            RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(_nImageSizeOnDrop, _nImageSizeOnDrop);
-//
-//            RoundedImageView soldierImage = new RoundedImageView(getActivity());
-//
-//            soldierImage.setLayoutParams(layoutParams);
-//            soldierImage.setImageResource(GlobalsTemp.MySoldiers.get(i).getPicture());
-//            soldierImage.setTag(R.string.soldier, GlobalsTemp.MySoldiers.get(i));
-//
-//            soldierImage.setOnTouchListener(new MyTouchListener());
-//            FlowLayout btm = (FlowLayout) vFragmentLayout.findViewById(R.id.topleft);
-//            btm.addView(soldierImage);
-//        }
-
-
-//        final ProgressDialog progress2;
-//
-//        progress2 = ProgressDialog.show(getActivity(), "dialog title",
-//                "dialog message", true);
-
-//        FirebaseDatabase.getInstance().getReference(MainStatus.STATUSES_REFERENCE_KEY)
-//                .addListenerForSingleValueEvent(new ValueEventListener() {
-//                    @Override
-//                    public void onDataChange(DataSnapshot dataSnapshot) {
-//                        if(dataSnapshot.exists()){
-//                            for(DataSnapshot post : dataSnapshot.getChildren()) {
-//                                MainStatus curr = post.getValue(MainStatus.class);
-//                                lstMain.add(curr.getName());
-//                            }
-//
-//                        }
-//                    }
-
-
-//
-//                    @Override
-//                    public void onCancelled(DatabaseError databaseError) {
-//
-//                    }
-//                });
-
         return vFragmentLayout;
     }
 
@@ -257,12 +187,17 @@ public class MainFragment extends Fragment {
 
             FlowLayout btm = (FlowLayout) vFragmentLayout.findViewById(R.id.defaultStatus);
 
-            lstSoldiers.get(i).setMainStatus((String) btm.getTag(R.string.main_status));
+            if (lstSoldiers.get(i).getMainStatus().equals("")) {
+                lstSoldiers.get(i).setMainStatus((String) btm.getTag(R.string.main_status));
+                lstSoldiers.get(i).update();
+                btm.addView(soldierImage);
+            }
+
+            // TODO: put the image on the right layout - if has mainStatus
+
             soldierImage.setTag(R.string.soldier, lstSoldiers.get(i));
 
             soldierImage.setOnTouchListener(new MyTouchListener());
-
-            btm.addView(soldierImage);
         }
     }
 
@@ -326,11 +261,13 @@ public class MainFragment extends Fragment {
 
                         // New mainStatus, Clear the sub status
                         if (oldLayout != newLayout) {
+                            User sld = ((User) imgSoldier.getTag(R.string.soldier));
                             // Set main status
-                            ((User) imgSoldier.getTag(R.string.soldier)).setMainStatus((String) newLayout.getTag(R.string.main_status));
+                            sld.setMainStatus((String) newLayout.getTag(R.string.main_status));
 
                             // Clear sub status
-                            ((User) imgSoldier.getTag(R.string.soldier)).setSubStatus(null);
+                            sld.setSubStatus(null);
+                            sld.update();
 
                             // Update drawer
                             ((DrawerActivity) getActivity()).updateSoldiersStatuses();
@@ -433,7 +370,9 @@ public class MainFragment extends Fragment {
                     @Override
                     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
 //                imgSoldier.setTag(R.string.sub_status, i);
-                        ((User) imgSoldier.getTag(R.string.soldier)).setSubStatus(popupSpinner.getSelectedItem().toString());
+                        User soldier = (User) imgSoldier.getTag(R.string.soldier);
+                        soldier.setSubStatus(popupSpinner.getSelectedItem().toString());
+                        soldier.update();
                         // Update drawer
                         ((DrawerActivity) getActivity()).updateSoldiersStatuses();
 
