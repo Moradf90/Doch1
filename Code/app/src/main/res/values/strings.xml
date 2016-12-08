@@ -47,4 +47,5 @@
     <string name="managment_fragment">Manage Groups</string>
     <string name="main_fragment_title">Filling Statuses</string>
     <string name="managmen_fragment_title">Manage groups</string>
+    <string name="main_status">mainStatus</string>
 </resources>

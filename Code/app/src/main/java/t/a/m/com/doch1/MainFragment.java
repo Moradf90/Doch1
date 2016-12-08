@@ -1,8 +1,10 @@
 package t.a.m.com.doch1;
 
 import android.app.Fragment;
+import android.app.ProgressDialog;
 import android.content.ClipData;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.os.Handler;
@@ -15,60 +17,172 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import org.apmem.tools.layouts.FlowLayout;
 
-import t.a.m.com.doch1.Models.GlobalsTemp;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
+import t.a.m.com.doch1.Models.MainStatus;
 import t.a.m.com.doch1.Models.Soldier;
 import t.a.m.com.doch1.views.MySpinner;
-import t.a.m.com.doch1.views.RoundedImageView;
 
 public class MainFragment extends Fragment {
 
     private static final int ENLARGE_ON_DARG = 2;
     private static final long DOUBLE_PRESS_INTERVAL = 500;
     private int _nImageSizeOnDrop = 140;
-
+    List<String> lstMain;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        View vFragmentLayout = inflater.inflate(R.layout.activity_main, container, false);
+        final View vFragmentLayout = inflater.inflate(R.layout.activity_main, container, false);
 
         getActivity().setTitle(R.string.main_fragment_title);
 
-        for (int i = 0; i < GlobalsTemp.MySoldiers.size(); i++) {
-            RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(_nImageSizeOnDrop, _nImageSizeOnDrop);
+        lstMain = new ArrayList<>();
 
-            RoundedImageView soldierImage = new RoundedImageView(getActivity());
+        final LinearLayout rootLinearLayout = (LinearLayout) vFragmentLayout.findViewById(R.id.root);
 
-            soldierImage.setLayoutParams(layoutParams);
-            soldierImage.setImageResource(GlobalsTemp.MySoldiers.get(i).getPicture());
-            soldierImage.setTag(R.string.soldier, GlobalsTemp.MySoldiers.get(i));
+        final ProgressDialog progress;
 
-            soldierImage.setOnTouchListener(new MyTouchListener());
-            FlowLayout btm = (FlowLayout) vFragmentLayout.findViewById(R.id.topleft);
-            btm.addView(soldierImage);
-        }
+        progress = ProgressDialog.show(getActivity(), "dialog title",
+                "dialog message", true);
 
-        // Set drag listeners
-        LinearLayout rootLinearLayout = (LinearLayout) vFragmentLayout.findViewById(R.id.root);
-        int countRoot = rootLinearLayout.getChildCount();
-        for (int i = 0; i < countRoot; i++) {
-            LinearLayout vParent = (LinearLayout) rootLinearLayout.getChildAt(i);
-            if (vParent instanceof LinearLayout) {
-                int countStatuses = rootLinearLayout.getChildCount();
-                for (int j = 0; j < countStatuses; j++) {
-                    View v = vParent.getChildAt(j);
-                    if (v instanceof org.apmem.tools.layouts.FlowLayout) {
-                        v.setOnDragListener(new MyDragListener());
+        FirebaseDatabase.getInstance().getReference(MainStatus.STATUSES_REFERENCE_KEY)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        if(dataSnapshot.exists()){
+                            for(DataSnapshot post : dataSnapshot.getChildren()) {
+                                MainStatus curr = post.getValue(MainStatus.class);
+                                lstMain.add(curr.getName());
+                            }
+
+                            buildLayout();
+                        }
                     }
-                }
-            }
-        }
+
+                    private void buildLayout() {
+                        int rowsSize = -1;
+                        int colsSize = -1;
+                        int nMinSheerit = lstMain.size();
+                        for (int i = (int) Math.sqrt(lstMain.size()); i >= 2; i--) {
+                            int y = lstMain.size() / i;
+                            if (y * i == lstMain.size()) {
+                                rowsSize = y;
+                                colsSize = i;
+                                nMinSheerit = 0;
+                                break;
+                            }
+                            else if (lstMain.size() - (y * i) < nMinSheerit) {
+                                rowsSize = y;
+                                colsSize = i;
+                                nMinSheerit = lstMain.size() - (y * i);
+                            }
+                        }
+
+                        int l = rowsSize * colsSize;
+                        int r = nMinSheerit;
+
+                        colsSize = 3;
+                        rowsSize = lstMain.size() / colsSize;
+
+                        rootLinearLayout.setWeightSum(rowsSize);
+
+                        Random rnd2 = new Random();
+                        int color2 = Color.argb(255, rnd2.nextInt(256), rnd2.nextInt(256), rnd2.nextInt(256));
+//                        rootLinearLayout.setBackgroundColor(color2);
+
+                        for(int rowIndex = 0;rowIndex < rowsSize; rowIndex++) {
+                            // Create new row
+                            LinearLayout newRow = new LinearLayout(getActivity());
+
+                            LinearLayout.LayoutParams newRowParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1);
+
+                            newRow.setWeightSum(colsSize);
+                            newRow.setOrientation(LinearLayout.HORIZONTAL);
+                            newRow.setLayoutParams(newRowParams);
+
+                            rnd2 = new Random();
+                            color2 = Color.argb(255, rnd2.nextInt(256), rnd2.nextInt(256), rnd2.nextInt(256));
+                            newRow.setBackgroundColor(color2);
+
+                            for(int colIndex = 0; colIndex < colsSize; colIndex++) {
+                                FlowLayout newCol = new FlowLayout(getActivity());
+
+                                LinearLayout.LayoutParams colParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.FILL_PARENT, 1);
+
+                                newCol.setLayoutParams(colParams);
+                                newCol.setTag(R.string.main_status, lstMain.get(rowIndex * colsSize + colIndex));
+
+                                newCol.setOnDragListener(new MyDragListener());
+
+                                Random rnd = new Random();
+                                int color = Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256));
+                                newCol.setBackgroundColor(color);
+
+                                newRow.addView(newCol);
+                            }
+
+                            rootLinearLayout.addView(newRow);
+
+//                            LinearLayout.LayoutParams lparams = new LinearLayout.LayoutParams(
+//                                    LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+//                            TextView tv=new TextView(getActivity());
+//                            tv.setLayoutParams(lparams);
+//                            tv.setText("test");
+//                            rootLinearLayout.addView(tv);
+
+//                            rootLinearLayout.invalidate();
+//                            vFragmentLayout.invalidate();
+                            progress.dismiss();
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+//
+//        for (int i = 0; i < GlobalsTemp.MySoldiers.size(); i++) {
+//            RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(_nImageSizeOnDrop, _nImageSizeOnDrop);
+//
+//            RoundedImageView soldierImage = new RoundedImageView(getActivity());
+//
+//            soldierImage.setLayoutParams(layoutParams);
+//            soldierImage.setImageResource(GlobalsTemp.MySoldiers.get(i).getPicture());
+//            soldierImage.setTag(R.string.soldier, GlobalsTemp.MySoldiers.get(i));
+//
+//            soldierImage.setOnTouchListener(new MyTouchListener());
+//            FlowLayout btm = (FlowLayout) vFragmentLayout.findViewById(R.id.topleft);
+//            btm.addView(soldierImage);
+//        }
+
+//        // Set drag listeners
+//        int countRoot = rootLinearLayout.getChildCount();
+//        for (int i = 0; i < countRoot; i++) {
+//            LinearLayout vParent = (LinearLayout) rootLinearLayout.getChildAt(i);
+//            if (vParent instanceof LinearLayout) {
+//                int countStatuses = rootLinearLayout.getChildCount();
+//                for (int j = 0; j < countStatuses; j++) {
+//                    View v = vParent.getChildAt(j);
+//                    if (v instanceof org.apmem.tools.layouts.FlowLayout) {
+//                        v.setOnDragListener(new MyDragListener());
+//                    }
+//                }
+//            }
+//        }
 
         return vFragmentLayout;
     }
