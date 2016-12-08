@@ -29,14 +29,12 @@ import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
 import org.apmem.tools.layouts.FlowLayout;
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import t.a.m.com.doch1.Models.GlobalsTemp;
 import t.a.m.com.doch1.Models.MainStatus;
 import t.a.m.com.doch1.Models.User;
 
@@ -85,12 +83,13 @@ public class MainFragment extends Fragment {
                     lstMain.add(currStatus.getName());
                 }
 
-                buildLayout();
-                pullSoldiers();
+                Map<String, ViewGroup> mapMainStatusToView = buildLayout();
+                pullSoldiers(mapMainStatusToView);
             }
 
+            private Map<String, ViewGroup> buildLayout() {
 
-            private void buildLayout() {
+                Map<String, ViewGroup> mapMainStatusToView = new HashMap<String, ViewGroup>();
 
                 int colsSize = 3;
                 int rowsSize = lstMain.size() / colsSize;
@@ -116,8 +115,10 @@ public class MainFragment extends Fragment {
 
                         LinearLayout.LayoutParams colParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.FILL_PARENT, 1);
 
+                        String mainStatus = lstMain.get(rowIndex * colsSize + colIndex);
                         newCol.setLayoutParams(colParams);
-                        newCol.setTag(R.string.main_status, lstMain.get(rowIndex * colsSize + colIndex));
+                        newCol.setTag(R.string.main_status, mainStatus);
+                        mapMainStatusToView.put(mainStatus, newCol);
 
                         newCol.setOnDragListener(new MyDragListener());
 
@@ -131,17 +132,16 @@ public class MainFragment extends Fragment {
                         int color = Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256));
                         newCol.setBackgroundColor(color);
 
-
-
                         newRow.addView(newCol);
                     }
 
                     rootLinearLayout.addView(newRow);
-
                 }
+
+                return mapMainStatusToView;
             }
 
-            private void pullSoldiers() {
+            private void pullSoldiers(final Map<String, ViewGroup> mapMainStatusToView) {
                 FirebaseDatabase.getInstance().getReference(User.USERS_REFERENCE_KEY).orderByChild(User.GROUP_ID_PROPERTY)
                         // TODO: change
                         .equalTo("21827933-d057-4ada-a51e-816cd46a586d")
@@ -155,7 +155,7 @@ public class MainFragment extends Fragment {
                                     lstSoldiers.add(currUser);
                                 }
 
-                                setSoldiersOnStatuses(vFragmentLayout);
+                                setSoldiersOnStatuses(vFragmentLayout, mapMainStatusToView);
                                 progress.dismiss();
                             }
 
@@ -175,7 +175,9 @@ public class MainFragment extends Fragment {
         return vFragmentLayout;
     }
 
-    private void setSoldiersOnStatuses(View vFragmentLayout) {
+    private void setSoldiersOnStatuses(View vFragmentLayout, Map<String, ViewGroup> mapMainStatusToView) {
+
+        FlowLayout btm = (FlowLayout) vFragmentLayout.findViewById(R.id.defaultStatus);
 
         for (int i = 0; i < lstSoldiers.size(); i++) {
             RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(_nImageSizeOnDrop, _nImageSizeOnDrop);
@@ -185,15 +187,18 @@ public class MainFragment extends Fragment {
             soldierImage.setLayoutParams(layoutParams);
             Picasso.with(getActivity()).load(lstSoldiers.get(i).getImage()).into(soldierImage);
 
-            FlowLayout btm = (FlowLayout) vFragmentLayout.findViewById(R.id.defaultStatus);
+            String soldierMainStatus = lstSoldiers.get(i).getMainStatus();
 
-            if (lstSoldiers.get(i).getMainStatus().equals("")) {
+            // If there is no status - put all of them in the first one or the main status in the DB isnt valid
+            if ((soldierMainStatus.equals("")) || (!mapMainStatusToView.containsKey(soldierMainStatus))) {
                 lstSoldiers.get(i).setMainStatus((String) btm.getTag(R.string.main_status));
                 lstSoldiers.get(i).update();
                 btm.addView(soldierImage);
             }
-
-            // TODO: put the image on the right layout - if has mainStatus
+            // If there is already main status on DB
+            else {
+                mapMainStatusToView.get(soldierMainStatus).addView(soldierImage);
+            }
 
             soldierImage.setTag(R.string.soldier, lstSoldiers.get(i));
 
@@ -223,7 +228,7 @@ public class MainFragment extends Fragment {
                 // If double click..
                 long diff = pressTime - lastPressTime;
                 if (diff <= DOUBLE_PRESS_INTERVAL) {
-                    showPopup(view);
+                    showPopupSubStatus(view);
                 }
 
                 // record the last time the menu button was pressed.
@@ -238,7 +243,6 @@ public class MainFragment extends Fragment {
     class MyDragListener implements View.OnDragListener {
         @Override
         public boolean onDrag(View v, DragEvent event) {
-            int action = event.getAction();
             View imgSoldier = (View) event.getLocalState();
 
             if (imgSoldier != null) {
@@ -268,9 +272,6 @@ public class MainFragment extends Fragment {
                             // Clear sub status
                             sld.setSubStatus(null);
                             sld.update();
-
-                            // Update drawer
-                            ((DrawerActivity) getActivity()).updateSoldiersStatuses();
                         }
 
                         break;
@@ -292,7 +293,6 @@ public class MainFragment extends Fragment {
 
             // Stores the View parameter passed to myDragShadowBuilder.
             super(v);
-
         }
 
         // Defines a callback that sends the drag shadow dimensions and touch point back to the
@@ -329,19 +329,19 @@ public class MainFragment extends Fragment {
         }
     }
 
-    public void showPopup(final View imgSoldier) {
+    public void showPopupSubStatus(final View imgSoldier) {
 
-        User sld = null;
+        User soldier = null;
         // If there is already selected sub status - select it
         if (imgSoldier.getTag(R.string.soldier) != null) {
-            sld = ((User) imgSoldier.getTag(R.string.soldier));
+            soldier = ((User) imgSoldier.getTag(R.string.soldier));
         }
 
-        if (sld != null) {
-            List<String> subStatuses = mapMainStatusToSub.get(sld.getMainStatus());
+        if (soldier != null) {
+            List<String> subStatuses = mapMainStatusToSub.get(soldier.getMainStatus());
             // Open spinner only if there is sub status
             if ((subStatuses == null) || (subStatuses.size() == 0)) {
-                Toast.makeText(getActivity(), "no sub statuses", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), R.string.noSubStatusMessage, Toast.LENGTH_SHORT).show();
             }
             else {
 
@@ -352,11 +352,8 @@ public class MainFragment extends Fragment {
                         popupView, LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
                 final MySpinner popupSpinner = (MySpinner) popupView.findViewById(R.id.popupspinner);
                 TextView txtSoldierName = (TextView) popupView.findViewById(R.id.txt_soldier_name);
-//        if (imgSoldier.getTag(R.string.soldier_name) != null) {
-//            txtSoldierName.setText(imgSoldier.getTag(R.string.soldier_name).toString());
-//        }
 
-                txtSoldierName.setText(((User) imgSoldier.getTag(R.string.soldier)).getName());
+                txtSoldierName.setText(soldier.getName());
 
                 ArrayAdapter<String> adapter =
                         new ArrayAdapter<String>(getActivity(),
@@ -364,19 +361,16 @@ public class MainFragment extends Fragment {
                 adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 popupSpinner.setAdapter(adapter);
 
-                final Boolean[] bFirstTimeSeleceted = {true};
+                final Integer[] nTimesSelected = {0};
 
+                final User finalSoldier = soldier;
                 popupSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                     @Override
                     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-//                imgSoldier.setTag(R.string.sub_status, i);
-                        User soldier = (User) imgSoldier.getTag(R.string.soldier);
-                        soldier.setSubStatus(popupSpinner.getSelectedItem().toString());
-                        soldier.update();
-                        // Update drawer
-                        ((DrawerActivity) getActivity()).updateSoldiersStatuses();
+                        finalSoldier.setSubStatus(popupSpinner.getSelectedItem().toString());
+                        finalSoldier.update();
 
-                        if (!bFirstTimeSeleceted[0]) {
+                        if (nTimesSelected[0] > 1) {
                             final Handler handler = new Handler();
 
                             final Runnable runnable = new Runnable() {
@@ -388,9 +382,9 @@ public class MainFragment extends Fragment {
                                 }
                             };
 
-                            handler.postDelayed(runnable, 1000);
+                            handler.postDelayed(runnable, 1500);
                         }
-                        bFirstTimeSeleceted[0] = false;
+                        nTimesSelected[0]++;
                     }
 
                     @Override
@@ -400,18 +394,10 @@ public class MainFragment extends Fragment {
                 });
 
                 // If there is already selected sub status - select it
-                if ((sld.getSubStatus() != null) && (!sld.getSubStatus().equals(""))) {
+                if ((soldier.getSubStatus() != null) && (!soldier.getSubStatus().equals(""))) {
 
-                    String selectedOptionValue = sld.getSubStatus();
+                    String selectedOptionValue = soldier.getSubStatus();
                     popupSpinner.setSelection(((ArrayAdapter<String>) popupSpinner.getAdapter()).getPosition(selectedOptionValue));
-
-//                ArrayAdapter<CharSequence> charAdaper = ArrayAdapter.createFromResource(this, R.array.select_state, android.R.layout.simple_spinner_item);
-//                charAdaper.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-//                popupSpinner.setAdapter(charAdaper);
-//                if (!selectedOptionValue.equals(null)) {
-//                    int spinnerPosition = charAdaper.getPosition(selectedOptionValue);
-//                    popupSpinner.setSelection(spinnerPosition);
-//                }
                 }
 
                 popupWindow.setFocusable(true);

@@ -11,6 +11,7 @@ import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -218,6 +219,7 @@ public class DrawerActivity extends AppCompatActivity {
     }
 
     private void initSoldiersDrawer() {
+
         FirebaseDatabase.getInstance().getReference(User.USERS_REFERENCE_KEY).orderByChild(User.GROUP_ID_PROPERTY)
                 // TODO: change
                 .equalTo("21827933-d057-4ada-a51e-816cd46a586d")
@@ -235,7 +237,7 @@ public class DrawerActivity extends AppCompatActivity {
                                     .withIdentifier(Long.parseLong(currUser.getPersonalId())).withSelectable(false);
                             // If there is main status
                             if (!currUser.getMainStatus().equals("")) {
-                                temp.withDescription(currUser.getMainStatus() + " " + currUser.getSubStatus()).withTextColor(Color.rgb(20, 170, 20));
+                                temp.withDescription(getDescription(currUser)).withTextColor(Color.rgb(20, 170, 20));
                             } else {
                                 temp.withDescription(R.string.no_status).withTextColor(Color.rgb(170, 20, 20));
                             }
@@ -243,6 +245,17 @@ public class DrawerActivity extends AppCompatActivity {
                         }
 
                         SoldiersDrawerItem.withSubItems(lstSoldiersToExpand);
+                        result.updateItem(SoldiersDrawerItem);
+                    }
+
+                    @NonNull
+                    private String getDescription(User currUser) {
+                        if (!currUser.getSubStatus().equals("")) {
+                            return currUser.getMainStatus() + ", " + currUser.getSubStatus();
+                        }
+                        else {
+                            return currUser.getMainStatus();
+                        }
                     }
 
                     @Override
@@ -268,23 +281,6 @@ public class DrawerActivity extends AppCompatActivity {
             return Resources.getSystem().getDrawable(R.drawable.face_icon);
         }
     }
-
-    public void updateSoldiersStatuses() {
-        // TODO: check if needed
-//        initSoldiersDrawer();
-        result.updateItem(SoldiersDrawerItem);
-    }
-
-//    private OnCheckedChangeListener onCheckedChangeListener = new OnCheckedChangeListener() {
-//        @Override
-//        public void onCheckedChanged(IDrawerItem drawerItem, CompoundButton buttonView, boolean isChecked) {
-//            if (drawerItem instanceof Nameable) {
-//                Log.i("material-drawer", "DrawerItem: " + ((Nameable) drawerItem).getName() + " - toggleChecked: " + isChecked);
-//            } else {
-//                Log.i("material-drawer", "toggleChecked: " + isChecked);
-//            }
-//        }
-//    };
 
         /** Swaps fragments in the main content view */
     private void selectItem(int identifier) {

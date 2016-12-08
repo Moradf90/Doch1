@@ -51,4 +51,5 @@
     <string name="top_left_status">topLeftStatus</string>
     <string name="loading_title">Loading</string>
     <string name="loading_message">Wait while loading...</string>
+    <string name="noSubStatusMessage">no sub statuses</string>
 </resources>

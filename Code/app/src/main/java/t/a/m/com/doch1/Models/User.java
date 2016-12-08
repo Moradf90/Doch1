@@ -135,11 +135,9 @@ public class User {
 
     // Update the user in the DB
     public void update() {
+        this.setLastUpdateDate(new Date());
         FirebaseDatabase.getInstance().getReference(User.USERS_REFERENCE_KEY)
                 .child(this.getId())
                 .setValue(this);
-
-        // todo: maybe update groups collection in case the groupId has changed
     }
-
 }
