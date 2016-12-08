@@ -9,6 +9,7 @@ import android.graphics.Point;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.DragEvent;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -19,13 +20,16 @@ import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.squareup.picasso.Picasso;
 
 import org.apmem.tools.layouts.FlowLayout;
+import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,12 +54,9 @@ public class MainFragment extends Fragment {
     Map<String, List<String>> mapMainStatusToSub;
     List<String> lstMain;
 
-    View vFragmentLayout;
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        vFragmentLayout = inflater.inflate(R.layout.activity_main, container, false);
 
         getActivity().setTitle(R.string.main_fragment_title);
 
@@ -75,97 +76,86 @@ public class MainFragment extends Fragment {
 
         final LinearLayout rootLinearLayout = (LinearLayout) vFragmentLayout.findViewById(R.id.root);
 
-        FirebaseDatabase.getInstance().getReference(User.USERS_REFERENCE_KEY).orderByChild(User.GROUP_ID_PROPERTY)
-                // TODO: change
-                .equalTo("21827933-d057-4ada-a51e-816cd46a586d")
-                .addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-
-                        for (DataSnapshot usrSnapshot: dataSnapshot.getChildren()) {
-                            User currUser = usrSnapshot.getValue(User.class);
-                            lstSoldiers.add(currUser);
-                        }
-
-                        setSoldiersOnStatuses();
-                        progress.dismiss();
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
-                    }
-                });
-
-
         FirebaseDatabase.getInstance().getReference(MainStatus.STATUSES_REFERENCE_KEY).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot statusSnapshot: dataSnapshot.getChildren()) {
+                for (DataSnapshot statusSnapshot : dataSnapshot.getChildren()) {
                     MainStatus currStatus = statusSnapshot.getValue(MainStatus.class);
                     mapMainStatusToSub.put(currStatus.getName(), currStatus.getSubStatuses() != null ? currStatus.getSubStatuses() : new ArrayList<String>());
                     lstMain.add(currStatus.getName());
                 }
 
                 buildLayout();
-
+                pullSoldiers();
             }
 
+
             private void buildLayout() {
-                    int rowsSize = -1;
-                    int colsSize = -1;
-                    int nMinSheerit = lstMain.size();
-                    for (int i = (int) Math.sqrt(lstMain.size()); i >= 2; i--) {
-                        int y = lstMain.size() / i;
-                        if (y * i == lstMain.size()) {
-                            rowsSize = y;
-                            colsSize = i;
-                            nMinSheerit = 0;
-                            break;
+                int rowsSize = -1;
+                int colsSize = -1;
+                int nMinSheerit = lstMain.size();
+                for (int i = (int) Math.sqrt(lstMain.size()); i >= 2; i--) {
+                    int y = lstMain.size() / i;
+                    if (y * i == lstMain.size()) {
+                        rowsSize = y;
+                        colsSize = i;
+                        nMinSheerit = 0;
+                        break;
+                    } else if (lstMain.size() - (y * i) < nMinSheerit) {
+                        rowsSize = y;
+                        colsSize = i;
+                        nMinSheerit = lstMain.size() - (y * i);
+                    }
+                }
+
+                int l = rowsSize * colsSize;
+                int r = nMinSheerit;
+
+                colsSize = 3;
+                rowsSize = lstMain.size() / colsSize;
+
+                rootLinearLayout.setWeightSum(rowsSize);
+
+                for (int rowIndex = 0; rowIndex < rowsSize; rowIndex++) {
+                    // Create new row
+                    LinearLayout newRow = new LinearLayout(getActivity());
+
+                    LinearLayout.LayoutParams newRowParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1);
+
+                    newRow.setWeightSum(colsSize);
+                    newRow.setOrientation(LinearLayout.HORIZONTAL);
+                    newRow.setLayoutParams(newRowParams);
+
+                    for (int colIndex = 0; colIndex < colsSize; colIndex++) {
+                        FlowLayout newCol = new FlowLayout(getActivity());
+
+                        if (rowIndex == 0 && colIndex ==0) {
+                            newCol.setId(R.id.defaultStatus);
                         }
-                        else if (lstMain.size() - (y * i) < nMinSheerit) {
-                            rowsSize = y;
-                            colsSize = i;
-                            nMinSheerit = lstMain.size() - (y * i);
-                        }
+
+                        LinearLayout.LayoutParams colParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.FILL_PARENT, 1);
+
+                        newCol.setLayoutParams(colParams);
+                        newCol.setTag(R.string.main_status, lstMain.get(rowIndex * colsSize + colIndex));
+
+                        newCol.setOnDragListener(new MyDragListener());
+
+                        TextView textView = new TextView(getActivity());
+                        textView.setGravity(Gravity.CENTER);
+                        textView.setText(lstMain.get(rowIndex * colsSize + colIndex));
+
+                        newCol.addView(textView);
+
+                        Random rnd = new Random();
+                        int color = Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256));
+                        newCol.setBackgroundColor(color);
+
+
+
+                        newRow.addView(newCol);
                     }
 
-                    int l = rowsSize * colsSize;
-                    int r = nMinSheerit;
-
-                    colsSize = 3;
-                    rowsSize = lstMain.size() / colsSize;
-
-                    rootLinearLayout.setWeightSum(rowsSize);
-
-                    for(int rowIndex = 0;rowIndex < rowsSize; rowIndex++) {
-                        // Create new row
-                        LinearLayout newRow = new LinearLayout(getActivity());
-
-                        LinearLayout.LayoutParams newRowParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1);
-
-                        newRow.setWeightSum(colsSize);
-                        newRow.setOrientation(LinearLayout.HORIZONTAL);
-                        newRow.setLayoutParams(newRowParams);
-
-                        for(int colIndex = 0; colIndex < colsSize; colIndex++) {
-                            FlowLayout newCol = new FlowLayout(getActivity());
-
-                            LinearLayout.LayoutParams colParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.FILL_PARENT, 1);
-
-                            newCol.setLayoutParams(colParams);
-                            newCol.setTag(R.string.main_status, lstMain.get(rowIndex * colsSize + colIndex));
-
-                            newCol.setOnDragListener(new MyDragListener());
-
-                            Random rnd = new Random();
-                            int color = Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256));
-                            newCol.setBackgroundColor(color);
-
-                            newRow.addView(newCol);
-                        }
-
-                        rootLinearLayout.addView(newRow);
+                    rootLinearLayout.addView(newRow);
 
 //                            LinearLayout.LayoutParams lparams = new LinearLayout.LayoutParams(
 //                                    LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
@@ -177,8 +167,33 @@ public class MainFragment extends Fragment {
 //                            rootLinearLayout.invalidate();
 //                            vFragmentLayout.invalidate();
 //                        progress2.dismiss();
-                    }
                 }
+            }
+
+            private void pullSoldiers() {
+                FirebaseDatabase.getInstance().getReference(User.USERS_REFERENCE_KEY).orderByChild(User.GROUP_ID_PROPERTY)
+                        // TODO: change
+                        .equalTo("21827933-d057-4ada-a51e-816cd46a586d")
+                        // must be single event or the images will be added over and over again
+                        .addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                                for (DataSnapshot usrSnapshot : dataSnapshot.getChildren()) {
+                                    User currUser = usrSnapshot.getValue(User.class);
+                                    lstSoldiers.add(currUser);
+                                }
+
+                                setSoldiersOnStatuses(vFragmentLayout);
+                                progress.dismiss();
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
+            }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
@@ -201,79 +216,52 @@ public class MainFragment extends Fragment {
 //        }
 
 
-        final ProgressDialog progress2;
-
-        progress2 = ProgressDialog.show(getActivity(), "dialog title",
-                "dialog message", true);
-
-        FirebaseDatabase.getInstance().getReference(MainStatus.STATUSES_REFERENCE_KEY)
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        if(dataSnapshot.exists()){
-                            for(DataSnapshot post : dataSnapshot.getChildren()) {
-                                MainStatus curr = post.getValue(MainStatus.class);
-                                lstMain.add(curr.getName());
-                            }
-
-                        }
-                    }
-
-
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
-                    }
-                });
+//        final ProgressDialog progress2;
 //
-//        for (int i = 0; i < GlobalsTemp.MySoldiers.size(); i++) {
-//            RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(_nImageSizeOnDrop, _nImageSizeOnDrop);
-//
-//            RoundedImageView soldierImage = new RoundedImageView(getActivity());
-//
-//            soldierImage.setLayoutParams(layoutParams);
-//            soldierImage.setImageResource(GlobalsTemp.MySoldiers.get(i).getPicture());
-//            soldierImage.setTag(R.string.soldier, GlobalsTemp.MySoldiers.get(i));
-//
-//            soldierImage.setOnTouchListener(new MyTouchListener());
-//            FlowLayout btm = (FlowLayout) vFragmentLayout.findViewById(R.id.topleft);
-//            btm.addView(soldierImage);
-//        }
+//        progress2 = ProgressDialog.show(getActivity(), "dialog title",
+//                "dialog message", true);
 
-//        // Set drag listeners
-//        int countRoot = rootLinearLayout.getChildCount();
-//        for (int i = 0; i < countRoot; i++) {
-//            LinearLayout vParent = (LinearLayout) rootLinearLayout.getChildAt(i);
-//            if (vParent instanceof LinearLayout) {
-//                int countStatuses = rootLinearLayout.getChildCount();
-//                for (int j = 0; j < countStatuses; j++) {
-//                    View v = vParent.getChildAt(j);
-//                    if (v instanceof org.apmem.tools.layouts.FlowLayout) {
-//                        v.setOnDragListener(new MyDragListener());
+//        FirebaseDatabase.getInstance().getReference(MainStatus.STATUSES_REFERENCE_KEY)
+//                .addListenerForSingleValueEvent(new ValueEventListener() {
+//                    @Override
+//                    public void onDataChange(DataSnapshot dataSnapshot) {
+//                        if(dataSnapshot.exists()){
+//                            for(DataSnapshot post : dataSnapshot.getChildren()) {
+//                                MainStatus curr = post.getValue(MainStatus.class);
+//                                lstMain.add(curr.getName());
+//                            }
+//
+//                        }
 //                    }
-//                }
-//            }
-//        }
+
+
+//
+//                    @Override
+//                    public void onCancelled(DatabaseError databaseError) {
+//
+//                    }
+//                });
 
         return vFragmentLayout;
     }
 
-    private void setSoldiersOnStatuses() {
+    private void setSoldiersOnStatuses(View vFragmentLayout) {
+
         for (int i = 0; i < lstSoldiers.size(); i++) {
             RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(_nImageSizeOnDrop, _nImageSizeOnDrop);
 
             RoundedImageView soldierImage = new RoundedImageView(getActivity());
 
             soldierImage.setLayoutParams(layoutParams);
-//            soldierImage.setImageResource(lstSoldiers.get(i).getPicture());
-            // TODO: for now
-            soldierImage.setImageResource(GlobalsTemp.MySoldiers.get(i % GlobalsTemp.MySoldiers.size()).getPicture());
+            Picasso.with(getActivity()).load(lstSoldiers.get(i).getImage()).into(soldierImage);
 
+            FlowLayout btm = (FlowLayout) vFragmentLayout.findViewById(R.id.defaultStatus);
+
+            lstSoldiers.get(i).setMainStatus((String) btm.getTag(R.string.main_status));
             soldierImage.setTag(R.string.soldier, lstSoldiers.get(i));
 
             soldierImage.setOnTouchListener(new MyTouchListener());
-            FlowLayout btm = (FlowLayout) vFragmentLayout.findViewById(R.id.topleft);
+
             btm.addView(soldierImage);
         }
     }
@@ -318,40 +306,42 @@ public class MainFragment extends Fragment {
             int action = event.getAction();
             View imgSoldier = (View) event.getLocalState();
 
-            ViewGroup owner = (ViewGroup) imgSoldier.getParent();
+            if (imgSoldier != null) {
+                ViewGroup oldLayout = (ViewGroup) imgSoldier.getParent();
 
-            switch (event.getAction()) {
-                case DragEvent.ACTION_DRAG_STARTED:
-                    // do nothing
-                    break;
-                case DragEvent.ACTION_DRAG_ENTERED:
-                    break;
-                case DragEvent.ACTION_DRAG_EXITED:
-                    break;
-                case DragEvent.ACTION_DROP:
+                switch (event.getAction()) {
+                    case DragEvent.ACTION_DRAG_STARTED:
+                        // do nothing
+                        break;
+                    case DragEvent.ACTION_DRAG_ENTERED:
+                        break;
+                    case DragEvent.ACTION_DRAG_EXITED:
+                        break;
+                    case DragEvent.ACTION_DROP:
 
-                    owner.removeView(imgSoldier);
-                    FlowLayout container = (FlowLayout) v;
-                    container.addView(imgSoldier);
-                    imgSoldier.setVisibility(View.VISIBLE);
+                        oldLayout.removeView(imgSoldier);
+                        FlowLayout newLayout = (FlowLayout) v;
+                        newLayout.addView(imgSoldier);
+                        imgSoldier.setVisibility(View.VISIBLE);
 
-                    // Clear the sub status
-                    if (owner != container) {
-//                        imgSoldier.setTag(R.string.sub_status, null);
-                        ((User)imgSoldier.getTag(R.string.soldier)).setSubStatus(null);
+                        // New mainStatus, Clear the sub status
+                        if (oldLayout != newLayout) {
+                            // Set main status
+                            ((User) imgSoldier.getTag(R.string.soldier)).setMainStatus((String) newLayout.getTag(R.string.main_status));
 
-                        // Update drawer
-                        ((DrawerActivity)getActivity()).updateSoldiersStatuses();
+                            // Clear sub status
+                            ((User) imgSoldier.getTag(R.string.soldier)).setSubStatus(null);
 
-                        // Let user selected secondary status
-                        //showPopup(imgSoldier);
-                    }
+                            // Update drawer
+                            ((DrawerActivity) getActivity()).updateSoldiersStatuses();
+                        }
 
-                    break;
-                case DragEvent.ACTION_DRAG_ENDED:
+                        break;
+                    case DragEvent.ACTION_DRAG_ENDED:
 
-                default:
-                    break;
+                    default:
+                        break;
+                }
             }
             return true;
         }
@@ -412,63 +402,69 @@ public class MainFragment extends Fragment {
 
         if (sld != null) {
             List<String> subStatuses = mapMainStatusToSub.get(sld.getMainStatus());
-            LayoutInflater layoutInflater =
-                    LayoutInflater.from(getActivity());
-            View popupView = layoutInflater.inflate(R.layout.sub_status_popup, null);
-            final PopupWindow popupWindow = new PopupWindow(
-                    popupView, LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-            final MySpinner popupSpinner = (MySpinner) popupView.findViewById(R.id.popupspinner);
-            TextView txtSoldierName = (TextView) popupView.findViewById(R.id.txt_soldier_name);
+            // Open spinner only if there is sub status
+            if ((subStatuses == null) || (subStatuses.size() == 0)) {
+                Toast.makeText(getActivity(), "no sub statuses", Toast.LENGTH_SHORT).show();
+            }
+            else {
+
+                LayoutInflater layoutInflater =
+                        LayoutInflater.from(getActivity());
+                View popupView = layoutInflater.inflate(R.layout.sub_status_popup, null);
+                final PopupWindow popupWindow = new PopupWindow(
+                        popupView, LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                final MySpinner popupSpinner = (MySpinner) popupView.findViewById(R.id.popupspinner);
+                TextView txtSoldierName = (TextView) popupView.findViewById(R.id.txt_soldier_name);
 //        if (imgSoldier.getTag(R.string.soldier_name) != null) {
 //            txtSoldierName.setText(imgSoldier.getTag(R.string.soldier_name).toString());
 //        }
 
-            txtSoldierName.setText(((User) imgSoldier.getTag(R.string.soldier)).getName());
+                txtSoldierName.setText(((User) imgSoldier.getTag(R.string.soldier)).getName());
 
-            ArrayAdapter<String> adapter =
-                    new ArrayAdapter<String>(getActivity(),
-                            android.R.layout.simple_spinner_item, subStatuses);
-            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-            popupSpinner.setAdapter(adapter);
+                ArrayAdapter<String> adapter =
+                        new ArrayAdapter<String>(getActivity(),
+                                android.R.layout.simple_spinner_item, subStatuses);
+                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                popupSpinner.setAdapter(adapter);
 
-            final Boolean[] bFirstTimeSeleceted = {true};
+                final Boolean[] bFirstTimeSeleceted = {true};
 
-            popupSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                @Override
-                public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                popupSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
 //                imgSoldier.setTag(R.string.sub_status, i);
-                    ((User) imgSoldier.getTag(R.string.soldier)).setSubStatus(popupSpinner.getSelectedItem().toString());
-                    // Update drawer
-                    ((DrawerActivity) getActivity()).updateSoldiersStatuses();
+                        ((User) imgSoldier.getTag(R.string.soldier)).setSubStatus(popupSpinner.getSelectedItem().toString());
+                        // Update drawer
+                        ((DrawerActivity) getActivity()).updateSoldiersStatuses();
 
-                    if (!bFirstTimeSeleceted[0]) {
-                        final Handler handler = new Handler();
+                        if (!bFirstTimeSeleceted[0]) {
+                            final Handler handler = new Handler();
 
-                        final Runnable runnable = new Runnable() {
-                            @Override
-                            public void run() {
-                                if (popupWindow.isShowing()) {
-                                    popupWindow.dismiss();
+                            final Runnable runnable = new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (popupWindow.isShowing()) {
+                                        popupWindow.dismiss();
+                                    }
                                 }
-                            }
-                        };
+                            };
 
-                        handler.postDelayed(runnable, 1000);
+                            handler.postDelayed(runnable, 1000);
+                        }
+                        bFirstTimeSeleceted[0] = false;
                     }
-                    bFirstTimeSeleceted[0] = false;
-                }
 
-                @Override
-                public void onNothingSelected(AdapterView<?> adapterView) {
+                    @Override
+                    public void onNothingSelected(AdapterView<?> adapterView) {
 
-                }
-            });
+                    }
+                });
 
-            // If there is already selected sub status - select it
-            if ((sld.getSubStatus() != null) && (!sld.getSubStatus().equals(""))) {
+                // If there is already selected sub status - select it
+                if ((sld.getSubStatus() != null) && (!sld.getSubStatus().equals(""))) {
 
-                String selectedOptionValue = sld.getSubStatus();
-                popupSpinner.setSelection(((ArrayAdapter<String>)popupSpinner.getAdapter()).getPosition(selectedOptionValue));
+                    String selectedOptionValue = sld.getSubStatus();
+                    popupSpinner.setSelection(((ArrayAdapter<String>) popupSpinner.getAdapter()).getPosition(selectedOptionValue));
 
 //                ArrayAdapter<CharSequence> charAdaper = ArrayAdapter.createFromResource(this, R.array.select_state, android.R.layout.simple_spinner_item);
 //                charAdaper.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -477,10 +473,11 @@ public class MainFragment extends Fragment {
 //                    int spinnerPosition = charAdaper.getPosition(selectedOptionValue);
 //                    popupSpinner.setSelection(spinnerPosition);
 //                }
-            }
+                }
 
-            popupWindow.setFocusable(true);
-            popupWindow.showAsDropDown(imgSoldier, 50, -30);
+                popupWindow.setFocusable(true);
+                popupWindow.showAsDropDown(imgSoldier, 50, -30);
+            }
         }
     }
 }

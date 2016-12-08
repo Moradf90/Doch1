@@ -2,8 +2,14 @@ package t.a.m.com.doch1;
 
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.content.Context;
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -34,6 +40,10 @@ import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IProfile;
 import com.mikepenz.octicons_typeface_library.Octicons;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,6 +69,7 @@ public class DrawerActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_sample_dark_toolbar);
 
         mCurrentUser = FirebaseAuth.getInstance().getCurrentUser();
@@ -221,7 +232,7 @@ public class DrawerActivity extends AppCompatActivity {
                             //lstSoldiers.add(currUser);
 
                             SecondaryDrawerItem temp = new SecondaryDrawerItem().withName(currUser.getName()).withLevel(2)
-//                                    .withIcon(currUser.getPicture())
+//                                    .withIcon(drawableFromUrl(currUser.getImage()))
                                     .withIdentifier(Long.parseLong(currUser.getPersonalId())).withSelectable(false);
                             // If there is main status
                             if (!currUser.getMainStatus().equals("")) {
@@ -241,6 +252,22 @@ public class DrawerActivity extends AppCompatActivity {
                     }
                 });
 
+    }
+
+    public static Drawable drawableFromUrl(String url) {
+        Bitmap x;
+
+        try {
+            HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+            connection.connect();
+            InputStream input = connection.getInputStream();
+
+            x = BitmapFactory.decodeStream(input);
+            return new BitmapDrawable(x);
+        }
+        catch (Exception ex) {
+            return Resources.getSystem().getDrawable(R.drawable.face_icon);
+        }
     }
 
     public void updateSoldiersStatuses() {
