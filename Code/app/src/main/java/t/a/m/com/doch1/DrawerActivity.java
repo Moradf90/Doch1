@@ -12,6 +12,10 @@ import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.mikepenz.fastadapter.commons.utils.RecyclerViewCacheUtil;
 import com.mikepenz.fontawesome_typeface_library.FontAwesome;
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
@@ -36,6 +40,7 @@ import java.util.List;
 import t.a.m.com.doch1.Models.GlobalsTemp;
 import t.a.m.com.doch1.Models.MainStatus;
 import t.a.m.com.doch1.Models.Soldier;
+import t.a.m.com.doch1.Models.User;
 import t.a.m.com.doch1.common.connection.StatusUtils;
 import t.a.m.com.doch1.management.ManagementFragment;
 
@@ -49,6 +54,7 @@ public class DrawerActivity extends AppCompatActivity {
     List<IDrawerItem>  lstSoldiersToExpand;
     ExpandableDrawerItem SoldiersDrawerItem;
     IProfile profile;
+    List<User> lstSoldiers;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -201,24 +207,45 @@ public class DrawerActivity extends AppCompatActivity {
     }
 
     private void initSoldiersDrawer() {
-        lstSoldiersToExpand = new ArrayList<>();
-        for (Soldier sld : GlobalsTemp.MySoldiers) {
-            SecondaryDrawerItem temp = new SecondaryDrawerItem().withName(sld.getFullName()).withLevel(2).withIcon(sld.getPicture()).withIdentifier(sld.getSoldierID()).withSelectable(false);
-            // If there is main status
-            if (!sld.getMainStatus().equals("")) {
-                temp.withDescription(sld.getDisplayStatus()).withTextColor(Color.rgb(20, 170, 20));
-            }
-            else {
-                temp.withDescription(R.string.no_status).withTextColor(Color.rgb(170, 20, 20));
-            }
-            lstSoldiersToExpand.add(temp);
-        }
 
-        SoldiersDrawerItem.withSubItems(lstSoldiersToExpand);
+        FirebaseDatabase.getInstance().getReference(User.USERS_REFERENCE_KEY).orderByChild(User.GROUP_ID_PROPERTY)
+                // TODO: change
+                .equalTo("21827933-d057-4ada-a51e-816cd46a586d")
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        lstSoldiersToExpand = new ArrayList<>();
+
+                        for (DataSnapshot usrSnapshot : dataSnapshot.getChildren()) {
+                            User currUser = usrSnapshot.getValue(User.class);
+                            //lstSoldiers.add(currUser);
+
+                            SecondaryDrawerItem temp = new SecondaryDrawerItem().withName(currUser.getName()).withLevel(2)
+//                                    .withIcon(currUser.getPicture())
+                                    .withIdentifier(Long.parseLong(currUser.getPersonalId())).withSelectable(false);
+                            // If there is main status
+                            if (!currUser.getMainStatus().equals("")) {
+                                temp.withDescription(currUser.getMainStatus() + " " + currUser.getSubStatus()).withTextColor(Color.rgb(20, 170, 20));
+                            } else {
+                                temp.withDescription(R.string.no_status).withTextColor(Color.rgb(170, 20, 20));
+                            }
+                            lstSoldiersToExpand.add(temp);
+                        }
+
+                        SoldiersDrawerItem.withSubItems(lstSoldiersToExpand);
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+
     }
 
     public void updateSoldiersStatuses() {
-        initSoldiersDrawer();
+        // TODO: check if needed
+//        initSoldiersDrawer();
         result.updateItem(SoldiersDrawerItem);
     }
 

@@ -52,7 +52,7 @@ public class ManagementFragment extends Fragment implements GroupHolder.OnAddBut
         thatroot.addChild(root);
         mTreeView = new AndroidTreeView(getActivity(), thatroot);
 
-        FirebaseDatabase.getInstance().getReference("groups").child(groupId)
+        FirebaseDatabase.getInstance().getReference(Group.GROUPS_REFERENCE_KEY).child(groupId)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
@@ -149,7 +149,7 @@ public class ManagementFragment extends Fragment implements GroupHolder.OnAddBut
                 newGroup.setName(editText.getText().toString());
                 newGroup.setParentId(mCurrentGroup.getId());
                 newGroup.setId(UUID.randomUUID().toString());
-                FirebaseDatabase.getInstance().getReference("groups")
+                FirebaseDatabase.getInstance().getReference(Group.GROUPS_REFERENCE_KEY)
                         .child(newGroup.getId())
                         .setValue(newGroup)
                         .addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -179,7 +179,7 @@ public class ManagementFragment extends Fragment implements GroupHolder.OnAddBut
         if(user != null){
             user.setGroupId(mCurrentGroup.getId());
 
-            FirebaseDatabase.getInstance().getReference("users").child(user.getId()).setValue(user)
+            FirebaseDatabase.getInstance().getReference(User.USERS_REFERENCE_KEY).child(user.getId()).setValue(user)
                     .addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
@@ -189,7 +189,7 @@ public class ManagementFragment extends Fragment implements GroupHolder.OnAddBut
                     });
 
             mCurrentGroup.addUser(user.getId());
-            FirebaseDatabase.getInstance().getReference("groups").child(mCurrentGroup.getId())
+            FirebaseDatabase.getInstance().getReference(Group.GROUPS_REFERENCE_KEY).child(mCurrentGroup.getId())
                     .child(Group.USERS_PROPERTY).setValue(mCurrentGroup.getUsers());
         }
     }

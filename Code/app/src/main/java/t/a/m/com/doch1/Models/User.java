@@ -19,6 +19,8 @@ public class User {
     public static final String GROUP_ID_PROPERTY = "groupId";
     public static final String PHONE_PROPERTY = "phone";
     public static final String LAST_UPDATE_DATE_PROPERTY = "lastUpdateDate";
+    public static final String MAIN_STATUS = "mainStatus";
+    public static final String SUB_STATUS = "subStatus";
 
     @PropertyName(ID_PROPERTY)
     private String mId;
@@ -34,6 +36,10 @@ public class User {
     private String mPhone;
     @PropertyName(LAST_UPDATE_DATE_PROPERTY)
     private Date mlastUpdateDate;
+    @PropertyName(MAIN_STATUS)
+    private String mMainStatus;
+    @PropertyName(SUB_STATUS)
+    private String mSubStatus;
 
     public User(){}
 
@@ -59,6 +65,14 @@ public class User {
 
     public void setPhone(String mPhone) {
         this.mPhone = mPhone;
+    }
+
+    public void setMainStatus(String mMainStatus) {
+        this.mMainStatus = mMainStatus;
+    }
+
+    public void setSubStatus(String mSubStatus) {
+        this.mSubStatus = mSubStatus;
     }
 
     public String getId() {
@@ -92,4 +106,18 @@ public class User {
     public void setLastUpdateDate(Date mlastUpdateDate) {
         this.mlastUpdateDate = mlastUpdateDate;
     }
+
+    public String getMainStatus() {
+        return valueOrEmpty(mMainStatus);
+    }
+
+    public String getSubStatus() {
+        return valueOrEmpty(mSubStatus);
+    }
+
+    // Method
+    private String valueOrEmpty(String value) {
+        return value != null ? value : "";
+    }
+
 }

@@ -1,6 +1,7 @@
 package t.a.m.com.doch1;
 
 import android.app.Fragment;
+import android.app.ProgressDialog;
 import android.content.ClipData;
 import android.graphics.Canvas;
 import android.graphics.Point;
@@ -18,10 +19,22 @@ import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.squareup.haha.perflib.Main;
+
 import org.apmem.tools.layouts.FlowLayout;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import t.a.m.com.doch1.Models.GlobalsTemp;
-import t.a.m.com.doch1.Models.Soldier;
+import t.a.m.com.doch1.Models.MainStatus;
+import t.a.m.com.doch1.Models.User;
 import t.a.m.com.doch1.views.MySpinner;
 import t.a.m.com.doch1.views.RoundedImageView;
 
@@ -30,29 +43,78 @@ public class MainFragment extends Fragment {
     private static final int ENLARGE_ON_DARG = 2;
     private static final long DOUBLE_PRESS_INTERVAL = 500;
     private int _nImageSizeOnDrop = 140;
+    List<User> lstSoldiers;
+    Map<String, List<String>> mapMainStatusToSub;
 
+    View vFragmentLayout;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        View vFragmentLayout = inflater.inflate(R.layout.activity_main, container, false);
+        vFragmentLayout = inflater.inflate(R.layout.activity_main, container, false);
 
         getActivity().setTitle(R.string.main_fragment_title);
 
-        for (int i = 0; i < GlobalsTemp.MySoldiers.size(); i++) {
-            RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(_nImageSizeOnDrop, _nImageSizeOnDrop);
+        lstSoldiers = new ArrayList<>();
+        mapMainStatusToSub = new HashMap<>();
 
-            RoundedImageView soldierImage = new RoundedImageView(getActivity());
+        final ProgressDialog progress = new ProgressDialog(getActivity());
+        progress.setTitle("Loading");
+        progress.setMessage("Wait while loading...");
+        progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
+        progress.show();
 
-            soldierImage.setLayoutParams(layoutParams);
-            soldierImage.setImageResource(GlobalsTemp.MySoldiers.get(i).getPicture());
-            soldierImage.setTag(R.string.soldier, GlobalsTemp.MySoldiers.get(i));
+        FirebaseDatabase.getInstance().getReference(User.USERS_REFERENCE_KEY).orderByChild(User.GROUP_ID_PROPERTY)
+                // TODO: change
+                .equalTo("21827933-d057-4ada-a51e-816cd46a586d")
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
 
-            soldierImage.setOnTouchListener(new MyTouchListener());
-            FlowLayout btm = (FlowLayout) vFragmentLayout.findViewById(R.id.topleft);
-            btm.addView(soldierImage);
-        }
+                        for (DataSnapshot usrSnapshot: dataSnapshot.getChildren()) {
+                            User currUser = usrSnapshot.getValue(User.class);
+                            lstSoldiers.add(currUser);
+                        }
+
+                        setSoldiersOnStatuses();
+                        progress.dismiss();
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+
+        FirebaseDatabase.getInstance().getReference(MainStatus.STATUSES_REFERENCE_KEY).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot statusSnapshot: dataSnapshot.getChildren()) {
+                    MainStatus currStatus = statusSnapshot.getValue(MainStatus.class);
+                    mapMainStatusToSub.put(currStatus.getName(), currStatus.getSubStatuses() != null ? currStatus.getSubStatuses() : new ArrayList<String>());
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+//        for (int i = 0; i < GlobalsTemp.MySoldiers.size(); i++) {
+//            RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(_nImageSizeOnDrop, _nImageSizeOnDrop);
+//
+//            RoundedImageView soldierImage = new RoundedImageView(getActivity());
+//
+//            soldierImage.setLayoutParams(layoutParams);
+//            soldierImage.setImageResource(GlobalsTemp.MySoldiers.get(i).getPicture());
+//            soldierImage.setTag(R.string.soldier, GlobalsTemp.MySoldiers.get(i));
+//
+//            soldierImage.setOnTouchListener(new MyTouchListener());
+//            FlowLayout btm = (FlowLayout) vFragmentLayout.findViewById(R.id.topleft);
+//            btm.addView(soldierImage);
+//        }
 
         // Set drag listeners
         LinearLayout rootLinearLayout = (LinearLayout) vFragmentLayout.findViewById(R.id.root);
@@ -71,6 +133,25 @@ public class MainFragment extends Fragment {
         }
 
         return vFragmentLayout;
+    }
+
+    private void setSoldiersOnStatuses() {
+        for (int i = 0; i < lstSoldiers.size(); i++) {
+            RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(_nImageSizeOnDrop, _nImageSizeOnDrop);
+
+            RoundedImageView soldierImage = new RoundedImageView(getActivity());
+
+            soldierImage.setLayoutParams(layoutParams);
+//            soldierImage.setImageResource(lstSoldiers.get(i).getPicture());
+            // TODO: for now
+            soldierImage.setImageResource(GlobalsTemp.MySoldiers.get(i % GlobalsTemp.MySoldiers.size()).getPicture());
+
+            soldierImage.setTag(R.string.soldier, lstSoldiers.get(i));
+
+            soldierImage.setOnTouchListener(new MyTouchListener());
+            FlowLayout btm = (FlowLayout) vFragmentLayout.findViewById(R.id.topleft);
+            btm.addView(soldierImage);
+        }
     }
 
     private final class MyTouchListener implements View.OnTouchListener {
@@ -133,7 +214,7 @@ public class MainFragment extends Fragment {
                     // Clear the sub status
                     if (owner != container) {
 //                        imgSoldier.setTag(R.string.sub_status, null);
-                        ((Soldier)imgSoldier.getTag(R.string.soldier)).setSubStatus(null);
+                        ((User)imgSoldier.getTag(R.string.soldier)).setSubStatus(null);
 
                         // Update drawer
                         ((DrawerActivity)getActivity()).updateSoldiersStatuses();
@@ -198,73 +279,85 @@ public class MainFragment extends Fragment {
     }
 
     public void showPopup(final View imgSoldier) {
-        String[] Company = {"תירוץ 1", "תירוץ 2", "תירוץ 3", "תירוץ 4", "תירוץ 5", "תירוץ 6"};
-        LayoutInflater layoutInflater =
-                LayoutInflater.from(getActivity());
-        View popupView = layoutInflater.inflate(R.layout.sub_status_popup, null);
-        final PopupWindow popupWindow = new PopupWindow(
-                popupView, LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        MySpinner popupSpinner = (MySpinner) popupView.findViewById(R.id.popupspinner);
-        TextView txtSoldierName = (TextView) popupView.findViewById(R.id.txt_soldier_name);
+
+        User sld = null;
+        // If there is already selected sub status - select it
+        if (imgSoldier.getTag(R.string.soldier) != null) {
+            sld = ((User) imgSoldier.getTag(R.string.soldier));
+        }
+
+        if (sld != null) {
+            List<String> subStatuses = mapMainStatusToSub.get(sld.getMainStatus());
+            LayoutInflater layoutInflater =
+                    LayoutInflater.from(getActivity());
+            View popupView = layoutInflater.inflate(R.layout.sub_status_popup, null);
+            final PopupWindow popupWindow = new PopupWindow(
+                    popupView, LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            final MySpinner popupSpinner = (MySpinner) popupView.findViewById(R.id.popupspinner);
+            TextView txtSoldierName = (TextView) popupView.findViewById(R.id.txt_soldier_name);
 //        if (imgSoldier.getTag(R.string.soldier_name) != null) {
 //            txtSoldierName.setText(imgSoldier.getTag(R.string.soldier_name).toString());
 //        }
 
-        Soldier sld = null;
-        // If there is already selected sub status - select it
-        if (imgSoldier.getTag(R.string.soldier) != null) {
-            sld = ((Soldier) imgSoldier.getTag(R.string.soldier));
-        }
+            txtSoldierName.setText(((User) imgSoldier.getTag(R.string.soldier)).getName());
 
-        if (sld != null) {
-            txtSoldierName.setText(((Soldier) imgSoldier.getTag(R.string.soldier)).getFullName());
-        }
-        ArrayAdapter<String> adapter =
-                new ArrayAdapter<String>(getActivity(),
-                        android.R.layout.simple_spinner_item, Company);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        popupSpinner.setAdapter(adapter);
+            ArrayAdapter<String> adapter =
+                    new ArrayAdapter<String>(getActivity(),
+                            android.R.layout.simple_spinner_item, subStatuses);
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            popupSpinner.setAdapter(adapter);
 
-        final Boolean[] bFirstTimeSeleceted = {true};
+            final Boolean[] bFirstTimeSeleceted = {true};
 
-        popupSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+            popupSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
 //                imgSoldier.setTag(R.string.sub_status, i);
-                ((Soldier) imgSoldier.getTag(R.string.soldier)).setSubStatus(String.valueOf(i));
-                // Update drawer
-                ((DrawerActivity) getActivity()).updateSoldiersStatuses();
+                    ((User) imgSoldier.getTag(R.string.soldier)).setSubStatus(popupSpinner.getSelectedItem().toString());
+                    // Update drawer
+                    ((DrawerActivity) getActivity()).updateSoldiersStatuses();
 
-                if (!bFirstTimeSeleceted[0]) {
-                    final Handler handler = new Handler();
+                    if (!bFirstTimeSeleceted[0]) {
+                        final Handler handler = new Handler();
 
-                    final Runnable runnable = new Runnable() {
-                        @Override
-                        public void run() {
-                            if (popupWindow.isShowing()) {
-                                popupWindow.dismiss();
+                        final Runnable runnable = new Runnable() {
+                            @Override
+                            public void run() {
+                                if (popupWindow.isShowing()) {
+                                    popupWindow.dismiss();
+                                }
                             }
-                        }
-                    };
+                        };
 
-                    handler.postDelayed(runnable, 1000);
+                        handler.postDelayed(runnable, 1000);
+                    }
+                    bFirstTimeSeleceted[0] = false;
                 }
-                bFirstTimeSeleceted[0] = false;
+
+                @Override
+                public void onNothingSelected(AdapterView<?> adapterView) {
+
+                }
+            });
+
+            // If there is already selected sub status - select it
+            if ((sld.getSubStatus() != null) && (!sld.getSubStatus().equals(""))) {
+
+                String selectedOptionValue = sld.getSubStatus();
+                popupSpinner.setSelection(((ArrayAdapter<String>)popupSpinner.getAdapter()).getPosition(selectedOptionValue));
+
+//                ArrayAdapter<CharSequence> charAdaper = ArrayAdapter.createFromResource(this, R.array.select_state, android.R.layout.simple_spinner_item);
+//                charAdaper.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+//                popupSpinner.setAdapter(charAdaper);
+//                if (!selectedOptionValue.equals(null)) {
+//                    int spinnerPosition = charAdaper.getPosition(selectedOptionValue);
+//                    popupSpinner.setSelection(spinnerPosition);
+//                }
             }
 
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
-
-            }
-        });
-
-        // If there is already selected sub status - select it
-        if ((sld != null) && (!sld.getSubStatus().equals(""))) {
-            popupSpinner.setSelection(Integer.valueOf(sld.getSubStatus()));
+            popupWindow.setFocusable(true);
+            popupWindow.showAsDropDown(imgSoldier, 50, -30);
         }
-
-        popupWindow.setFocusable(true);
-        popupWindow.showAsDropDown(imgSoldier, 50, -30);
     }
 }
 
