@@ -29,9 +29,11 @@ public class GroupHolder extends TreeNode.BaseNodeViewHolder<Group> implements V
     private PrintView mArrowView;
     private Group mGroup;
     private TreeNode mNode;
+    private OnAddButtonClicked mListener;
 
-    public GroupHolder(Context context) {
+    public GroupHolder(Context context, OnAddButtonClicked listener) {
         super(context);
+        mListener = listener;
     }
 
     @Override
@@ -107,7 +109,7 @@ public class GroupHolder extends TreeNode.BaseNodeViewHolder<Group> implements V
                                 if (dataSnapshot.exists()) {
                                     for (DataSnapshot ds : dataSnapshot.getChildren()) {
                                         Group g = ds.getValue(Group.class);
-                                        TreeNode child = new TreeNode(g).setViewHolder(new GroupHolder(context));
+                                        TreeNode child = new TreeNode(g).setViewHolder(new GroupHolder(context, mListener));
                                         getTreeView().addNode(mNode, child);
                                     }
                                 }
@@ -132,8 +134,9 @@ public class GroupHolder extends TreeNode.BaseNodeViewHolder<Group> implements V
     }
 
     private void onAddClicked() {
-        if(context instanceof OnAddButtonClicked){
-            ((OnAddButtonClicked) context).onAddButtonClicked(mNode, mGroup);
+
+        if(mListener != null){
+            mListener.onAddButtonClicked(mNode, mGroup);
         }
     }
 

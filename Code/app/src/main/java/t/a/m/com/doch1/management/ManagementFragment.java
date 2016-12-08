@@ -6,14 +6,13 @@ import android.app.FragmentManager;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
+import android.support.annotation.Nullable;
 import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.FrameLayout;
-import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -27,20 +26,24 @@ import com.unnamed.b.atv.view.AndroidTreeView;
 import java.util.UUID;
 
 import t.a.m.com.doch1.Models.Group;
-import t.a.m.com.doch1.Models.User;
 import t.a.m.com.doch1.R;
 import t.a.m.com.doch1.management.fragments.AddUserFragment;
 
-public class ManagementFragment extends Fragment implements GroupHolder.OnAddButtonClicked, AddUserFragment.OnAddUserEvents {
+public class ManagementFragment extends Fragment implements GroupHolder.OnAddButtonClicked, AddUserFragment.CurrentDataGetter {
 
     private AndroidTreeView mTreeView;
     private TreeNode mCurrentParentNode;
     private Group mCurrentGroup;
 
+    @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        View vFragmentLayout = inflater.inflate(R.layout.activity_management, container, false);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.activity_management, container, false);
+    }
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
         getActivity().setTitle(R.string.managmen_fragment_title);
 
@@ -52,14 +55,14 @@ public class ManagementFragment extends Fragment implements GroupHolder.OnAddBut
         thatroot.addChild(root);
         mTreeView = new AndroidTreeView(getActivity(), thatroot);
 
-        FirebaseDatabase.getInstance().getReference(Group.GROUPS_REFERENCE_KEY).child(groupId)
+        FirebaseDatabase.getInstance().getReference("groups").child(groupId)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         if(dataSnapshot.exists()){
                             mTreeView.removeNode(root);
                             Group group1 = dataSnapshot.getValue(Group.class);
-                            mTreeView.addNode(thatroot, new TreeNode(group1).setViewHolder(new GroupHolder(getActivity())));
+                            mTreeView.addNode(thatroot, new TreeNode(group1).setViewHolder(new GroupHolder(getActivity(), ManagementFragment.this)));
                             mTreeView.expandLevel(2);
                         }
                     }
@@ -71,45 +74,9 @@ public class ManagementFragment extends Fragment implements GroupHolder.OnAddBut
                 });
 
         mTreeView.setDefaultContainerStyle(R.style.TreeNodeStyleCustom);
-        ((FrameLayout)vFragmentLayout.findViewById(R.id.container)).addView(mTreeView.getView());
+        ((FrameLayout)view.findViewById(R.id.container)).addView(mTreeView.getView());
 
-        return vFragmentLayout;
     }
-
-//    @Override
-//    protected void onCreate(Bundle savedInstanceState) {
-//        super.onCreate(savedInstanceState);
-//        setContentView(R.layout.activity_management);
-//
-//        //TODO  get the group id from the intent
-//        final String groupId = "1";
-//
-//        final TreeNode thatroot = TreeNode.root();
-//        final TreeNode root = new TreeNode("Loading ...");
-//        thatroot.addChild(root);
-//        mTreeView = new AndroidTreeView(this, thatroot);
-//
-//        FirebaseDatabase.getInstance().getReference("groups").child(groupId)
-//                .addListenerForSingleValueEvent(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(DataSnapshot dataSnapshot) {
-//                if(dataSnapshot.exists()){
-//                    mTreeView.removeNode(root);
-//                    Group group1 = dataSnapshot.getValue(Group.class);
-//                    mTreeView.addNode(thatroot, new TreeNode(group1).setViewHolder(new GroupHolder(ManagementActivity.this)));
-//                    mTreeView.expandLevel(2);
-//                }
-//            }
-//
-//            @Override
-//            public void onCancelled(DatabaseError databaseError) {
-//
-//            }
-//        });
-//
-//        mTreeView.setDefaultContainerStyle(R.style.TreeNodeStyleCustom);
-//        ((FrameLayout)findViewById(R.id.container)).addView(mTreeView.getView());
-//    }
 
     @Override
     public void onAddButtonClicked(TreeNode parent,Group group) {
@@ -142,25 +109,25 @@ public class ManagementFragment extends Fragment implements GroupHolder.OnAddBut
         final EditText editText = new EditText(getActivity());
         editText.setInputType(InputType.TYPE_CLASS_TEXT);
         dialogBuilder.setView(editText)
-        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                final Group newGroup = new Group();
-                newGroup.setName(editText.getText().toString());
-                newGroup.setParentId(mCurrentGroup.getId());
-                newGroup.setId(UUID.randomUUID().toString());
-                FirebaseDatabase.getInstance().getReference(Group.GROUPS_REFERENCE_KEY)
-                        .child(newGroup.getId())
-                        .setValue(newGroup)
-                        .addOnCompleteListener(new OnCompleteListener<Void>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Void> task) {
-                                mTreeView.addNode(mCurrentParentNode, new TreeNode(newGroup).setViewHolder(new GroupHolder(getActivity())));
-                            }
-                        });
-            }
-        })
-        .setNegativeButton("Cancel", null);
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        final Group newGroup = new Group();
+                        newGroup.setName(editText.getText().toString());
+                        newGroup.setParentId(mCurrentGroup.getId());
+                        newGroup.setId(UUID.randomUUID().toString());
+                        FirebaseDatabase.getInstance().getReference("groups")
+                                .child(newGroup.getId())
+                                .setValue(newGroup)
+                                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        mTreeView.addNode(mCurrentParentNode, new TreeNode(newGroup).setViewHolder(new GroupHolder(getActivity(), ManagementFragment.this)));
+                                    }
+                                });
+                    }
+                })
+                .setNegativeButton("Cancel", null);
 
         dialogBuilder.create().show();
     }
@@ -175,32 +142,17 @@ public class ManagementFragment extends Fragment implements GroupHolder.OnAddBut
     }
 
     @Override
-    public void onSaveClicked(final User user) {
-        if(user != null){
-            user.setGroupId(mCurrentGroup.getId());
-
-            FirebaseDatabase.getInstance().getReference(User.USERS_REFERENCE_KEY).child(user.getId()).setValue(user)
-                    .addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            onCancelClicked(); // close the bottom sheet
-                            mTreeView.addNode(mCurrentParentNode, new TreeNode(user).setViewHolder(new UserHolder(getActivity())));
-                        }
-                    });
-
-            mCurrentGroup.addUser(user.getId());
-            FirebaseDatabase.getInstance().getReference(Group.GROUPS_REFERENCE_KEY).child(mCurrentGroup.getId())
-                    .child(Group.USERS_PROPERTY).setValue(mCurrentGroup.getUsers());
-        }
+    public AndroidTreeView getTreeView() {
+        return mTreeView;
     }
 
     @Override
-    public void onCancelClicked() {
-        FragmentManager manager = getFragmentManager();
-        Fragment fragment = manager.findFragmentByTag(AddUserFragment.TAG);
+    public Group getCurrentGroup() {
+        return mCurrentGroup;
+    }
 
-        if(fragment != null){
-            manager.beginTransaction().remove(fragment).commit();
-        }
+    @Override
+    public TreeNode getCurrentParentTreeNode() {
+        return mCurrentParentNode;
     }
 }
