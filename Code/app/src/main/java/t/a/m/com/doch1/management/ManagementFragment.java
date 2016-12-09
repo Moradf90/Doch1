@@ -75,7 +75,6 @@ public class ManagementFragment extends Fragment implements GroupHolder.OnAddBut
 
         mTreeView.setDefaultContainerStyle(R.style.TreeNodeStyleCustom);
         ((FrameLayout)view.findViewById(R.id.container)).addView(mTreeView.getView());
-
     }
 
     @Override

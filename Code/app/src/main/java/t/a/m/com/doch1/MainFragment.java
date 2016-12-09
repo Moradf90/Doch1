@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.format.DateUtils;
 import android.view.DragEvent;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -47,7 +48,7 @@ public class MainFragment extends Fragment {
 
     private static final int ENLARGE_ON_DARG = 2;
     private static final long DOUBLE_PRESS_INTERVAL = 500;
-    private int _nImageSizeOnDrop = 140;
+    private int _nImageSizeOnDrop = 125;
     List<User> lstSoldiers;
     Map<String, List<String>> mapMainStatusToSub;
     List<String> lstMain;
@@ -188,14 +189,19 @@ public class MainFragment extends Fragment {
             Picasso.with(getActivity()).load(lstSoldiers.get(i).getImage()).into(soldierImage);
 
             String soldierMainStatus = lstSoldiers.get(i).getMainStatus();
-
-            // If there is no status - put all of them in the first one or the main status in the DB isnt valid
-            if ((soldierMainStatus.equals("")) || (!mapMainStatusToView.containsKey(soldierMainStatus))) {
+            // If there is no status,
+            // or the status is irrelevant
+            // or main status in the DB isnt valid
+            // Then give default status
+            if ((!DateUtils.isToday(lstSoldiers.get(i).getLastUpdateDate().getTime())) ||
+                    (soldierMainStatus.equals("")) ||
+                    (!mapMainStatusToView.containsKey(soldierMainStatus))) {
                 lstSoldiers.get(i).setMainStatus((String) btm.getTag(R.string.main_status));
+                lstSoldiers.get(i).setSubStatus("");
                 lstSoldiers.get(i).update();
                 btm.addView(soldierImage);
             }
-            // If there is already main status on DB
+            // If there is already main status on DB, and it's update date from today
             else {
                 mapMainStatusToView.get(soldierMainStatus).addView(soldierImage);
             }
