@@ -46,12 +46,20 @@ import t.a.m.com.doch1.views.RoundedImageView;
 
 public class MainFragment extends Fragment {
 
+    String groupID = "3";
     private static final int ENLARGE_ON_DARG = 2;
     private static final long DOUBLE_PRESS_INTERVAL = 500;
     private int _nImageSizeOnDrop = 125;
     List<User> lstSoldiers;
     Map<String, List<String>> mapMainStatusToSub;
     List<String> lstMain;
+
+    public MainFragment() {
+    }
+
+    public MainFragment(String strGroupID) {
+        this.groupID = strGroupID;
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -144,8 +152,7 @@ public class MainFragment extends Fragment {
 
             private void pullSoldiers(final Map<String, ViewGroup> mapMainStatusToView) {
                 FirebaseDatabase.getInstance().getReference(User.USERS_REFERENCE_KEY).orderByChild(User.GROUP_ID_PROPERTY)
-                        // TODO: change
-                        .equalTo("21827933-d057-4ada-a51e-816cd46a586d")
+                        .equalTo(groupID)
                         // must be single event or the images will be added over and over again
                         .addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
@@ -193,7 +200,8 @@ public class MainFragment extends Fragment {
             // or the status is irrelevant
             // or main status in the DB isnt valid
             // Then give default status
-            if ((!DateUtils.isToday(lstSoldiers.get(i).getLastUpdateDate().getTime())) ||
+            if ((lstSoldiers.get(i).getLastUpdateDate() == null) ||
+                    (!DateUtils.isToday(lstSoldiers.get(i).getLastUpdateDate().getTime())) ||
                     (soldierMainStatus.equals("")) ||
                     (!mapMainStatusToView.containsKey(soldierMainStatus))) {
                 lstSoldiers.get(i).setMainStatus((String) btm.getTag(R.string.main_status));

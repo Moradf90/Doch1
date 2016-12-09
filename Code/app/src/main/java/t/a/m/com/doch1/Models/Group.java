@@ -19,6 +19,7 @@ public class Group {
     public static final String NAME_PROPERTY = "name";
     public static final String PARENT_ID_PROPERTY = "parentId";
     public static final String USERS_PROPERTY = "users";
+    public static final String IMAGE_PROPERTY = "image";
 
     @PropertyName(ID_PROPERTY)
     private String mId;
@@ -28,6 +29,8 @@ public class Group {
     private String mParentId;
     @PropertyName(USERS_PROPERTY)
     private List<String> mUsers;
+    @PropertyName(IMAGE_PROPERTY)
+    private String mImage;
 
     public Group(){}
 
@@ -53,6 +56,14 @@ public class Group {
 
     public void setParentId(String mParentId) {
         this.mParentId = mParentId;
+    }
+
+    public String getImage() {
+        return mImage;
+    }
+
+    public void setImage(String mImage) {
+        this.mImage = mImage;
     }
 
     public List<String> getUsers() {

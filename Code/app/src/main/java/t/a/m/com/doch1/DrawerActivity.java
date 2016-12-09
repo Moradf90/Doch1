@@ -2,12 +2,11 @@ package t.a.m.com.doch1;
 
 import android.app.Fragment;
 import android.app.FragmentManager;
-import android.content.res.Resources;
+import android.app.FragmentTransaction;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -25,17 +24,16 @@ import com.google.firebase.database.ValueEventListener;
 import com.mikepenz.fastadapter.commons.utils.RecyclerViewCacheUtil;
 import com.mikepenz.fontawesome_typeface_library.FontAwesome;
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
-import com.mikepenz.iconics.IconicsDrawable;
 import com.mikepenz.itemanimators.AlphaCrossFadeAnimator;
 import com.mikepenz.materialdrawer.AccountHeader;
 import com.mikepenz.materialdrawer.AccountHeaderBuilder;
 import com.mikepenz.materialdrawer.Drawer;
 import com.mikepenz.materialdrawer.DrawerBuilder;
+import com.mikepenz.materialdrawer.model.AbstractBadgeableDrawerItem;
 import com.mikepenz.materialdrawer.model.DividerDrawerItem;
 import com.mikepenz.materialdrawer.model.ExpandableDrawerItem;
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
 import com.mikepenz.materialdrawer.model.ProfileDrawerItem;
-import com.mikepenz.materialdrawer.model.ProfileSettingDrawerItem;
 import com.mikepenz.materialdrawer.model.SecondaryDrawerItem;
 import com.mikepenz.materialdrawer.model.SectionDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
@@ -63,6 +61,7 @@ public class DrawerActivity extends AppCompatActivity {
     ExpandableDrawerItem SoldiersDrawerItem;
     IProfile profile;
     List<IProfile> groupsDrawerItem;
+    String groupID = "3";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,11 +100,12 @@ public class DrawerActivity extends AppCompatActivity {
 //                        new ProfileSettingDrawerItem().withName("Add Account").withDescription("Add new GitHub Account").withIcon(new IconicsDrawable(this, GoogleMaterial.Icon.gmd_plus).actionBar().paddingDp(5).colorRes(R.color.material_drawer_primary_text)).withIdentifier(PROFILE_SETTING),
 //                        new ProfileSettingDrawerItem().withName("Manage Account").withIcon(GoogleMaterial.Icon.gmd_settings).withIdentifier(100001)
                 )
-                .withOnAccountHeaderListener(new AccountHeader.OnAccountHeaderListener() {
-                    @Override
-                    public boolean onProfileChanged(View view, IProfile profile, boolean current) {
-                        //sample usage of the onProfileChanged listener
-                        //if the clicked item has the identifier 1 add a new profile ;)
+                .withOnAccountHeaderListener(
+                        new AccountHeader.OnAccountHeaderListener() {
+                            @Override
+                            public boolean onProfileChanged(View view, IProfile profile, boolean current) {
+                                //sample usage of the onProfileChanged listener
+                                //if the clicked item has the identifier 1 add a new profile ;)
 //                        if (profile instanceof IDrawerItem && profile.getIdentifier() == PROFILE_SETTING) {
 //                            int count = 100 + headerResult.getProfiles().size() + 1;
 //                            IProfile newProfile = new ProfileDrawerItem().withNameShown(true).withName("Batman" + count).withEmail("batman" + count + "@gmail.com").withIcon(R.drawable.profile5).withIdentifier(count);
@@ -117,18 +117,48 @@ public class DrawerActivity extends AppCompatActivity {
 //                            }
 //                        }
 
-//                        ((ProfileDrawerItem)profile).getTag()
-//                        initSoldiersDrawer(profile.getEmail().toString());
+                                groupID = ((ProfileDrawerItem) profile).getTag().toString();
 
-                        //false if you have not consumed the event and it should close the drawer
-                        return false;
-                    }
-                }
+                                initSoldiersDrawer(groupID);
+                                refreshCurrFragment();
+
+                                //false if you have not consumed the event and it should close the drawer
+                                return false;
+                            }
+
+                            private void refreshCurrFragment() {
+//                                Fragment fCurrentDisplayedFragment = getFragmentManager().findFragmentById(R.id.frame_container);
+//                                 TODO: refresh curr fragment
+//                                FragmentTransaction ft = getFragmentManager().beginTransaction();
+//                                ft.detach(fCurrentDisplayedFragment).attach(fCurrentDisplayedFragment).commit();
+
+//                                FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+//                                fragmentTransaction.detach(fCurrentDisplayedFragment);
+//                                fragmentTransaction.attach(fCurrentDisplayedFragment);
+//                                fragmentTransaction.commit();
+
+//                                FragmentManager manager = getFragmentManager();
+//                                FragmentTransaction ft = manager.beginTransaction();
+//                                Fragment newFragment = fCurrentDisplayedFragment;
+//                                fCurrentDisplayedFragment.onDestroy();
+//                                ft.remove(fCurrentDisplayedFragment);
+//                                ft.replace(R.id.frame_container,newFragment);
+//                                //container is the ViewGroup of current fragment
+//                                ft.addToBackStack(null);
+//                                ft.commit();
+
+                                // Insert the fragment by replacing any existing fragment
+//                                FragmentManager fragmentManager = getFragmentManager();
+//                                fragmentManager.beginTransaction()
+//                                        .replace(R.id.frame_container, fCurrentDisplayedFragment, fCurrentDisplayedFragment.getClass().getSimpleName())
+//                                        .commit();
+                            }
+                        }
                 )
                 .withSavedInstance(savedInstanceState)
                 .build();
 
-        initMyGroups(groupId, groups, groupsDrawerItem);
+        initUnderMyCommandGroups(groupId, groups, groupsDrawerItem);
 
         PrimaryDrawerItem MyProfileDrawerItem = new PrimaryDrawerItem().withName(R.string.profile_fragment).withIcon(GoogleMaterial.Icon.gmd_account).withIdentifier(1);
         PrimaryDrawerItem ManagementGroupsDrawerItem = new PrimaryDrawerItem().withName(R.string.managment_fragment).withIcon(GoogleMaterial.Icon.gmd_accounts_list_alt).withIdentifier(3);
@@ -220,7 +250,7 @@ public class DrawerActivity extends AppCompatActivity {
         return null;
     }
 
-    private void initMyGroups(String groupID, final List<Group> groups, final List<IProfile> profiles) {
+    private void initUnderMyCommandGroups(String groupID, final List<Group> groups, final List<IProfile> profiles) {
         FirebaseDatabase.getInstance().getReference(Group.GROUPS_REFERENCE_KEY)
                 .orderByChild(Group.PARENT_ID_PROPERTY)
                 .equalTo(groupID)
@@ -233,12 +263,13 @@ public class DrawerActivity extends AppCompatActivity {
                                 groups.add(g);
 
                                 IProfile newProfile =
-                                        new ProfileDrawerItem().withName(g.getName()).withIcon(GoogleMaterial.Icon.gmd_airline_seat_flat).withIdentifier(10041).withTag(g.getId());
+                                        new ProfileDrawerItem().withName(g.getName()).withIdentifier(10041).withTag(g.getId());
 
-                                profiles.add(newProfile);
-//                                headerResult.updateProfile(newProfile);
                                 headerResult.addProfiles(newProfile);
-                                initMyGroups(g.getId(), groups, profiles);
+
+                                drawableFromUrl(g.getImage(), newProfile);
+
+                                initUnderMyCommandGroups(g.getId(), groups, profiles);
                             }
                         }
                     }
@@ -260,11 +291,10 @@ public class DrawerActivity extends AppCompatActivity {
     }
 
 
-    private void initSoldiersDrawer(String s) {
-
+    private void initSoldiersDrawer(String groupID) {
+        // TODO: fix bug - the list is not replaced nicely
         FirebaseDatabase.getInstance().getReference(User.USERS_REFERENCE_KEY).orderByChild(User.GROUP_ID_PROPERTY)
-                // TODO: change
-                .equalTo(s)
+                .equalTo(groupID)
                 .addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
@@ -275,7 +305,6 @@ public class DrawerActivity extends AppCompatActivity {
                             //lstSoldiers.add(currUser);
 
                             SecondaryDrawerItem currSoldierDrawer = new SecondaryDrawerItem().withName(currUser.getName()).withLevel(2)
-//                                    .withIcon(drawableFromUrl(currUser.getImage()))
                                     .withIdentifier(Long.parseLong(currUser.getPersonalId()))
                                     .withSelectable(false);
 
@@ -298,8 +327,7 @@ public class DrawerActivity extends AppCompatActivity {
                     private String getDescription(User currUser) {
                         if (!currUser.getSubStatus().equals("")) {
                             return currUser.getMainStatus() + ", " + currUser.getSubStatus();
-                        }
-                        else {
+                        } else {
                             return currUser.getMainStatus();
                         }
                     }
@@ -312,7 +340,7 @@ public class DrawerActivity extends AppCompatActivity {
 
     }
 
-    public void drawableFromUrl(String url, final SecondaryDrawerItem item) {
+    public void drawableFromUrl(String url, final AbstractBadgeableDrawerItem item) {
 
             AsyncTask<String, Void, Bitmap> task = new AsyncTask<String, Void, Bitmap>(){
                 @Override
@@ -343,54 +371,87 @@ public class DrawerActivity extends AppCompatActivity {
         
         task.execute(url);
     }
+
+    // TODO: prevect double code
+    public void drawableFromUrl(String url, final IProfile item) {
+
+        AsyncTask<String, Void, Bitmap> task = new AsyncTask<String, Void, Bitmap>(){
+            @Override
+            protected Bitmap doInBackground(String... params) {
+                Bitmap x = null;
+                try {
+                    HttpURLConnection connection = (HttpURLConnection) new URL(params[0]).openConnection();
+                    connection.connect();
+                    InputStream input = connection.getInputStream();
+
+                    x = BitmapFactory.decodeStream(input);
+                }
+                catch (Exception ex){}
+
+                return x;
+            }
+
+            @Override
+            protected void onPostExecute(Bitmap bitmap) {
+                if(bitmap != null){
+                    item.withIcon(new BitmapDrawable(bitmap));
+                }
+                else {
+                    item.withIcon(DrawerActivity.this.getResources().getDrawable(R.drawable.face_icon));
+                }
+            }
+        };
+
+        task.execute(url);
+    }
         /** Swaps fragments in the main content view */
     private void selectItem(int identifier) {
 
-        Fragment fragment;
+        Fragment newFragment;
 
         // Get the current displayed fragment
         Fragment fCurrentDisplayedFragment = getFragmentManager().findFragmentById(R.id.frame_container);
 
         // Create a new fragment and specify the planet to show based on position
         if (identifier == 1) {
-            fragment = new ProfileFragment();
+            newFragment = new ProfileFragment();
         }
         else if (identifier == 2) {
-            fragment = new MainFragment();
+            newFragment = new MainFragment(groupID);
         }
         else if (identifier == 3) {
-            fragment = new ManagementFragment();
+            newFragment = new ManagementFragment();
         }
         else if (identifier == 9) {
             Toast.makeText(DrawerActivity.this, "Send...", Toast.LENGTH_SHORT).show();
-            fragment = fCurrentDisplayedFragment;
+            newFragment = fCurrentDisplayedFragment;
         }
         else if (identifier == 19) {
             // No change
-            fragment = fCurrentDisplayedFragment;
+            newFragment = fCurrentDisplayedFragment;
         }
         else if (identifier == 21) {
             Toast.makeText(DrawerActivity.this, "Call Morad", Toast.LENGTH_SHORT).show();
-            fragment = fCurrentDisplayedFragment;
+            newFragment = fCurrentDisplayedFragment;
         }
         // Call morad
         else if (identifier == 2501) {
             Toast.makeText(DrawerActivity.this, "Call Morad", Toast.LENGTH_SHORT).show();
-            fragment = fCurrentDisplayedFragment;
+            newFragment = fCurrentDisplayedFragment;
         }
         // sms Morad
         else if (identifier == 2502) {
             Toast.makeText(DrawerActivity.this, "sms Morad", Toast.LENGTH_SHORT).show();
 
-            fragment = fCurrentDisplayedFragment;
+            newFragment = fCurrentDisplayedFragment;
         }
         // email morad
         else if (identifier == 2503) {
             Toast.makeText(DrawerActivity.this, "mail Morad", Toast.LENGTH_SHORT).show();
-            fragment = new MainFragment();
+            newFragment = fCurrentDisplayedFragment;
         }
         else {
-            fragment = fCurrentDisplayedFragment;
+            newFragment = fCurrentDisplayedFragment;
         }
 //        Bundle args = new Bundle();
 //        args.putInt(MainFragment.ARG_PLANET_NUMBER, position);
@@ -400,12 +461,12 @@ public class DrawerActivity extends AppCompatActivity {
 
         // If the current displayed is the same as the one we want to switch to - do nothing. else - switch.
         if ((fCurrentDisplayedFragment == null) ||
-            (!fCurrentDisplayedFragment.getClass().getSimpleName().equals(fragment.getClass().getSimpleName()))) {
+            (!fCurrentDisplayedFragment.getClass().getSimpleName().equals(newFragment.getClass().getSimpleName()))) {
 
             // Insert the fragment by replacing any existing fragment
             FragmentManager fragmentManager = getFragmentManager();
             fragmentManager.beginTransaction()
-                    .replace(R.id.frame_container, fragment, fragment.getClass().getSimpleName())
+                    .replace(R.id.frame_container, newFragment, newFragment.getClass().getSimpleName())
                     .commit();
 
         }
