@@ -10,6 +10,7 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -232,9 +233,14 @@ public class DrawerActivity extends AppCompatActivity {
                             User currUser = usrSnapshot.getValue(User.class);
                             //lstSoldiers.add(currUser);
 
-                            SecondaryDrawerItem temp = new SecondaryDrawerItem().withName(currUser.getName()).withLevel(2)
+                            SecondaryDrawerItem temp = new SecondaryDrawerItem()
+                                    .withName(currUser.getName()).withLevel(2)
 //                                    .withIcon(drawableFromUrl(currUser.getImage()))
-                                    .withIdentifier(Long.parseLong(currUser.getPersonalId())).withSelectable(false);
+                                    .withIdentifier(Long.parseLong(currUser.getPersonalId()))
+                                    .withSelectable(false);
+
+                            drawableFromUrl(currUser.getImage(), temp);
+
                             // If there is main status
                             if (!currUser.getMainStatus().equals("")) {
                                 temp.withDescription(getDescription(currUser)).withTextColor(Color.rgb(20, 170, 20));
@@ -266,20 +272,36 @@ public class DrawerActivity extends AppCompatActivity {
 
     }
 
-    public static Drawable drawableFromUrl(String url) {
-        Bitmap x;
+    public void drawableFromUrl(String url, final SecondaryDrawerItem item) {
 
-        try {
-            HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-            connection.connect();
-            InputStream input = connection.getInputStream();
+            AsyncTask<String, Void, Bitmap> task = new AsyncTask<String, Void, Bitmap>(){
+                @Override
+                protected Bitmap doInBackground(String... params) {
+                    Bitmap x = null;
+                    try {
+                        HttpURLConnection connection = (HttpURLConnection) new URL(params[0]).openConnection();
+                        connection.connect();
+                        InputStream input = connection.getInputStream();
 
-            x = BitmapFactory.decodeStream(input);
-            return new BitmapDrawable(x);
-        }
-        catch (Exception ex) {
-            return Resources.getSystem().getDrawable(R.drawable.face_icon);
-        }
+                        x = BitmapFactory.decodeStream(input);
+                    }
+                    catch (Exception ex){}
+
+                    return x;
+                }
+
+                @Override
+                protected void onPostExecute(Bitmap bitmap) {
+                    if(bitmap != null){
+                        item.withIcon(new BitmapDrawable(bitmap));
+                    }
+                    else {
+                        item.withIcon(DrawerActivity.this.getResources().getDrawable(R.drawable.face_icon));
+                    }
+                }
+            };
+        
+        task.execute(url);
     }
 
         /** Swaps fragments in the main content view */
