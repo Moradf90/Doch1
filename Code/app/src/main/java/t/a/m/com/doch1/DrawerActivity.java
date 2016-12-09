@@ -115,7 +115,9 @@ public class DrawerActivity extends AppCompatActivity {
 //                                headerResult.addProfiles(newProfile);
 //                            }
 //                        }
-                        initSoldiersDrawer(profile.getEmail().toString());
+
+//                        ((ProfileDrawerItem)profile).getTag()
+//                        initSoldiersDrawer(profile.getEmail().toString());
 
                         //false if you have not consumed the event and it should close the drawer
                         return false;
@@ -230,8 +232,7 @@ public class DrawerActivity extends AppCompatActivity {
                                 groups.add(g);
 
                                 IProfile newProfile =
-                                        new ProfileDrawerItem().withEmail(g.getId())
-                                                .withName(g.getName()).withIcon(GoogleMaterial.Icon.gmd_airline_seat_flat).withIdentifier(10041).withTag(g.getId());
+                                        new ProfileDrawerItem().withName(g.getName()).withIcon(GoogleMaterial.Icon.gmd_airline_seat_flat).withIdentifier(10041).withTag(g.getId());
 
                                 profiles.add(newProfile);
 //                                headerResult.updateProfile(newProfile);
