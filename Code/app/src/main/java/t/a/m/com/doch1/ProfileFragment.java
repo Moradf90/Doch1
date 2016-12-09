@@ -9,9 +9,11 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputLayout;
@@ -37,6 +39,9 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.DatabaseReference;
 
+import java.io.ByteArrayOutputStream;
+
+import t.a.m.com.doch1.common.utils.ImagePicker;
 import t.a.m.com.doch1.common.validators.EmailValidator;
 import t.a.m.com.doch1.common.validators.NotEmptyValidator;
 import t.a.m.com.doch1.views.RoundedImageView;
@@ -168,12 +173,25 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == PICK_IMAGE && resultCode == Activity.RESULT_OK) {
+
             if (data == null) {
                 return;
             }
             mPicUri = data.getData();
+            // In case it's from camera
+            if (mPicUri == null) {
+                Bitmap bitmap = ImagePicker.getImageFromResult(getActivity(), resultCode, data);
+                mPicUri = getImageUri(getActivity(), bitmap);
+            }
             mProfilePictureView.setImageURI(mPicUri);
         }
+    }
+
+    public Uri getImageUri(Context inContext, Bitmap inImage) {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+        String path = MediaStore.Images.Media.insertImage(inContext.getContentResolver(), inImage, "doch1UserImage", null);
+        return Uri.parse(path);
     }
 
     @Override
@@ -200,7 +218,9 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
 
         }
         else {
-            pickImage();
+            Intent chooseImageIntent = ImagePicker.getPickImageIntent(getActivity());
+            startActivityForResult(chooseImageIntent, PICK_IMAGE);
+//            pickImage();
         }
     }
 
@@ -271,6 +291,9 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
                                                         mEditEmailInputLayout.setVisibility(View.GONE);
                                                         mEmailView.setVisibility(View.VISIBLE);
                                                         mProfileEmail.setText(mCurrentUser.getEmail());
+
+                                                        // This line updates the header in the navigation drawer - the profile data.
+                                                        ((DrawerActivity)getActivity()).updateProfileInDrawer(mCurrentUser);
                                                     }
                                                     else {
                                                         Snackbar.make(mProfilePictureView, "Error while updating the email", Snackbar.LENGTH_LONG).show();
@@ -296,6 +319,9 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
                                 mDisplayNameView.setVisibility(View.VISIBLE);
 
                                 mProfileDisplayName.setText(mCurrentUser.getDisplayName());
+
+                                // This line updates the header in the navigation drawer - the profile data.
+                                ((DrawerActivity)getActivity()).updateProfileInDrawer(mCurrentUser);
                             }
                             else {
                                 Snackbar.make(mProfilePictureView, "Error while saving to server.", Snackbar.LENGTH_LONG).show();
@@ -304,8 +330,6 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
                     });
         }
 
-        // TODO: update the changes synchronize after changes in server and not before
-        // This line updates the header in the navigation drawer - the profile data.
-        ((DrawerActivity)getActivity()).updateProfileInDrawer(mCurrentUser);
+
     }
 }

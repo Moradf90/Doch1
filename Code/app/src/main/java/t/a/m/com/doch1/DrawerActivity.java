@@ -2,12 +2,10 @@ package t.a.m.com.doch1;
 
 import android.app.Fragment;
 import android.app.FragmentManager;
-import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
@@ -27,6 +25,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.mikepenz.fastadapter.commons.utils.RecyclerViewCacheUtil;
 import com.mikepenz.fontawesome_typeface_library.FontAwesome;
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
+import com.mikepenz.iconics.IconicsDrawable;
 import com.mikepenz.itemanimators.AlphaCrossFadeAnimator;
 import com.mikepenz.materialdrawer.AccountHeader;
 import com.mikepenz.materialdrawer.AccountHeaderBuilder;
@@ -36,24 +35,21 @@ import com.mikepenz.materialdrawer.model.DividerDrawerItem;
 import com.mikepenz.materialdrawer.model.ExpandableDrawerItem;
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
 import com.mikepenz.materialdrawer.model.ProfileDrawerItem;
+import com.mikepenz.materialdrawer.model.ProfileSettingDrawerItem;
 import com.mikepenz.materialdrawer.model.SecondaryDrawerItem;
 import com.mikepenz.materialdrawer.model.SectionDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IProfile;
 import com.mikepenz.octicons_typeface_library.Octicons;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import t.a.m.com.doch1.Models.GlobalsTemp;
-import t.a.m.com.doch1.Models.MainStatus;
-import t.a.m.com.doch1.Models.Soldier;
+import t.a.m.com.doch1.Models.Group;
 import t.a.m.com.doch1.Models.User;
-import t.a.m.com.doch1.common.connection.StatusUtils;
 import t.a.m.com.doch1.management.ManagementFragment;
 
 public class DrawerActivity extends AppCompatActivity {
@@ -66,7 +62,7 @@ public class DrawerActivity extends AppCompatActivity {
     List<IDrawerItem>  lstSoldiersToExpand;
     ExpandableDrawerItem SoldiersDrawerItem;
     IProfile profile;
-    List<User> lstSoldiers;
+    List<IProfile> groupsDrawerItem;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,7 +83,12 @@ public class DrawerActivity extends AppCompatActivity {
         // NOTE you have to define the loader logic too. See the CustomApplication for more details
 //        final IProfile profile = new ProfileDrawerItem().withName(mCurrentUser.getDisplayName()).withEmail(mCurrentUser.getEmail()).withIcon(R.drawable.snowflake36).withIdentifier(100);
 
-        initProfileInDrawer(mCurrentUser);
+        final String groupId = "-1";
+
+        List<Group> groups = new ArrayList<>();
+        groupsDrawerItem = new ArrayList<>();
+//         = initMyGroupsDrawer(groups);
+//        initProfileInDrawer(mCurrentUser);
 
         // Create the AccountHeader
         headerResult = new AccountHeaderBuilder()
@@ -95,16 +96,16 @@ public class DrawerActivity extends AppCompatActivity {
                 .withTranslucentStatusBar(true)
                 .withHeaderBackground(R.drawable.header)
                 .addProfiles(
-                        profile
+//                        profile
                         //don't ask but google uses 14dp for the add account icon in gmail but 20dp for the normal icons (like manage account)
 //                        new ProfileSettingDrawerItem().withName("Add Account").withDescription("Add new GitHub Account").withIcon(new IconicsDrawable(this, GoogleMaterial.Icon.gmd_plus).actionBar().paddingDp(5).colorRes(R.color.material_drawer_primary_text)).withIdentifier(PROFILE_SETTING),
 //                        new ProfileSettingDrawerItem().withName("Manage Account").withIcon(GoogleMaterial.Icon.gmd_settings).withIdentifier(100001)
                 )
-//                .withOnAccountHeaderListener(new AccountHeader.OnAccountHeaderListener() {
-//                    @Override
-//                    public boolean onProfileChanged(View view, IProfile profile, boolean current) {
-//                        //sample usage of the onProfileChanged listener
-//                        //if the clicked item has the identifier 1 add a new profile ;)
+                .withOnAccountHeaderListener(new AccountHeader.OnAccountHeaderListener() {
+                    @Override
+                    public boolean onProfileChanged(View view, IProfile profile, boolean current) {
+                        //sample usage of the onProfileChanged listener
+                        //if the clicked item has the identifier 1 add a new profile ;)
 //                        if (profile instanceof IDrawerItem && profile.getIdentifier() == PROFILE_SETTING) {
 //                            int count = 100 + headerResult.getProfiles().size() + 1;
 //                            IProfile newProfile = new ProfileDrawerItem().withNameShown(true).withName("Batman" + count).withEmail("batman" + count + "@gmail.com").withIcon(R.drawable.profile5).withIdentifier(count);
@@ -115,14 +116,17 @@ public class DrawerActivity extends AppCompatActivity {
 //                                headerResult.addProfiles(newProfile);
 //                            }
 //                        }
-//
-//                        //false if you have not consumed the event and it should close the drawer
-//                        return false;
-//                    }
-//                }
-//                )
+                        initSoldiersDrawer(profile.getEmail().toString());
+
+                        //false if you have not consumed the event and it should close the drawer
+                        return false;
+                    }
+                }
+                )
                 .withSavedInstance(savedInstanceState)
                 .build();
+
+        initMyGroups(groupId, groups, groupsDrawerItem);
 
         PrimaryDrawerItem MyProfileDrawerItem = new PrimaryDrawerItem().withName(R.string.profile_fragment).withIcon(GoogleMaterial.Icon.gmd_account).withIdentifier(1);
         PrimaryDrawerItem ManagementGroupsDrawerItem = new PrimaryDrawerItem().withName(R.string.managment_fragment).withIcon(GoogleMaterial.Icon.gmd_accounts_list_alt).withIdentifier(3);
@@ -130,7 +134,7 @@ public class DrawerActivity extends AppCompatActivity {
         PrimaryDrawerItem FillStatusesDrawerItem = new PrimaryDrawerItem().withName(R.string.main_fragment).withDescription(R.string.dsc_main_statuses).withIcon(FontAwesome.Icon.faw_wheelchair).withIdentifier(2).withSelectable(false);
 
         SoldiersDrawerItem = new ExpandableDrawerItem().withName("My Soldiers").withIcon(GoogleMaterial.Icon.gmd_accounts_list).withIdentifier(19);
-        initSoldiersDrawer();
+        initSoldiersDrawer("21827933-d057-4ada-a51e-816cd46a586d");
 
         final PrimaryDrawerItem SendDrawerItem = new PrimaryDrawerItem().withName(R.string.send_statuses).withEnabled(true).withIcon(Octicons.Icon.oct_radio_tower).withIdentifier(9);
 
@@ -210,6 +214,41 @@ public class DrawerActivity extends AppCompatActivity {
 
     }
 
+    private List<IProfile> initMyGroupsDrawer(List<Group> groups) {
+        return null;
+    }
+
+    private void initMyGroups(String groupID, final List<Group> groups, final List<IProfile> profiles) {
+        FirebaseDatabase.getInstance().getReference(Group.GROUPS_REFERENCE_KEY)
+                .orderByChild(Group.PARENT_ID_PROPERTY)
+                .equalTo(groupID)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        if (dataSnapshot.exists()) {
+                            for (DataSnapshot ds : dataSnapshot.getChildren()) {
+                                Group g = ds.getValue(Group.class);
+                                groups.add(g);
+
+                                IProfile newProfile =
+                                        new ProfileDrawerItem().withEmail(g.getId())
+                                                .withName(g.getName()).withIcon(GoogleMaterial.Icon.gmd_airline_seat_flat).withIdentifier(10041).withTag(g.getId());
+
+                                profiles.add(newProfile);
+//                                headerResult.updateProfile(newProfile);
+                                headerResult.addProfiles(newProfile);
+                                initMyGroups(g.getId(), groups, profiles);
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+    }
+
     private void initProfileInDrawer(FirebaseUser user) {
         profile = new ProfileDrawerItem().withName(user.getDisplayName()).withEmail(user.getEmail()).withIcon(user.getPhotoUrl()).withIdentifier(100);
     }
@@ -219,11 +258,12 @@ public class DrawerActivity extends AppCompatActivity {
         headerResult.updateProfile(profile);
     }
 
-    private void initSoldiersDrawer() {
+
+    private void initSoldiersDrawer(String s) {
 
         FirebaseDatabase.getInstance().getReference(User.USERS_REFERENCE_KEY).orderByChild(User.GROUP_ID_PROPERTY)
                 // TODO: change
-                .equalTo("21827933-d057-4ada-a51e-816cd46a586d")
+                .equalTo(s)
                 .addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
@@ -233,21 +273,20 @@ public class DrawerActivity extends AppCompatActivity {
                             User currUser = usrSnapshot.getValue(User.class);
                             //lstSoldiers.add(currUser);
 
-                            SecondaryDrawerItem temp = new SecondaryDrawerItem()
-                                    .withName(currUser.getName()).withLevel(2)
+                            SecondaryDrawerItem currSoldierDrawer = new SecondaryDrawerItem().withName(currUser.getName()).withLevel(2)
 //                                    .withIcon(drawableFromUrl(currUser.getImage()))
                                     .withIdentifier(Long.parseLong(currUser.getPersonalId()))
                                     .withSelectable(false);
 
-                            drawableFromUrl(currUser.getImage(), temp);
+                            drawableFromUrl(currUser.getImage(), currSoldierDrawer);
 
                             // If there is main status
                             if (!currUser.getMainStatus().equals("")) {
-                                temp.withDescription(getDescription(currUser)).withTextColor(Color.rgb(20, 170, 20));
+                                currSoldierDrawer.withDescription(getDescription(currUser)).withTextColor(Color.rgb(20, 170, 20));
                             } else {
-                                temp.withDescription(R.string.no_status).withTextColor(Color.rgb(170, 20, 20));
+                                currSoldierDrawer.withDescription(R.string.no_status).withTextColor(Color.rgb(170, 20, 20));
                             }
-                            lstSoldiersToExpand.add(temp);
+                            lstSoldiersToExpand.add(currSoldierDrawer);
                         }
 
                         SoldiersDrawerItem.withSubItems(lstSoldiersToExpand);
@@ -303,11 +342,14 @@ public class DrawerActivity extends AppCompatActivity {
         
         task.execute(url);
     }
-
         /** Swaps fragments in the main content view */
     private void selectItem(int identifier) {
 
         Fragment fragment;
+
+        // Get the current displayed fragment
+        Fragment fCurrentDisplayedFragment = getFragmentManager().findFragmentById(R.id.frame_container);
+
         // Create a new fragment and specify the planet to show based on position
         if (identifier == 1) {
             fragment = new ProfileFragment();
@@ -320,22 +362,26 @@ public class DrawerActivity extends AppCompatActivity {
         }
         else if (identifier == 9) {
             Toast.makeText(DrawerActivity.this, "Send...", Toast.LENGTH_SHORT).show();
-            fragment = new MainFragment();
+            fragment = fCurrentDisplayedFragment;
+        }
+        else if (identifier == 19) {
+            // No change
+            fragment = fCurrentDisplayedFragment;
         }
         else if (identifier == 21) {
             Toast.makeText(DrawerActivity.this, "Call Morad", Toast.LENGTH_SHORT).show();
-            fragment = new MainFragment();
+            fragment = fCurrentDisplayedFragment;
         }
         // Call morad
         else if (identifier == 2501) {
             Toast.makeText(DrawerActivity.this, "Call Morad", Toast.LENGTH_SHORT).show();
-            fragment = new MainFragment();
+            fragment = fCurrentDisplayedFragment;
         }
         // sms Morad
         else if (identifier == 2502) {
             Toast.makeText(DrawerActivity.this, "sms Morad", Toast.LENGTH_SHORT).show();
 
-            fragment = new MainFragment();
+            fragment = fCurrentDisplayedFragment;
         }
         // email morad
         else if (identifier == 2503) {
@@ -343,15 +389,13 @@ public class DrawerActivity extends AppCompatActivity {
             fragment = new MainFragment();
         }
         else {
-            fragment = new MainFragment();
-
+            fragment = fCurrentDisplayedFragment;
         }
 //        Bundle args = new Bundle();
 //        args.putInt(MainFragment.ARG_PLANET_NUMBER, position);
 //        fragment.setArguments(args);
 
-        // Get the current displayed fragment
-        Fragment fCurrentDisplayedFragment = getFragmentManager().findFragmentById(R.id.frame_container);
+
 
         // If the current displayed is the same as the one we want to switch to - do nothing. else - switch.
         if ((fCurrentDisplayedFragment == null) ||
