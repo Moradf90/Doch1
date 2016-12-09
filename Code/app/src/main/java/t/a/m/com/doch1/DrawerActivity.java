@@ -61,7 +61,7 @@ public class DrawerActivity extends AppCompatActivity {
     List<IDrawerItem>  lstSoldiersToExpand;
     ExpandableDrawerItem SoldiersDrawerItem;
     IProfile profile;
-    List<User> lstSoldiers;
+    List<IProfile> groupsDrawerItem;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,13 +82,12 @@ public class DrawerActivity extends AppCompatActivity {
         // NOTE you have to define the loader logic too. See the CustomApplication for more details
 //        final IProfile profile = new ProfileDrawerItem().withName(mCurrentUser.getDisplayName()).withEmail(mCurrentUser.getEmail()).withIcon(R.drawable.snowflake36).withIdentifier(100);
 
-//        final String groupId = "-1";
-//
-//        List<Group> groups = new ArrayList<>();
-//        List<IProfile> groupsDrawerItem = new ArrayList<>();
-//        initMyGroups(groupId, groups, groupsDrawerItem);
+        final String groupId = "-1";
+
+        List<Group> groups = new ArrayList<>();
+        groupsDrawerItem = new ArrayList<>();
 //         = initMyGroupsDrawer(groups);
-        initProfileInDrawer(mCurrentUser);
+//        initProfileInDrawer(mCurrentUser);
 
         // Create the AccountHeader
         headerResult = new AccountHeaderBuilder()
@@ -96,16 +95,16 @@ public class DrawerActivity extends AppCompatActivity {
                 .withTranslucentStatusBar(true)
                 .withHeaderBackground(R.drawable.header)
                 .addProfiles(
-                        profile,
+//                        profile
                         //don't ask but google uses 14dp for the add account icon in gmail but 20dp for the normal icons (like manage account)
-                        new ProfileSettingDrawerItem().withName("Add Account").withDescription("Add new GitHub Account").withIcon(new IconicsDrawable(this, GoogleMaterial.Icon.gmd_plus).actionBar().paddingDp(5).colorRes(R.color.material_drawer_primary_text)).withIdentifier(PROFILE_SETTING),
-                        new ProfileSettingDrawerItem().withName("Manage Account").withIcon(GoogleMaterial.Icon.gmd_settings).withIdentifier(100001)
+//                        new ProfileSettingDrawerItem().withName("Add Account").withDescription("Add new GitHub Account").withIcon(new IconicsDrawable(this, GoogleMaterial.Icon.gmd_plus).actionBar().paddingDp(5).colorRes(R.color.material_drawer_primary_text)).withIdentifier(PROFILE_SETTING),
+//                        new ProfileSettingDrawerItem().withName("Manage Account").withIcon(GoogleMaterial.Icon.gmd_settings).withIdentifier(100001)
                 )
-//                .withOnAccountHeaderListener(new AccountHeader.OnAccountHeaderListener() {
-//                    @Override
-//                    public boolean onProfileChanged(View view, IProfile profile, boolean current) {
-//                        //sample usage of the onProfileChanged listener
-//                        //if the clicked item has the identifier 1 add a new profile ;)
+                .withOnAccountHeaderListener(new AccountHeader.OnAccountHeaderListener() {
+                    @Override
+                    public boolean onProfileChanged(View view, IProfile profile, boolean current) {
+                        //sample usage of the onProfileChanged listener
+                        //if the clicked item has the identifier 1 add a new profile ;)
 //                        if (profile instanceof IDrawerItem && profile.getIdentifier() == PROFILE_SETTING) {
 //                            int count = 100 + headerResult.getProfiles().size() + 1;
 //                            IProfile newProfile = new ProfileDrawerItem().withNameShown(true).withName("Batman" + count).withEmail("batman" + count + "@gmail.com").withIcon(R.drawable.profile5).withIdentifier(count);
@@ -116,14 +115,17 @@ public class DrawerActivity extends AppCompatActivity {
 //                                headerResult.addProfiles(newProfile);
 //                            }
 //                        }
-//
-//                        //false if you have not consumed the event and it should close the drawer
-//                        return false;
-//                    }
-//                }
-//                )
+                        initSoldiersDrawer(profile.getEmail().toString());
+
+                        //false if you have not consumed the event and it should close the drawer
+                        return false;
+                    }
+                }
+                )
                 .withSavedInstance(savedInstanceState)
                 .build();
+
+        initMyGroups(groupId, groups, groupsDrawerItem);
 
         PrimaryDrawerItem MyProfileDrawerItem = new PrimaryDrawerItem().withName(R.string.profile_fragment).withIcon(GoogleMaterial.Icon.gmd_account).withIdentifier(1);
         PrimaryDrawerItem ManagementGroupsDrawerItem = new PrimaryDrawerItem().withName(R.string.managment_fragment).withIcon(GoogleMaterial.Icon.gmd_accounts_list_alt).withIdentifier(3);
@@ -131,7 +133,7 @@ public class DrawerActivity extends AppCompatActivity {
         PrimaryDrawerItem FillStatusesDrawerItem = new PrimaryDrawerItem().withName(R.string.main_fragment).withDescription(R.string.dsc_main_statuses).withIcon(FontAwesome.Icon.faw_wheelchair).withIdentifier(2).withSelectable(false);
 
         SoldiersDrawerItem = new ExpandableDrawerItem().withName("My Soldiers").withIcon(GoogleMaterial.Icon.gmd_accounts_list).withIdentifier(19);
-        initSoldiersDrawer();
+        initSoldiersDrawer("21827933-d057-4ada-a51e-816cd46a586d");
 
         final PrimaryDrawerItem SendDrawerItem = new PrimaryDrawerItem().withName(R.string.send_statuses).withEnabled(true).withIcon(Octicons.Icon.oct_radio_tower).withIdentifier(9);
 
@@ -228,10 +230,12 @@ public class DrawerActivity extends AppCompatActivity {
                                 groups.add(g);
 
                                 IProfile newProfile =
-                                        new ProfileDrawerItem().withName(g.getName()).withIcon(GoogleMaterial.Icon.gmd_airline_seat_flat).withIdentifier(10041);
-
+                                        new ProfileDrawerItem().withEmail(g.getId())
+                                                .withName(g.getName()).withIcon(GoogleMaterial.Icon.gmd_airline_seat_flat).withIdentifier(10041).withTag(g.getId());
 
                                 profiles.add(newProfile);
+//                                headerResult.updateProfile(newProfile);
+                                headerResult.addProfiles(newProfile);
                                 initMyGroups(g.getId(), groups, profiles);
                             }
                         }
@@ -242,11 +246,6 @@ public class DrawerActivity extends AppCompatActivity {
 
                     }
                 });
-
-        // If finish recursive
-        if (groupID == "-1") {
-
-        }
     }
 
     private void initProfileInDrawer(FirebaseUser user) {
@@ -259,11 +258,11 @@ public class DrawerActivity extends AppCompatActivity {
     }
 
 
-    private void initSoldiersDrawer() {
+    private void initSoldiersDrawer(String s) {
 
         FirebaseDatabase.getInstance().getReference(User.USERS_REFERENCE_KEY).orderByChild(User.GROUP_ID_PROPERTY)
                 // TODO: change
-                .equalTo("21827933-d057-4ada-a51e-816cd46a586d")
+                .equalTo(s)
                 .addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
@@ -305,22 +304,6 @@ public class DrawerActivity extends AppCompatActivity {
                     }
                 });
 
-    }
-
-    public static Drawable drawableFromUrl(String url) {
-        Bitmap x;
-
-        try {
-            HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-            connection.connect();
-            InputStream input = connection.getInputStream();
-
-            x = BitmapFactory.decodeStream(input);
-            return new BitmapDrawable(x);
-        }
-        catch (Exception ex) {
-            return Resources.getSystem().getDrawable(R.drawable.face_icon);
-        }
     }
 
         /** Swaps fragments in the main content view */
