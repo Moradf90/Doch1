@@ -42,7 +42,8 @@ public class UserHolder extends TreeNode.BaseNodeViewHolder<User> implements Vie
 
         if(value.getImage() != null) {
             RoundedImageView image = (RoundedImageView) view.findViewById(R.id.image);
-            Picasso.with(context).load(value.getImage()).into(image);
+            Picasso.with(context).load(value.getImage())
+                    .placeholder(R.drawable.profile_pic).into(image);
         }
 
         view.findViewById(R.id.delete).setOnClickListener(this);
