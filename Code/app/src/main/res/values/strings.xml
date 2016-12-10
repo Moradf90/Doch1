@@ -53,4 +53,5 @@
     <string name="loading_message">Wait while loading...</string>
     <string name="noSubStatusMessage">no sub statuses</string>
     <string name="pick_image_intent_text">Something to write</string>
+    <string name="my_soldiers">My Soldiers</string>
 </resources>

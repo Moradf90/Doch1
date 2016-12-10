@@ -61,7 +61,9 @@ public class DrawerActivity extends AppCompatActivity {
     ExpandableDrawerItem SoldiersDrawerItem;
     IProfile profile;
     List<IProfile> groupsDrawerItem;
-    String groupID = "3";
+
+    // TODO: get from current user
+    String groupID = "-1";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +72,7 @@ public class DrawerActivity extends AppCompatActivity {
         setContentView(R.layout.activity_sample_dark_toolbar);
 
         mCurrentUser = FirebaseAuth.getInstance().getCurrentUser();
+//        SetMyGroupID();
 
         //Remove line to test RTL support
         //getWindow().getDecorView().setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
@@ -82,8 +85,6 @@ public class DrawerActivity extends AppCompatActivity {
         // NOTE you have to define the loader logic too. See the CustomApplication for more details
 //        final IProfile profile = new ProfileDrawerItem().withName(mCurrentUser.getDisplayName()).withEmail(mCurrentUser.getEmail()).withIcon(R.drawable.snowflake36).withIdentifier(100);
 
-        final String groupId = "-1";
-
         List<Group> groups = new ArrayList<>();
         groupsDrawerItem = new ArrayList<>();
 //         = initMyGroupsDrawer(groups);
@@ -94,12 +95,12 @@ public class DrawerActivity extends AppCompatActivity {
                 .withActivity(this)
                 .withTranslucentStatusBar(true)
                 .withHeaderBackground(R.drawable.header)
-                .addProfiles(
-//                        profile
-                        //don't ask but google uses 14dp for the add account icon in gmail but 20dp for the normal icons (like manage account)
-//                        new ProfileSettingDrawerItem().withName("Add Account").withDescription("Add new GitHub Account").withIcon(new IconicsDrawable(this, GoogleMaterial.Icon.gmd_plus).actionBar().paddingDp(5).colorRes(R.color.material_drawer_primary_text)).withIdentifier(PROFILE_SETTING),
-//                        new ProfileSettingDrawerItem().withName("Manage Account").withIcon(GoogleMaterial.Icon.gmd_settings).withIdentifier(100001)
-                )
+//                .addProfiles(
+////                        profile
+//                        //don't ask but google uses 14dp for the add account icon in gmail but 20dp for the normal icons (like manage account)
+////                        new ProfileSettingDrawerItem().withName("Add Account").withDescription("Add new GitHub Account").withIcon(new IconicsDrawable(this, GoogleMaterial.Icon.gmd_plus).actionBar().paddingDp(5).colorRes(R.color.material_drawer_primary_text)).withIdentifier(PROFILE_SETTING),
+////                        new ProfileSettingDrawerItem().withName("Manage Account").withIcon(GoogleMaterial.Icon.gmd_settings).withIdentifier(100001)
+//                )
                 .withOnAccountHeaderListener(
                         new AccountHeader.OnAccountHeaderListener() {
                             @Override
@@ -127,7 +128,16 @@ public class DrawerActivity extends AppCompatActivity {
                             }
 
                             private void refreshCurrFragment() {
-//                                Fragment fCurrentDisplayedFragment = getFragmentManager().findFragmentById(R.id.frame_container);
+                                Fragment fCurrentDisplayedFragment = getFragmentManager().findFragmentById(R.id.frame_container);
+                                if (fCurrentDisplayedFragment.getClass().getSimpleName().equals("MainFragment")) {
+
+                                    Fragment newFragment = new MainFragment(groupID);
+
+                                    FragmentManager fragmentManager = getFragmentManager();
+                                    fragmentManager.beginTransaction()
+                                            .replace(R.id.frame_container, newFragment, newFragment.getClass().getSimpleName())
+                                            .commit();
+                                }
 //                                 TODO: refresh curr fragment
 //                                FragmentTransaction ft = getFragmentManager().beginTransaction();
 //                                ft.detach(fCurrentDisplayedFragment).attach(fCurrentDisplayedFragment).commit();
@@ -158,15 +168,22 @@ public class DrawerActivity extends AppCompatActivity {
                 .withSavedInstance(savedInstanceState)
                 .build();
 
-        initUnderMyCommandGroups(groupId, groups, groupsDrawerItem);
+        initUnderMyCommandGroups(groupID, groups, groupsDrawerItem);
 
         PrimaryDrawerItem MyProfileDrawerItem = new PrimaryDrawerItem().withName(R.string.profile_fragment).withIcon(GoogleMaterial.Icon.gmd_account).withIdentifier(1);
         PrimaryDrawerItem ManagementGroupsDrawerItem = new PrimaryDrawerItem().withName(R.string.managment_fragment).withIcon(GoogleMaterial.Icon.gmd_accounts_list_alt).withIdentifier(3);
 
         PrimaryDrawerItem FillStatusesDrawerItem = new PrimaryDrawerItem().withName(R.string.main_fragment).withDescription(R.string.dsc_main_statuses).withIcon(FontAwesome.Icon.faw_wheelchair).withIdentifier(2).withSelectable(false);
 
-        SoldiersDrawerItem = new ExpandableDrawerItem().withName("My Soldiers").withIcon(GoogleMaterial.Icon.gmd_accounts_list).withIdentifier(19);
-        initSoldiersDrawer("21827933-d057-4ada-a51e-816cd46a586d");
+        SoldiersDrawerItem = new ExpandableDrawerItem().withName(R.string.my_soldiers).withIcon(GoogleMaterial.Icon.gmd_accounts_list).withIdentifier(19);
+
+        groupID = "0";
+
+        if (headerResult.getActiveProfile() != null) {
+            groupID = ((ProfileDrawerItem) headerResult.getActiveProfile()).getTag().toString();
+        }
+
+        initSoldiersDrawer(groupID);
 
         final PrimaryDrawerItem SendDrawerItem = new PrimaryDrawerItem().withName(R.string.send_statuses).withEnabled(true).withIcon(Octicons.Icon.oct_radio_tower).withIdentifier(9);
 
@@ -243,11 +260,29 @@ public class DrawerActivity extends AppCompatActivity {
 
 //        result.updateBadge(4, new StringHolder(10 + ""));
 
-
     }
 
     private List<IProfile> initMyGroupsDrawer(List<Group> groups) {
         return null;
+    }
+
+    private void SetMyGroupID() {
+        FirebaseDatabase.getInstance().getReference(User.USERS_REFERENCE_KEY)
+                // TODO: not by mail
+                .orderByChild(User.EMAIL_PROPERTY)
+                .equalTo(mCurrentUser.getEmail())
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        groupID = dataSnapshot.getValue(User.class).getGroupId();
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
     }
 
     private void initUnderMyCommandGroups(String groupID, final List<Group> groups, final List<IProfile> profiles) {
@@ -265,8 +300,9 @@ public class DrawerActivity extends AppCompatActivity {
                                 IProfile newProfile =
                                         new ProfileDrawerItem().withName(g.getName()).withIdentifier(10041).withTag(g.getId());
 
-                                headerResult.addProfiles(newProfile);
+//                                headerResult.addProfiles(newProfile);
 
+                                // TODO: update the images in drawer
                                 drawableFromUrl(g.getImage(), newProfile);
 
                                 initUnderMyCommandGroups(g.getId(), groups, profiles);
@@ -302,8 +338,6 @@ public class DrawerActivity extends AppCompatActivity {
 
                         for (DataSnapshot usrSnapshot : dataSnapshot.getChildren()) {
                             User currUser = usrSnapshot.getValue(User.class);
-                            //lstSoldiers.add(currUser);
-
                             SecondaryDrawerItem currSoldierDrawer = new SecondaryDrawerItem().withName(currUser.getName()).withLevel(2)
                                     .withIdentifier(Long.parseLong(currUser.getPersonalId()))
                                     .withSelectable(false);
@@ -372,7 +406,7 @@ public class DrawerActivity extends AppCompatActivity {
         task.execute(url);
     }
 
-    // TODO: prevect double code
+    // TODO: prevent double code
     public void drawableFromUrl(String url, final IProfile item) {
 
         AsyncTask<String, Void, Bitmap> task = new AsyncTask<String, Void, Bitmap>(){
@@ -399,6 +433,9 @@ public class DrawerActivity extends AppCompatActivity {
                 else {
                     item.withIcon(DrawerActivity.this.getResources().getDrawable(R.drawable.face_icon));
                 }
+
+                headerResult.addProfiles(item);
+
             }
         };
 

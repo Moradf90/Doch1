@@ -92,6 +92,7 @@ public class MainFragment extends Fragment {
                     lstMain.add(currStatus.getName());
                 }
 
+                // TODO: buildLayout should be called once. - not any creation
                 Map<String, ViewGroup> mapMainStatusToView = buildLayout();
                 pullSoldiers(mapMainStatusToView);
             }
