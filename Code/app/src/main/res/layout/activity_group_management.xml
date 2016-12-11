@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingBottom="@dimen/activity_vertical_margin"
+        android:paddingTop="@dimen/activity_vertical_margin"
+        android:orientation="vertical"
+        android:background="@color/background_gray">
+        <RelativeLayout
+            android:layout_marginTop="24dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <t.a.m.com.doch1.views.CircleImageView
+                android:id="@+id/picture"
+                android:src="@drawable/profile_group_pic"
+                android:layout_width="180sp"
+                android:layout_height="180sp"
+                app:civ_border_color="@color/colorPrimaryDark"
+                app:civ_border_width="1dp"
+                android:padding="8dp"/>
+
+            <ImageButton
+                android:id="@+id/edit_pic"
+                android:src="@drawable/ic_edit"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:layout_width="wrap_content"
+                android:layout_alignEnd="@+id/picture"
+                android:layout_alignBottom="@+id/picture"
+                android:layout_height="wrap_content" />
+
+        </RelativeLayout>
+
+
+        <android.support.design.widget.TextInputLayout
+            android:elevation="2dp"
+            android:layout_marginTop="24dp"
+            android:id="@+id/name_layout"
+            android:padding="8dp"
+            style="@style/AppTheme.Text.TextInputLayout"
+            app:hintTextAppearance="@style/AppTheme.Text.HintText"
+            app:errorTextAppearance="@style/AppTheme.Text.ErrorText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <EditText
+                style="@style/AppTheme.EditText"
+                android:drawablePadding="10dp"
+                android:hint="Group Name"
+                android:maxLines="1"
+                android:id="@+id/name" />
+
+        </android.support.design.widget.TextInputLayout>
+
+        <android.support.design.widget.TextInputLayout
+            android:elevation="2dp"
+            android:layout_marginTop="24dp"
+            android:padding="8dp"
+            style="@style/AppTheme.Text.TextInputLayout"
+            app:hintTextAppearance="@style/AppTheme.Text.HintText"
+            app:errorTextAppearance="@style/AppTheme.Text.ErrorText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <AutoCompleteTextView
+                android:drawableLeft="@drawable/ic_search"
+                android:id="@+id/search_text_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Add Member"
+                android:maxLines="1"/>
+
+        </android.support.design.widget.TextInputLayout>
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/members"
+            android:layout_marginTop="24dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+        </android.support.v7.widget.RecyclerView>
+
+    </LinearLayout>
+</ScrollView>

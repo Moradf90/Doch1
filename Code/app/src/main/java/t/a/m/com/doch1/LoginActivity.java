@@ -25,6 +25,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import t.a.m.com.doch1.common.connection.UserUtil;
 import t.a.m.com.doch1.common.validators.EmailValidator;
 import t.a.m.com.doch1.common.validators.PasswordValidator;
+import t.a.m.com.doch1.management.GroupManagementActivity;
 
 public class LoginActivity extends Activity implements View.OnClickListener, FirebaseAuth.AuthStateListener, OnFailureListener, OnSuccessListener<AuthResult> {
 
@@ -139,9 +140,7 @@ public class LoginActivity extends Activity implements View.OnClickListener, Fir
 
     private void onSignin(){
         UserUtil.init();
-       // LoginActivity.this.startActivity(new Intent(this, ProfileActivity.class));
-
-        LoginActivity.this.startActivity(new Intent(this, DrawerActivity.class));
+        LoginActivity.this.startActivity(new Intent(this, GroupManagementActivity.class));
         finish();
     }
 }
