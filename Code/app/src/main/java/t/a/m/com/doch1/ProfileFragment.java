@@ -82,11 +82,10 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
         getActivity().setTitle("Profile");
 
         mCurrentUser = FirebaseAuth.getInstance().getCurrentUser();
-        if(mCurrentUser == null){
+        if (mCurrentUser == null) {
             startActivity(new Intent(getActivity(), LoginActivity.class));
             getActivity().finish();
-        }
-        else {
+        } else {
             mProfilePictureView = (RoundedImageView) vFragmentLayout.findViewById(R.id.picture);
             mProfileDisplayName = (TextView) vFragmentLayout.findViewById(R.id.display_name_text);
             ImageButton mNameEditButton = (ImageButton) vFragmentLayout.findViewById(R.id.display_name_edit);
@@ -102,7 +101,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
             mEmailValidator = new EmailValidator(mEditEmailInputLayout);
             mEmailView = vFragmentLayout.findViewById(R.id.email_view);
 
-            if(mCurrentUser.getPhotoUrl() != null){
+            if (mCurrentUser.getPhotoUrl() != null) {
                 if (ContextCompat.checkSelfPermission(getActivity(),
                         Manifest.permission.READ_EXTERNAL_STORAGE)
                         != PackageManager.PERMISSION_GRANTED) {
@@ -112,12 +111,11 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
                                 MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE_FOR_SET_IMAGE);
                     }
 
-                }
-                else
+                } else
                     mProfilePictureView.setImageURI(mCurrentUser.getPhotoUrl());
             }
 
-            if(mCurrentUser.getDisplayName() != null){
+            if (mCurrentUser.getDisplayName() != null) {
                 mProfileDisplayName.setText(mCurrentUser.getDisplayName());
                 mNotEmptyValidator.setValue(mCurrentUser.getDisplayName());
             } else {
@@ -145,7 +143,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
-        if(item.getItemId() == R.id.save_changes){
+        if (item.getItemId() == R.id.save_changes) {
             onSaveChanges();
         }
 
@@ -155,16 +153,16 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
     @Override
     public void onClick(View view) {
 
-        switch (view.getId()){
-            case R.id.edit_pic :
+        switch (view.getId()) {
+            case R.id.edit_pic:
                 onPictureEditButtonClick();
                 break;
 
-            case R.id.display_name_edit :
+            case R.id.display_name_edit:
                 onNameEditButtonClick();
                 break;
 
-            case R.id.email_edit :
+            case R.id.email_edit:
                 onEmailEditButtonClick();
         }
     }
@@ -197,17 +195,16 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if(requestCode == MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE_FOR_PICK_IMAGE){
+        if (requestCode == MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE_FOR_PICK_IMAGE) {
             pickImage();
-        }
-        else if(requestCode == MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE_FOR_SET_IMAGE){
-            if(mCurrentUser.getPhotoUrl() != null){
+        } else if (requestCode == MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE_FOR_SET_IMAGE) {
+            if (mCurrentUser.getPhotoUrl() != null) {
                 mProfilePictureView.setImageURI(mCurrentUser.getPhotoUrl());
             }
         }
     }
 
-    private void onPictureEditButtonClick(){
+    private void onPictureEditButtonClick() {
         if (ContextCompat.checkSelfPermission(getActivity(),
                 Manifest.permission.READ_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -216,15 +213,14 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
                     new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                     MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE_FOR_PICK_IMAGE);
 
-        }
-        else {
+        } else {
             Intent chooseImageIntent = ImagePicker.getPickImageIntent(getActivity());
             startActivityForResult(chooseImageIntent, PICK_IMAGE);
 //            pickImage();
         }
     }
 
-    private void pickImage(){
+    private void pickImage() {
         Intent intent = new Intent(Intent.ACTION_PICK);
         intent.setType("image/*");
         startActivityForResult(intent, PICK_IMAGE);
@@ -243,25 +239,24 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
     private void onSaveChanges() {
 
         // hide the keyboard
-        InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+        InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(mDisplayNameView.getWindowToken(), 0);
 
         UserProfileChangeRequest.Builder profileUpdatesBuilder = new UserProfileChangeRequest.Builder();
         boolean update = false;
-        if(mPicUri != null){
+        if (mPicUri != null) {
             profileUpdatesBuilder.setPhotoUri(mPicUri);
             update = true;
         }
 
-        if(mEditNameInputLayout.getVisibility() == View.VISIBLE){
-            if(mNotEmptyValidator.validate()) {
+        if (mEditNameInputLayout.getVisibility() == View.VISIBLE) {
+            if (mNotEmptyValidator.validate()) {
                 profileUpdatesBuilder.setDisplayName(mNotEmptyValidator.getValue());
                 update = true;
-            }
-            else return;
+            } else return;
         }
 
-        if (mEmailValidator.validate() && mCurrentUser.getEmail()!= null && !mCurrentUser.getEmail().equals(mEmailValidator.getValue())){
+        if (mEmailValidator.validate() && mCurrentUser.getEmail() != null && !mCurrentUser.getEmail().equals(mEmailValidator.getValue())) {
 
             AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getActivity());
             dialogBuilder.setTitle("Password to re-authenticate");
@@ -279,7 +274,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
                             .addOnCompleteListener(new OnCompleteListener<Void>() {
                                 @Override
                                 public void onComplete(@NonNull Task<Void> task) {
-                                    if(!task.isSuccessful()){
+                                    if (!task.isSuccessful()) {
                                         Snackbar.make(mProfilePictureView, "Invalid password", Snackbar.LENGTH_LONG).show();
                                         return;
                                     }
@@ -287,15 +282,14 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
                                             .addOnCompleteListener(new OnCompleteListener<Void>() {
                                                 @Override
                                                 public void onComplete(@NonNull Task<Void> task) {
-                                                    if(task.isSuccessful()){
+                                                    if (task.isSuccessful()) {
                                                         mEditEmailInputLayout.setVisibility(View.GONE);
                                                         mEmailView.setVisibility(View.VISIBLE);
                                                         mProfileEmail.setText(mCurrentUser.getEmail());
 
                                                         // This line updates the header in the navigation drawer - the profile data.
-                                                        ((DrawerActivity)getActivity()).updateProfileInDrawer(mCurrentUser);
-                                                    }
-                                                    else {
+//                                                        ((DrawerActivity)getActivity()).updateProfileInDrawer(mCurrentUser);
+                                                    } else {
                                                         Snackbar.make(mProfilePictureView, "Error while updating the email", Snackbar.LENGTH_LONG).show();
                                                     }
                                                 }
@@ -306,30 +300,27 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
             });
 
             dialogBuilder.create().show();
-            
+
         }
 
-        if(update){
+        if (update) {
             mCurrentUser.updateProfile(profileUpdatesBuilder.build())
                     .addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
-                            if(task.isSuccessful()){
+                            if (task.isSuccessful()) {
                                 mEditNameInputLayout.setVisibility(View.GONE);
                                 mDisplayNameView.setVisibility(View.VISIBLE);
 
                                 mProfileDisplayName.setText(mCurrentUser.getDisplayName());
 
                                 // This line updates the header in the navigation drawer - the profile data.
-                                ((DrawerActivity)getActivity()).updateProfileInDrawer(mCurrentUser);
-                            }
-                            else {
+//                                ((DrawerActivity)getActivity()).updateProfileInDrawer(mCurrentUser);
+                            } else {
                                 Snackbar.make(mProfilePictureView, "Error while saving to server.", Snackbar.LENGTH_LONG).show();
                             }
                         }
                     });
         }
-
-
     }
 }

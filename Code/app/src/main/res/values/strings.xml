@@ -54,4 +54,6 @@
     <string name="noSubStatusMessage">no sub statuses</string>
     <string name="pick_image_intent_text">Something to write</string>
     <string name="my_soldiers">My Soldiers</string>
+    <string name="select_group_message">Select Group...</string>
+    <string name="my_groups">My Groups</string>
 </resources>
