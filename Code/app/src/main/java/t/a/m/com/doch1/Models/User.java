@@ -4,7 +4,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.IgnoreExtraProperties;
 import com.google.firebase.database.PropertyName;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by Morad on 12/3/2016.
@@ -18,6 +20,7 @@ public class User {
     public static final String EMAIL_PROPERTY = "email";
     public static final String PERSONAL_ID_PROPERTY = "personalId";
     public static final String GROUP_ID_PROPERTY = "groupId";
+    public static final String GROUPS_PROPERTY = "groups";
     public static final String PHONE_PROPERTY = "phone";
     public static final String LAST_UPDATE_DATE_PROPERTY = "lastUpdateDate";
     public static final String IMAGE_PROPERTY = "image";
@@ -35,6 +38,8 @@ public class User {
     private String mPersonalId;
     @PropertyName(GROUP_ID_PROPERTY)
     private String mGroupId;
+    @PropertyName(GROUPS_PROPERTY)
+    private List<String> mGroupsId;
     @PropertyName(PHONE_PROPERTY)
     private String mPhone;
     @PropertyName(LAST_UPDATE_DATE_PROPERTY)
@@ -45,8 +50,6 @@ public class User {
     private String mMainStatus;
     @PropertyName(SUB_STATUS)
     private String mSubStatus;
-
-    public User(){}
 
     public void setId(String mId) {
         this.mId = mId;
@@ -104,6 +107,25 @@ public class User {
         return mPhone;
     }
 
+    public List<String> getGroupsId() {
+        return mGroupsId;
+    }
+
+    public void setGroupsId(List<String> mGroupsId) {
+        this.mGroupsId = mGroupsId;
+    }
+
+    public void addGroupId(String newGroupID) {
+        if(this.getGroupsId() == null) {
+            this.mGroupsId = new ArrayList<>();
+        }
+        this.getGroupsId().add(newGroupID);
+    }
+
+    public void remvoeGroupId(String toRemoveGroupID) {
+        this.getGroupsId().remove(toRemoveGroupID);
+    }
+
     public Date getLastUpdateDate() {
         return mlastUpdateDate;
     }
@@ -134,10 +156,15 @@ public class User {
     }
 
     // Update the user in the DB
-    public void update() {
+    public void updateUserStatuses(String groupId) {
         this.setLastUpdateDate(new Date());
-        FirebaseDatabase.getInstance().getReference(User.USERS_REFERENCE_KEY)
-                .child(this.getId())
-                .setValue(this);
+
+        FirebaseDatabase.getInstance().getReference(UserInGroup.USERS_IN_GROUP_REFERENCE_KEY)
+                .child(groupId).child(getId()).setValue(getUserInGroup());
+                
+    }
+
+    private UserInGroup getUserInGroup() {
+        return new UserInGroup(getMainStatus(), getSubStatus(), new Date());
     }
 }

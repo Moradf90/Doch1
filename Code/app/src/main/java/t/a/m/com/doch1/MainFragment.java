@@ -32,6 +32,7 @@ import com.squareup.picasso.Picasso;
 import org.apmem.tools.layouts.FlowLayout;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,8 +42,9 @@ import t.a.m.com.doch1.Models.User;
 
 import java.util.Random;
 
+import t.a.m.com.doch1.Models.UserInGroup;
+import t.a.m.com.doch1.views.CircleImageView;
 import t.a.m.com.doch1.views.MySpinner;
-import t.a.m.com.doch1.views.RoundedImageView;
 
 public class MainFragment extends Fragment {
 
@@ -160,11 +162,35 @@ public class MainFragment extends Fragment {
                             public void onDataChange(DataSnapshot dataSnapshot) {
 
                                 for (DataSnapshot usrSnapshot : dataSnapshot.getChildren()) {
-                                    User currUser = usrSnapshot.getValue(User.class);
+                                    final User currUser = usrSnapshot.getValue(User.class);
+
+                                    // Get current status of current user
+                                    FirebaseDatabase.getInstance().getReference(UserInGroup.USERS_IN_GROUP_REFERENCE_KEY)
+                                            // TODO: should be listener? if yes so need to remove previous selections
+                                            .child(groupID).child(currUser.getId()).addListenerForSingleValueEvent(new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(DataSnapshot dataSnapshot) {
+                                            if (dataSnapshot.exists()) {
+                                                UserInGroup userInGroup = dataSnapshot.getValue(UserInGroup.class);
+                                                currUser.setMainStatus(userInGroup.getMainStatus());
+                                                currUser.setSubStatus(userInGroup.getSubStatus());
+                                                currUser.setLastUpdateDate(userInGroup.getLastUpdateDate());
+                                            }
+
+                                            setSoldiersOnStatuses(vFragmentLayout, mapMainStatusToView, currUser);
+                                        }
+
+                                        @Override
+                                        public void onCancelled(DatabaseError databaseError) {
+
+                                        }
+                                    });
+
                                     lstSoldiers.add(currUser);
                                 }
 
-                                setSoldiersOnStatuses(vFragmentLayout, mapMainStatusToView);
+                                // TODO: must happen after the second fireBase select. (row 168).
+//                                setSoldiersOnStatuses(vFragmentLayout, mapMainStatusToView, (User[]) lstSoldiers.toArray());
                                 progress.dismiss();
                             }
 
@@ -184,30 +210,35 @@ public class MainFragment extends Fragment {
         return vFragmentLayout;
     }
 
-    private void setSoldiersOnStatuses(View vFragmentLayout, Map<String, ViewGroup> mapMainStatusToView) {
+//    private void setSoldierOnStatuses(View vFragmentLayout, Map<String, ViewGroup> mapMainStatusToView, User user) {
+//    }
+
+    private void setSoldiersOnStatuses(View vFragmentLayout, Map<String, ViewGroup> mapMainStatusToView, User... users) {
 
         FlowLayout btm = (FlowLayout) vFragmentLayout.findViewById(R.id.defaultStatus);
 
-        for (int i = 0; i < lstSoldiers.size(); i++) {
+        for (int i = 0; i < users.length; i++) {
             RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(_nImageSizeOnDrop, _nImageSizeOnDrop);
 
-            RoundedImageView soldierImage = new RoundedImageView(getActivity());
+            CircleImageView soldierImage = new CircleImageView(getActivity());
+
+            User currSoldier = users[i];
 
             soldierImage.setLayoutParams(layoutParams);
-            Picasso.with(getActivity()).load(lstSoldiers.get(i).getImage()).into(soldierImage);
+            Picasso.with(getActivity()).load(currSoldier.getImage()).into(soldierImage);
 
-            String soldierMainStatus = lstSoldiers.get(i).getMainStatus();
+            String soldierMainStatus = currSoldier.getMainStatus();
             // If there is no status,
             // or the status is irrelevant
             // or main status in the DB isnt valid
             // Then give default status
-            if ((lstSoldiers.get(i).getLastUpdateDate() == null) ||
-                    (!DateUtils.isToday(lstSoldiers.get(i).getLastUpdateDate().getTime())) ||
+            if ((currSoldier.getLastUpdateDate() == null) ||
+                    (!DateUtils.isToday(currSoldier.getLastUpdateDate().getTime())) ||
                     (soldierMainStatus.equals("")) ||
                     (!mapMainStatusToView.containsKey(soldierMainStatus))) {
-                lstSoldiers.get(i).setMainStatus((String) btm.getTag(R.string.main_status));
-                lstSoldiers.get(i).setSubStatus("");
-                lstSoldiers.get(i).update();
+                currSoldier.setMainStatus((String) btm.getTag(R.string.main_status));
+                currSoldier.setSubStatus("");
+                currSoldier.updateUserStatuses(groupID);
                 btm.addView(soldierImage);
             }
             // If there is already main status on DB, and it's update date from today
@@ -215,7 +246,7 @@ public class MainFragment extends Fragment {
                 mapMainStatusToView.get(soldierMainStatus).addView(soldierImage);
             }
 
-            soldierImage.setTag(R.string.soldier, lstSoldiers.get(i));
+            soldierImage.setTag(R.string.soldier, currSoldier);
 
             soldierImage.setOnTouchListener(new MyTouchListener());
         }
@@ -235,19 +266,20 @@ public class MainFragment extends Fragment {
                 // Detect double click:
 
                 // Get current time in nano seconds.
-                long pressTime = System.currentTimeMillis();
-                long lastPressTime = 0;
-                if (view.getTag(R.string.last_press_time) != null) {
-                    lastPressTime = Long.parseLong(view.getTag(R.string.last_press_time).toString());
-                }
-                // If double click..
-                long diff = pressTime - lastPressTime;
-                if (diff <= DOUBLE_PRESS_INTERVAL) {
-                    showPopupSubStatus(view);
-                }
+//                long pressTime = System.currentTimeMillis();
+//                long lastPressTime = 0;
+//                if (view.getTag(R.string.last_press_time) != null) {
+//                    lastPressTime = Long.parseLong(view.getTag(R.string.last_press_time).toString());
+//                }
+//                // If double click..
+//                long diff = pressTime - lastPressTime;
+////                Toast.makeText(getActivity(), String.valueOf(diff), Toast.LENGTH_SHORT).show();
+//                if (diff <= DOUBLE_PRESS_INTERVAL) {
+//                    showPopupSubStatus(view);
+//                }
 
                 // record the last time the menu button was pressed.
-                view.setTag(R.string.last_press_time, pressTime);
+//                view.setTag(R.string.last_press_time, pressTime);
                 return true;
             } else {
                 return false;
@@ -278,15 +310,18 @@ public class MainFragment extends Fragment {
                         newLayout.addView(imgSoldier);
                         imgSoldier.setVisibility(View.VISIBLE);
 
+                        if (oldLayout == newLayout) {
+                            showPopupSubStatus(imgSoldier);
+                        }
                         // New mainStatus, Clear the sub status
-                        if (oldLayout != newLayout) {
+                        else {
                             User sld = ((User) imgSoldier.getTag(R.string.soldier));
                             // Set main status
                             sld.setMainStatus((String) newLayout.getTag(R.string.main_status));
 
                             // Clear sub status
                             sld.setSubStatus(null);
-                            sld.update();
+                            sld.updateUserStatuses(groupID);
                         }
 
                         break;
@@ -383,7 +418,7 @@ public class MainFragment extends Fragment {
                     @Override
                     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                         finalSoldier.setSubStatus(popupSpinner.getSelectedItem().toString());
-                        finalSoldier.update();
+                        finalSoldier.updateUserStatuses(groupID);
 
                         if (nTimesSelected[0] > 1) {
                             final Handler handler = new Handler();
