@@ -107,23 +107,23 @@ public class User {
         return mPhone;
     }
 
-    public List<String> getGroupsId() {
+    public List<String> getGroups() {
         return mGroupsId;
     }
 
-    public void setGroupsId(List<String> mGroupsId) {
+    public void setGroups(List<String> mGroupsId) {
         this.mGroupsId = mGroupsId;
     }
 
     public void addGroupId(String newGroupID) {
-        if(this.getGroupsId() == null) {
+        if(this.mGroupsId == null) {
             this.mGroupsId = new ArrayList<>();
         }
-        this.getGroupsId().add(newGroupID);
+        this.mGroupsId.add(newGroupID);
     }
 
     public void remvoeGroupId(String toRemoveGroupID) {
-        this.getGroupsId().remove(toRemoveGroupID);
+        this.mGroupsId.remove(toRemoveGroupID);
     }
 
     public Date getLastUpdateDate() {

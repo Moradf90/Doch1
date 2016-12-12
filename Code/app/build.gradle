@@ -24,6 +24,7 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:25.0.0'
     compile "com.android.support:design:25.0.0"
+    compile 'com.android.support:recyclerview-v7:25.0.0'
     compile "com.google.firebase:firebase-auth:9.6.0"
     compile 'com.google.firebase:firebase-core:9.6.0'
     compile 'com.google.firebase:firebase-database:9.6.0'
@@ -33,9 +34,6 @@ dependencies {
     compile 'com.github.bmelnychuk:atv:1.2.+'
     compile 'com.github.johnkil.print:print:1.2.2'
     compile 'com.squareup.picasso:picasso:2.5.2'
-    compile ('com.h6ah4i.android.widget.advrecyclerview:advrecyclerview:0.10.2@aar'){
-        transitive=true
-    }
 
     compile('com.mikepenz:materialdrawer:5.8.0@aar') {
         transitive = true

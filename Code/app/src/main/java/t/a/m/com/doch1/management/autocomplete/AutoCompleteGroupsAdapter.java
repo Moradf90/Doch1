@@ -14,6 +14,7 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 import java.util.List;
 
+import t.a.m.com.doch1.Models.Group;
 import t.a.m.com.doch1.Models.User;
 import t.a.m.com.doch1.R;
 import t.a.m.com.doch1.views.CircleImageView;
@@ -21,22 +22,22 @@ import t.a.m.com.doch1.views.CircleImageView;
 /**
  * Created by Morad on 12/10/2016.
  */
-public class AutoCompleteUsersAdapter extends BaseAdapter implements Filterable {
+public class AutoCompleteGroupsAdapter extends BaseAdapter implements Filterable {
 
-    private List<User> mFilteredUsers;
+    private List<Group> mFilteredUsers;
     private LayoutInflater mInflater;
     private Context mContext;
-    private UsersAdapterFilter mFilter;
+    private GroupsAdapterFilter mFilter;
 
-    public AutoCompleteUsersAdapter(Context context) {
+    public AutoCompleteGroupsAdapter(Context context) {
         super();
         mContext = context;
         mInflater = LayoutInflater.from(context);
         mFilteredUsers = new ArrayList<>();
-        mFilter = new UsersAdapterFilter() {
+        mFilter = new GroupsAdapterFilter() {
             @Override
             protected void publishResults(CharSequence search, FilterResults result) {
-                mFilteredUsers = (List<User>) result.values;
+                mFilteredUsers = (List<Group>) result.values;
                 notifyDataSetChanged();
             }
         };
@@ -48,7 +49,7 @@ public class AutoCompleteUsersAdapter extends BaseAdapter implements Filterable 
     }
 
     @Override
-    public User getItem(int i) {
+    public Group getItem(int i) {
         return mFilteredUsers.get(i);
     }
 
@@ -65,7 +66,7 @@ public class AutoCompleteUsersAdapter extends BaseAdapter implements Filterable 
             view = mInflater.inflate(R.layout.user_in_list_layout, parent, false);
         }
 
-        User value = getItem(position);
+        Group value = getItem(position);
 
         TextView text = (TextView) view.findViewById(R.id.name);
         text.setText(value.getName());
@@ -75,8 +76,6 @@ public class AutoCompleteUsersAdapter extends BaseAdapter implements Filterable 
             Picasso.with(mContext).load(value.getImage())
                     .placeholder(R.drawable.profile_pic).into(image);
         }
-
-       // view.findViewById(R.id.delete).setVisibility(View.GONE);
 
         return view;
     }

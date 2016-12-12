@@ -59,7 +59,27 @@
 
         <android.support.design.widget.TextInputLayout
             android:elevation="2dp"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="4dp"
+            android:padding="8dp"
+            style="@style/AppTheme.Text.TextInputLayout"
+            app:hintTextAppearance="@style/AppTheme.Text.HintText"
+            app:errorTextAppearance="@style/AppTheme.Text.ErrorText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <AutoCompleteTextView
+                android:drawableLeft="@drawable/ic_search"
+                android:id="@+id/search_group"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Group"
+                android:maxLines="1"/>
+
+        </android.support.design.widget.TextInputLayout>
+
+        <android.support.design.widget.TextInputLayout
+            android:elevation="2dp"
+            android:layout_marginTop="4dp"
             android:padding="8dp"
             style="@style/AppTheme.Text.TextInputLayout"
             app:hintTextAppearance="@style/AppTheme.Text.HintText"
@@ -79,7 +99,7 @@
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/members"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="4dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
         </android.support.v7.widget.RecyclerView>

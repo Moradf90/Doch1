@@ -15,7 +15,7 @@ import t.a.m.com.doch1.Models.User;
  */
 public class UserUtil {
 
-    public static User mCurrentUserData;
+    private static User mCurrentUserData;
 
     public static void init(){
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
@@ -43,5 +43,9 @@ public class UserUtil {
                         }
                     });
         }
+    }
+
+    public static User getCurrentUserData(){
+        return mCurrentUserData;
     }
 }
