@@ -334,7 +334,7 @@ public class DrawerActivity extends AppCompatActivity {
                                                             .child(groupID).child(currUser.getId()).addValueEventListener(new ValueEventListener() {
                                                         @Override
                                                         public void onDataChange(DataSnapshot dataSnapshot) {
-                                                            lstSoldiersToExpand.remove(currSoldierDrawer);
+//                                                            lstSoldiersToExpand.remove(currSoldierDrawer);
 
                                                             if (dataSnapshot.exists()) {
                                                                 UserInGroup userInGroup = dataSnapshot.getValue(UserInGroup.class);
@@ -643,17 +643,19 @@ public class DrawerActivity extends AppCompatActivity {
                         }
 
                         private void updateDrawers() {
-                            allGroupsDrawerItem = new ExpandableDrawerItem().withName(R.string.my_groups).withIcon(GoogleMaterial.Icon.gmd_group).withIdentifier(20);
+                            if (currUser.getGroups() != null && currUser.getGroups().size() > 0) {
+                                allGroupsDrawerItem = new ExpandableDrawerItem().withName(R.string.my_groups).withIcon(GoogleMaterial.Icon.gmd_group).withIdentifier(20);
 
-                            // TODO: why not working
-                            String[] groupsId = Arrays.copyOf(currUser.getGroups().toArray(), currUser.getGroups().size(), String[].class);
-                            initUnderMyCommandGroups(allGroupsDrawerItem, groupsId);
+                                // TODO: why not working
+                                String[] groupsId = Arrays.copyOf(currUser.getGroups().toArray(), currUser.getGroups().size(), String[].class);
+                                initUnderMyCommandGroups(allGroupsDrawerItem, groupsId);
 //                            initUnderMyCommandGroups(groupsDrawerItem, currUser.getGroupId());
 
-                            result.addItem(allGroupsDrawerItem);
+                                result.addItem(allGroupsDrawerItem);
 //                            initUnderMyCommandGroups(currUser.getGroupId(), groups, groupsDrawerItem);
 
-                            initSoldiersDrawer(currUser.getGroupId());
+                                initSoldiersDrawer(currUser.getGroups().get(0));
+                            }
                         }
 
                         @Override
