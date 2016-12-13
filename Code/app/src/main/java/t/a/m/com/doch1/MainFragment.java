@@ -9,6 +9,7 @@ import android.graphics.Point;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.format.DateUtils;
+import android.util.Log;
 import android.view.DragEvent;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -37,6 +38,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import t.a.m.com.doch1.Models.Group;
 import t.a.m.com.doch1.Models.MainStatus;
 import t.a.m.com.doch1.Models.User;
 
@@ -85,6 +87,7 @@ public class MainFragment extends Fragment {
 
         final LinearLayout rootLinearLayout = (LinearLayout) vFragmentLayout.findViewById(R.id.root);
 
+        // Get possible statuses
         FirebaseDatabase.getInstance().getReference(MainStatus.STATUSES_REFERENCE_KEY).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -154,44 +157,17 @@ public class MainFragment extends Fragment {
             }
 
             private void pullSoldiers(final Map<String, ViewGroup> mapMainStatusToView) {
-                FirebaseDatabase.getInstance().getReference(User.USERS_REFERENCE_KEY).orderByChild(User.GROUP_ID_PROPERTY)
-                        .equalTo(groupID)
-                        // must be single event or the images will be added over and over again
+                FirebaseDatabase.getInstance().getReference(Group.GROUPS_REFERENCE_KEY).child(groupID)
                         .addListenerForSingleValueEvent(new ValueEventListener() {
+
                             @Override
                             public void onDataChange(DataSnapshot dataSnapshot) {
+                                // Get users of group
+                                Group g = dataSnapshot.getValue(Group.class);
 
-                                for (DataSnapshot usrSnapshot : dataSnapshot.getChildren()) {
-                                    final User currUser = usrSnapshot.getValue(User.class);
-
-                                    // Get current status of current user
-                                    FirebaseDatabase.getInstance().getReference(UserInGroup.USERS_IN_GROUP_REFERENCE_KEY)
-                                            // TODO: should be listener? if yes so need to remove previous selections
-                                            .child(groupID).child(currUser.getId()).addListenerForSingleValueEvent(new ValueEventListener() {
-                                        @Override
-                                        public void onDataChange(DataSnapshot dataSnapshot) {
-                                            if (dataSnapshot.exists()) {
-                                                UserInGroup userInGroup = dataSnapshot.getValue(UserInGroup.class);
-                                                currUser.setMainStatus(userInGroup.getMainStatus());
-                                                currUser.setSubStatus(userInGroup.getSubStatus());
-                                                currUser.setLastUpdateDate(userInGroup.getLastUpdateDate());
-                                            }
-
-                                            setSoldiersOnStatuses(vFragmentLayout, mapMainStatusToView, currUser);
-                                        }
-
-                                        @Override
-                                        public void onCancelled(DatabaseError databaseError) {
-
-                                        }
-                                    });
-
-                                    lstSoldiers.add(currUser);
+                                for (String userID : g.getUsers()) {
+                                    handleUserOfGroup(userID, vFragmentLayout, mapMainStatusToView, progress);
                                 }
-
-                                // TODO: must happen after the second fireBase select. (row 168).
-//                                setSoldiersOnStatuses(vFragmentLayout, mapMainStatusToView, (User[]) lstSoldiers.toArray());
-                                progress.dismiss();
                             }
 
                             @Override
@@ -208,6 +184,57 @@ public class MainFragment extends Fragment {
         });
 
         return vFragmentLayout;
+    }
+
+    private void handleUserOfGroup(final String userID, final View vFragmentLayout, final Map<String, ViewGroup> mapMainStatusToView, final ProgressDialog progress) {
+        FirebaseDatabase.getInstance().getReference(User.USERS_REFERENCE_KEY).child(userID)
+                // must be single event or the images will be added over and over again
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+
+                        if (dataSnapshot.exists()) {
+                            final User currUser = dataSnapshot.getValue(User.class);
+
+                            // Get current status of current user
+                            setStatusForSoldierAndPlaceIt(currUser, vFragmentLayout, mapMainStatusToView);
+
+                            lstSoldiers.add(currUser);
+                        }
+                        else {
+                            Log.w("doch1", userID + " in group: " + groupID + " but not in DB");
+                        }
+                        progress.dismiss();
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+    }
+
+    private void setStatusForSoldierAndPlaceIt(final User currUser, final View vFragmentLayout, final Map<String, ViewGroup> mapMainStatusToView) {
+        FirebaseDatabase.getInstance().getReference(UserInGroup.USERS_IN_GROUP_REFERENCE_KEY)
+                // TODO: should be listener? if yes so need to remove previous selections
+                .child(groupID).child(currUser.getId()).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    UserInGroup userInGroup = dataSnapshot.getValue(UserInGroup.class);
+                    currUser.setMainStatus(userInGroup.getMainStatus());
+                    currUser.setSubStatus(userInGroup.getSubStatus());
+                    currUser.setLastUpdateDate(userInGroup.getLastUpdateDate());
+                }
+
+                setSoldiersOnStatuses(vFragmentLayout, mapMainStatusToView, currUser);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
 //    private void setSoldierOnStatuses(View vFragmentLayout, Map<String, ViewGroup> mapMainStatusToView, User user) {
@@ -262,24 +289,6 @@ public class MainFragment extends Fragment {
                 view.startDrag(data, shadowBuilder, view, 0);
                 // TODO: if you click many times fast it remains invisible so think about timeout or something
 //                view.setVisibility(View.INVISIBLE);
-
-                // Detect double click:
-
-                // Get current time in nano seconds.
-//                long pressTime = System.currentTimeMillis();
-//                long lastPressTime = 0;
-//                if (view.getTag(R.string.last_press_time) != null) {
-//                    lastPressTime = Long.parseLong(view.getTag(R.string.last_press_time).toString());
-//                }
-//                // If double click..
-//                long diff = pressTime - lastPressTime;
-////                Toast.makeText(getActivity(), String.valueOf(diff), Toast.LENGTH_SHORT).show();
-//                if (diff <= DOUBLE_PRESS_INTERVAL) {
-//                    showPopupSubStatus(view);
-//                }
-
-                // record the last time the menu button was pressed.
-//                view.setTag(R.string.last_press_time, pressTime);
                 return true;
             } else {
                 return false;

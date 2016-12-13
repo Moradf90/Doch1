@@ -43,6 +43,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import t.a.m.com.doch1.Models.Group;
@@ -59,7 +60,7 @@ public class DrawerActivity extends AppCompatActivity {
     public static FirebaseUser mCurrentUser;
     List<IDrawerItem>  lstSoldiersToExpand;
     ExpandableDrawerItem SoldiersDrawerItem;
-    ExpandableDrawerItem groupsDrawerItem;
+    ExpandableDrawerItem allGroupsDrawerItem;
 
     // TODO: get from current user
     public static User currUser;
@@ -231,7 +232,11 @@ public class DrawerActivity extends AppCompatActivity {
 //                });
 //    }
 
-    private void initUnderMyCommandGroups(final ExpandableDrawerItem groupsDrawerItem, String... groupsId) {
+    private void initUnderMyCommandGroups(final ExpandableDrawerItem allMygroupsDrawerItem, String... groupsId) {
+
+        // Build my groups
+        final List<IDrawerItem> lstMyGroupsDrawerItems = new ArrayList<IDrawerItem>();
+
         for (String currGroupId : groupsId) {
             FirebaseDatabase.getInstance().getReference(Group.GROUPS_REFERENCE_KEY)
                     .orderByChild(Group.ID_PROPERTY)
@@ -241,26 +246,10 @@ public class DrawerActivity extends AppCompatActivity {
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             if (dataSnapshot.exists()) {
 
-                                List<IDrawerItem> lstSubGroups = new ArrayList<IDrawerItem>();
-
+                                // Get my groups - which im in.
                                 for (DataSnapshot ds : dataSnapshot.getChildren()) {
-                                    Group g = ds.getValue(Group.class);
-
-                                    ExpandableDrawerItem currGroup = new ExpandableDrawerItem().withName(g.getName());
-                                    drawableFromUrl(g.getImage(), currGroup);
-
-                                    // Add my group to profiles
-                                    IProfile newProfile =
-                                            new ProfileDrawerItem().withName(g.getName()).withIdentifier(10041).withTag(g.getId());
-                                    drawableFromUrl(g.getImage(), newProfile);
-
-                                    // Add my sub groups to profiles
-                                    addAllSubUnitsToProfiles(g.getId(), newProfile, currGroup);
-
-                                    lstSubGroups.add(currGroup);
+                                    handleGroupRecursive(lstMyGroupsDrawerItems, ds);
                                 }
-
-                                groupsDrawerItem.withSubItems(lstSubGroups);
                             }
                         }
 
@@ -270,7 +259,10 @@ public class DrawerActivity extends AppCompatActivity {
                         }
                     });
         }
+        allMygroupsDrawerItem.withSubItems(lstMyGroupsDrawerItems);
     }
+
+
 
     private void addAllSubUnitsToProfiles(String groupID, final IProfile parentProfile, final ExpandableDrawerItem parentGroup) {
         FirebaseDatabase.getInstance().getReference(Group.GROUPS_REFERENCE_KEY)
@@ -281,38 +273,11 @@ public class DrawerActivity extends AppCompatActivity {
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         if (dataSnapshot.exists()) {
 
-                            List<IDrawerItem> lstSubGroups = new ArrayList<IDrawerItem>();
+                            List<IDrawerItem> lstSubGroupsDrawerItems = new ArrayList<IDrawerItem>();
 
                             for (DataSnapshot ds : dataSnapshot.getChildren()) {
-                                Group g = ds.getValue(Group.class);
-//                                groups.add(g);
-
-                                ExpandableDrawerItem currGroup = new ExpandableDrawerItem().withName(g.getName());
-                                drawableFromUrl(g.getImage(), currGroup);
-
-                                IProfile newProfile =
-                                        new ProfileDrawerItem().withName(g.getName()).withIdentifier(10041).withTag(g.getId());
-
-//                                headerResult.addProfiles(newProfile);
-//                                subProfiles.add((ProfileDrawerItem) newProfile);
-
-                                // TODO: update the images in drawer
-                                drawableFromUrl(g.getImage(), newProfile);
-
-                                addAllSubUnitsToProfiles(g.getId(), newProfile, currGroup);
-
-                                lstSubGroups.add(currGroup);
+                                handleGroupRecursive(lstSubGroupsDrawerItems, ds);
                             }
-
-                            // If the parent group is leaf
-                            if (lstSubGroups.size() > 0) {
-                                parentGroup.withSubItems(lstSubGroups);
-                            }
-
-//                            SecondaryDrawerItem currSoldierDrawer = new SecondaryDrawerItem().withName(currUser.getName()).withLevel(2);
-//                            parentGroup.
-
-//                            ((ProfileDrawerItem)parentProfile).withSubItems(subProfiles);
                         }
                     }
 
@@ -323,16 +288,21 @@ public class DrawerActivity extends AppCompatActivity {
                 });
     }
 
-//    private void initProfileInDrawer(FirebaseUser user) {
-//        profile = new ProfileDrawerItem().withName(user.getDisplayName()).withEmail(user.getEmail()).withIcon(user.getPhotoUrl()).withIdentifier(100);
-//    }
-//
-//    public void updateProfileInDrawer(FirebaseUser user) {
-//        initProfileInDrawer(user);
-//        headerResult.updateProfile(profile);
-//    }
+    private void handleGroupRecursive(List<IDrawerItem> lstSubGroupsDrawerItems, DataSnapshot ds) {
+        Group g = ds.getValue(Group.class);
 
+        ExpandableDrawerItem currGroupDrawerItem = new ExpandableDrawerItem().withName(g.getName());
 
+        IProfile newProfile =
+                new ProfileDrawerItem().withName(g.getName()).withIdentifier(10041).withTag(g.getId());
+
+        // TODO: update the images in drawer
+        drawableFromUrl(g.getImage(), newProfile, currGroupDrawerItem);
+
+        addAllSubUnitsToProfiles(g.getId(), newProfile, currGroupDrawerItem);
+
+        lstSubGroupsDrawerItems.add(currGroupDrawerItem);
+    }
 
     private void initSoldiersDrawer(final String groupID) {
         FirebaseDatabase.getInstance().getReference(Group.GROUPS_REFERENCE_KEY).child(groupID)
@@ -418,78 +388,6 @@ public class DrawerActivity extends AppCompatActivity {
                 });
     }
 
-
-    private void initSoldiersDrawer2(final String groupID) {
-        FirebaseDatabase.getInstance().getReference(User.USERS_REFERENCE_KEY).orderByChild(User.GROUP_ID_PROPERTY)
-                .equalTo(groupID)
-                .addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        lstSoldiersToExpand = new ArrayList<>();
-
-                        for (DataSnapshot usrSnapshot : dataSnapshot.getChildren()) {
-                            final User currUser = usrSnapshot.getValue(User.class);
-                            final SecondaryDrawerItem currSoldierDrawer = new SecondaryDrawerItem().withName(currUser.getName()).withLevel(2)
-                                    .withIdentifier(Long.parseLong(currUser.getPersonalId()))
-                                    .withSelectable(false);
-
-                            drawableFromUrl(currUser.getImage(), currSoldierDrawer);
-
-                            // Get current status of current user
-                            FirebaseDatabase.getInstance().getReference(UserInGroup.USERS_IN_GROUP_REFERENCE_KEY)
-                                    .child(groupID).child(currUser.getId()).addValueEventListener(new ValueEventListener() {
-
-                                @Override
-                                public void onDataChange(DataSnapshot dataSnapshot) {
-                                    lstSoldiersToExpand.remove(currSoldierDrawer);
-
-                                    if (dataSnapshot.exists()) {
-                                        UserInGroup userInGroup = dataSnapshot.getValue(UserInGroup.class);
-
-
-                                        // If there is main status
-                                        if (userInGroup.getMainStatus() != "") {
-                                            currSoldierDrawer.withDescription(getDescription(userInGroup)).withTextColor(Color.rgb(20, 170, 20));
-                                        } else {
-                                            currSoldierDrawer.withDescription(R.string.no_status).withTextColor(Color.rgb(170, 20, 20));
-                                        }
-
-//                                        currUser.setMainStatus(userInGroup.getMainStatus());
-//                                        currUser.setSubStatus(userInGroup.getSubStatus());
-//                                        currUser.setLastUpdateDate(userInGroup.getLastUpdateDate());
-                                    }
-
-                                    lstSoldiersToExpand.add(currSoldierDrawer);
-                                }
-
-                                @Override
-                                public void onCancelled(DatabaseError databaseError) {
-
-                                }
-                            });
-                        }
-
-                        SoldiersDrawerItem.withSubItems(lstSoldiersToExpand);
-                        result.updateItem(SoldiersDrawerItem);
-                    }
-
-                    @NonNull
-                    private String getDescription(UserInGroup currUser) {
-                        if (!currUser.getSubStatus().equals("")) {
-                            return currUser.getMainStatus() + ", " + currUser.getSubStatus();
-                        } else {
-                            return currUser.getMainStatus();
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
-                    }
-                });
-
-    }
-
     public void drawableFromUrl(String url, final AbstractBadgeableDrawerItem item) {
 
             AsyncTask<String, Void, Bitmap> task = new AsyncTask<String, Void, Bitmap>(){
@@ -548,6 +446,41 @@ public class DrawerActivity extends AppCompatActivity {
                 else {
                     item.withIcon(DrawerActivity.this.getResources().getDrawable(R.drawable.face_icon));
                 }
+            }
+        };
+
+        task.execute(url);
+    }
+
+    private void drawableFromUrl(String url, final IProfile newProfile, final ExpandableDrawerItem currGroupDrawerItem) {
+        AsyncTask<String, Void, Bitmap> task = new AsyncTask<String, Void, Bitmap>(){
+            @Override
+            protected Bitmap doInBackground(String... params) {
+                Bitmap x = null;
+                try {
+                    HttpURLConnection connection = (HttpURLConnection) new URL(params[0]).openConnection();
+                    connection.connect();
+                    InputStream input = connection.getInputStream();
+
+                    x = BitmapFactory.decodeStream(input);
+                }
+                catch (Exception ex){}
+
+                return x;
+            }
+
+            @Override
+            protected void onPostExecute(Bitmap bitmap) {
+                if(bitmap != null){
+                    newProfile.withIcon(new BitmapDrawable(bitmap));
+                    currGroupDrawerItem.withIcon(new BitmapDrawable(bitmap));
+                }
+                else {
+                    newProfile.withIcon(DrawerActivity.this.getResources().getDrawable(R.drawable.face_icon));
+                    currGroupDrawerItem.withIcon(DrawerActivity.this.getResources().getDrawable(R.drawable.face_icon));
+                }
+
+                headerResult.addProfiles(newProfile);
             }
         };
 
@@ -710,13 +643,14 @@ public class DrawerActivity extends AppCompatActivity {
                         }
 
                         private void updateDrawers() {
-                            groupsDrawerItem = new ExpandableDrawerItem().withName(R.string.my_groups).withIcon(GoogleMaterial.Icon.gmd_group).withIdentifier(20);
+                            allGroupsDrawerItem = new ExpandableDrawerItem().withName(R.string.my_groups).withIcon(GoogleMaterial.Icon.gmd_group).withIdentifier(20);
 
                             // TODO: why not working
-//                            initUnderMyCommandGroups(groupsDrawerItem, (String[]) currUser.getUsers().toArray());
-                            initUnderMyCommandGroups(groupsDrawerItem, currUser.getGroupId());
+                            String[] groupsId = Arrays.copyOf(currUser.getGroups().toArray(), currUser.getGroups().size(), String[].class);
+                            initUnderMyCommandGroups(allGroupsDrawerItem, groupsId);
+//                            initUnderMyCommandGroups(groupsDrawerItem, currUser.getGroupId());
 
-                            result.addItem(groupsDrawerItem);
+                            result.addItem(allGroupsDrawerItem);
 //                            initUnderMyCommandGroups(currUser.getGroupId(), groups, groupsDrawerItem);
 
                             initSoldiersDrawer(currUser.getGroupId());
