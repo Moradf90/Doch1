@@ -78,7 +78,6 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
                              Bundle savedInstanceState) {
         View vFragmentLayout = inflater.inflate(R.layout.activity_profile, container, false);
 
-
         getActivity().setTitle("Profile");
 
         mCurrentUser = FirebaseAuth.getInstance().getCurrentUser();

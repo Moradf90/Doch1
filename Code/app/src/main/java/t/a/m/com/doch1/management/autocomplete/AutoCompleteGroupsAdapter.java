@@ -45,7 +45,7 @@ public class AutoCompleteGroupsAdapter extends BaseAdapter implements Filterable
 
     @Override
     public int getCount() {
-        return mFilteredUsers.size();
+        return mFilteredUsers!= null ? mFilteredUsers.size() : 0;
     }
 
     @Override
