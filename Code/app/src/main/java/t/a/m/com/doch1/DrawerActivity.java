@@ -334,7 +334,6 @@ public class DrawerActivity extends AppCompatActivity {
                                                             .child(groupID).child(currUser.getId()).addValueEventListener(new ValueEventListener() {
                                                         @Override
                                                         public void onDataChange(DataSnapshot dataSnapshot) {
-//                                                            lstSoldiersToExpand.remove(currSoldierDrawer);
 
                                                             if (dataSnapshot.exists()) {
                                                                 UserInGroup userInGroup = dataSnapshot.getValue(UserInGroup.class);
@@ -347,6 +346,29 @@ public class DrawerActivity extends AppCompatActivity {
                                                                 }
                                                             }
 
+                                                            // We update the soldier, if it's on the list and there was a change we
+                                                            // replace it.
+//                                                            if (lstSoldiersToExpand.contains(currSoldierDrawer)) {
+//                                                                lstSoldiersToExpand.remove(currSoldierDrawer);
+//                                                            }
+
+                                                            // TODO: doesnt work.
+                                                            addDrawerToList(lstSoldiersToExpand, currSoldierDrawer);
+//                                                            lstSoldiersToExpand.addItem2(currSoldierDrawer);
+                                                        }
+
+                                                        private void addDrawerToList(List<IDrawerItem> lstSoldiersToExpand, SecondaryDrawerItem currSoldierDrawer) {
+                                                            int indexToRemove = -1;
+                                                            for (int i =0; i < lstSoldiersToExpand.size(); i++) {
+                                                                if (((SecondaryDrawerItem)lstSoldiersToExpand.get(i)).getName().equals(currSoldierDrawer.getName())) {
+                                                                    indexToRemove = i;
+                                                                    break;
+                                                                }
+                                                            }
+
+                                                            if (indexToRemove > 0 ) {
+                                                                lstSoldiersToExpand.remove(indexToRemove);
+                                                            }
                                                             lstSoldiersToExpand.add(currSoldierDrawer);
                                                         }
 
