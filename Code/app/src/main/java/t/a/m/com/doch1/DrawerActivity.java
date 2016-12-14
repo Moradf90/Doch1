@@ -99,6 +99,7 @@ public class DrawerActivity extends AppCompatActivity {
                             // TODO: why yaalom cant be chosen
                             public boolean onProfileChanged(View view, IProfile profile, boolean current) {
                                 String selectedProfileGroupID = ((ProfileDrawerItem) profile).getTag().toString();
+
                                 initSoldiersDrawer(selectedProfileGroupID);
                                 refreshCurrFragment(selectedProfileGroupID);
 
@@ -130,7 +131,7 @@ public class DrawerActivity extends AppCompatActivity {
 
         PrimaryDrawerItem FillStatusesDrawerItem = new PrimaryDrawerItem().withName(R.string.main_fragment).withDescription(R.string.dsc_main_statuses).withIcon(FontAwesome.Icon.faw_wheelchair).withIdentifier(2).withSelectable(false);
 
-        SoldiersDrawerItem = new ExpandableDrawerItem().withName(R.string.my_soldiers).withIcon(GoogleMaterial.Icon.gmd_accounts_list).withIdentifier(19);
+        SoldiersDrawerItem = new ExpandableDrawerItem().withName(R.string.my_members).withIcon(GoogleMaterial.Icon.gmd_accounts_list).withIdentifier(19);
 
         final PrimaryDrawerItem SendDrawerItem = new PrimaryDrawerItem().withName(R.string.send_statuses).withEnabled(true).withIcon(Octicons.Icon.oct_radio_tower).withIdentifier(9);
 
@@ -260,6 +261,9 @@ public class DrawerActivity extends AppCompatActivity {
                     });
         }
         allMygroupsDrawerItem.withSubItems(lstMyGroupsDrawerItems);
+//        synchronized(allMygroupsDrawerItem){
+//            allMygroupsDrawerItem.notify();
+//        }
     }
 
 
@@ -305,6 +309,7 @@ public class DrawerActivity extends AppCompatActivity {
     }
 
     private void initSoldiersDrawer(final String groupID) {
+
         FirebaseDatabase.getInstance().getReference(Group.GROUPS_REFERENCE_KEY).child(groupID)
 //                .equalTo(groupID)
                 .addValueEventListener(new ValueEventListener() {
@@ -315,7 +320,7 @@ public class DrawerActivity extends AppCompatActivity {
                         if (dataSnapshot.exists()) {
                             final Group myGroup = dataSnapshot.getValue(Group.class);
 
-                            for (String userId : myGroup.getUsers()) {
+                            for (final String userId : myGroup.getUsers()) {
                                 FirebaseDatabase.getInstance().getReference(User.USERS_REFERENCE_KEY).child(userId)
                                         .addValueEventListener(new ValueEventListener() {
                                             @Override
@@ -346,15 +351,8 @@ public class DrawerActivity extends AppCompatActivity {
                                                                 }
                                                             }
 
-                                                            // We update the soldier, if it's on the list and there was a change we
-                                                            // replace it.
-//                                                            if (lstSoldiersToExpand.contains(currSoldierDrawer)) {
-//                                                                lstSoldiersToExpand.remove(currSoldierDrawer);
-//                                                            }
-
                                                             // TODO: doesnt work.
                                                             addDrawerToList(lstSoldiersToExpand, currSoldierDrawer);
-//                                                            lstSoldiersToExpand.addItem2(currSoldierDrawer);
                                                         }
 
                                                         private void addDrawerToList(List<IDrawerItem> lstSoldiersToExpand, SecondaryDrawerItem currSoldierDrawer) {
@@ -366,10 +364,15 @@ public class DrawerActivity extends AppCompatActivity {
                                                                 }
                                                             }
 
-                                                            if (indexToRemove > 0 ) {
+                                                            if (indexToRemove >= 0 ) {
                                                                 lstSoldiersToExpand.remove(indexToRemove);
                                                             }
                                                             lstSoldiersToExpand.add(currSoldierDrawer);
+
+                                                            // TODO: should fix problem
+                                                            synchronized(SoldiersDrawerItem){
+                                                                SoldiersDrawerItem.notifyAll();
+                                                            }
                                                         }
 
                                                         @NonNull
@@ -399,6 +402,10 @@ public class DrawerActivity extends AppCompatActivity {
                             }
 
                             SoldiersDrawerItem.withSubItems(lstSoldiersToExpand);
+                            // TODO: should fix problem
+                            synchronized(SoldiersDrawerItem){
+                                SoldiersDrawerItem.notifyAll();
+                            }
                             result.updateItem(SoldiersDrawerItem);
                         }
                     }
