@@ -12,7 +12,7 @@
         android:orientation="vertical"
         android:background="@color/background_gray">
         <RelativeLayout
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="16dp"
             android:layout_gravity="center_horizontal"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
@@ -26,6 +26,7 @@
                 android:padding="8dp"/>
 
             <ImageButton
+                android:visibility="gone"
                 android:id="@+id/edit_pic"
                 android:src="@drawable/ic_edit"
                 android:background="?attr/selectableItemBackgroundBorderless"
@@ -36,73 +37,198 @@
 
         </RelativeLayout>
 
-
-        <android.support.design.widget.TextInputLayout
-            android:elevation="2dp"
+        <android.support.v7.widget.CardView
+            xmlns:card_view="http://schemas.android.com/apk/res-auto"
+            android:layout_gravity="center"
             android:layout_marginTop="24dp"
-            android:id="@+id/name_layout"
-            android:padding="8dp"
-            style="@style/AppTheme.Text.TextInputLayout"
-            app:hintTextAppearance="@style/AppTheme.Text.HintText"
-            app:errorTextAppearance="@style/AppTheme.Text.ErrorText"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            card_view:cardCornerRadius="2dp"
+            card_view:cardBackgroundColor="@color/colorPrimaryBackground"
+            card_view:contentPadding="2dp"
+            card_view:cardElevation="2dp">
 
-            <EditText
-                style="@style/AppTheme.EditText"
-                android:drawablePadding="10dp"
-                android:hint="Group Name"
-                android:maxLines="1"
-                android:id="@+id/name" />
-
-        </android.support.design.widget.TextInputLayout>
-
-        <android.support.design.widget.TextInputLayout
-            android:elevation="2dp"
-            android:layout_marginTop="4dp"
-            android:padding="8dp"
-            style="@style/AppTheme.Text.TextInputLayout"
-            app:hintTextAppearance="@style/AppTheme.Text.HintText"
-            app:errorTextAppearance="@style/AppTheme.Text.ErrorText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <AutoCompleteTextView
-                android:drawableLeft="@drawable/ic_search"
-                android:id="@+id/search_group"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Group"
-                android:maxLines="1"/>
+                android:layout_gravity="center_vertical|center_horizontal"
+                android:orientation="vertical">
 
-        </android.support.design.widget.TextInputLayout>
+                <LinearLayout
+                    android:visibility="gone"
+                    android:id="@+id/display_name_view"
+                    android:layout_width="match_parent"
+                    android:layout_weight="1"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_height="wrap_content">
+                    <TextView
+                        android:layout_margin="16dp"
+                        android:textColor="@color/black"
+                        android:paddingLeft="16dp"
+                        android:textSize="18sp"
+                        android:id="@+id/group_name"
+                        android:layout_width="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content" />
 
-        <android.support.design.widget.TextInputLayout
-            android:elevation="2dp"
-            android:layout_marginTop="4dp"
-            android:padding="8dp"
-            style="@style/AppTheme.Text.TextInputLayout"
-            app:hintTextAppearance="@style/AppTheme.Text.HintText"
-            app:errorTextAppearance="@style/AppTheme.Text.ErrorText"
+                    <ImageButton
+                        android:visibility="gone"
+                        android:layout_margin="16dp"
+                        android:id="@+id/group_name_edit"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:src="@drawable/ic_edit"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+
+                </LinearLayout>
+                <android.support.design.widget.TextInputLayout
+                    android:id="@+id/name_layout"
+                    android:padding="8dp"
+                    style="@style/AppTheme.Text.TextInputLayout"
+                    app:hintTextAppearance="@style/AppTheme.Text.HintText"
+                    app:errorTextAppearance="@style/AppTheme.Text.ErrorText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <EditText
+                        style="@style/AppTheme.EditText"
+                        android:drawablePadding="10dp"
+                        android:hint="Group Name"
+                        android:maxLines="1"
+                        android:id="@+id/name" />
+
+                </android.support.design.widget.TextInputLayout>
+            </LinearLayout>
+
+        </android.support.v7.widget.CardView>
+
+        <android.support.v7.widget.CardView
+            xmlns:card_view="http://schemas.android.com/apk/res-auto"
+            android:layout_gravity="center"
+            android:layout_marginTop="24dp"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <AutoCompleteTextView
-                android:drawableLeft="@drawable/ic_search"
-                android:id="@+id/search_text_view"
+            android:layout_height="wrap_content"
+            card_view:cardCornerRadius="2dp"
+            card_view:cardBackgroundColor="@color/colorPrimaryBackground"
+            card_view:contentPadding="2dp"
+            card_view:cardElevation="2dp">
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Add Member"
-                android:maxLines="1"/>
+                android:layout_gravity="center_vertical|center_horizontal"
+                android:orientation="vertical">
 
-        </android.support.design.widget.TextInputLayout>
+                <Switch
+                    android:id="@+id/sub_group_switch"
+                    android:padding="8dp"
+                    android:layout_marginTop="4dp"
+                    android:text="Is sub group?"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
 
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/members"
-            android:layout_marginTop="4dp"
+                <RelativeLayout
+                    android:id="@+id/selected_sub_group_view"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    android:paddingLeft="25dp"
+                    android:paddingRight="25dp"
+                    android:layout_margin="8dp"
+                    android:layout_gravity="center"
+                    android:visibility="gone"
+                    android:gravity="center_vertical|center_horizontal">
+
+                    <t.a.m.com.doch1.views.CircleImageView
+                        android:layout_alignParentLeft="true"
+                        android:src="@drawable/profile_group_pic"
+                        android:id="@+id/sub_group_image"
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        app:civ_border_width="1dp"
+                        app:civ_border_color="@color/md_white_1000"
+                        app:civ_border_overlay="true"/>
+
+                    <TextView
+                        android:layoutDirection="rtl"
+                        android:layout_centerVertical="true"
+                        android:textSize="16sp"
+                        android:layout_marginLeft="10dp"
+                        android:layout_toRightOf="@+id/sub_group_image"
+                        android:id="@+id/sub_group_name"
+                        android:textColor="@color/black"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                </RelativeLayout>
+
+                <android.support.design.widget.TextInputLayout
+                    android:id="@+id/sub_group_search"
+                    android:elevation="2dp"
+                    android:padding="8dp"
+                    android:visibility="gone"
+                    style="@style/AppTheme.Text.TextInputLayout"
+                    app:hintTextAppearance="@style/AppTheme.Text.HintText"
+                    app:errorTextAppearance="@style/AppTheme.Text.ErrorText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <AutoCompleteTextView
+                        android:drawableLeft="@drawable/ic_search"
+                        android:id="@+id/search_group"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Group"
+                        android:maxLines="1"/>
+
+                </android.support.design.widget.TextInputLayout>
+            </LinearLayout>
+        </android.support.v7.widget.CardView>
+
+        <android.support.v7.widget.CardView
+            xmlns:card_view="http://schemas.android.com/apk/res-auto"
+            android:layout_gravity="center"
+            android:layout_marginTop="24dp"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-        </android.support.v7.widget.RecyclerView>
+            android:layout_height="wrap_content"
+            card_view:cardCornerRadius="2dp"
+            card_view:cardBackgroundColor="@color/colorPrimaryBackground"
+            card_view:contentPadding="2dp"
+            card_view:cardElevation="2dp"
+            android:layout_weight="1">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical|center_horizontal"
+                android:orientation="vertical">
+                <android.support.design.widget.TextInputLayout
+                    android:elevation="2dp"
+                    android:layout_marginTop="4dp"
+                    android:padding="8dp"
+                    style="@style/AppTheme.Text.TextInputLayout"
+                    app:hintTextAppearance="@style/AppTheme.Text.HintText"
+                    app:errorTextAppearance="@style/AppTheme.Text.ErrorText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
 
+                    <AutoCompleteTextView
+                        android:drawableLeft="@drawable/ic_search"
+                        android:id="@+id/search_text_view"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Add Member"
+                        android:maxLines="1"/>
+
+                </android.support.design.widget.TextInputLayout>
+
+                <android.support.v7.widget.RecyclerView
+                    android:id="@+id/members"
+                    android:layout_marginTop="4dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1">
+                </android.support.v7.widget.RecyclerView>
+            </LinearLayout>
+        </android.support.v7.widget.CardView>
     </LinearLayout>
 </ScrollView>
