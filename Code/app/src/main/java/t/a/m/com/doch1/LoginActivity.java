@@ -34,12 +34,13 @@ public class LoginActivity extends Activity implements View.OnClickListener, Fir
     private EmailValidator mEmailValidator;
     private PasswordValidator mPassValidator;
     private ProgressDialog mLoginDialog;
-
+    private boolean isSignIn;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        isSignIn = false;
         mEmailValidator = new EmailValidator((TextInputLayout) findViewById(R.id.email_layout));
         mPassValidator = new PasswordValidator((TextInputLayout) findViewById(R.id.password_layout), 4);
 
@@ -107,8 +108,8 @@ public class LoginActivity extends Activity implements View.OnClickListener, Fir
 
 
     @Override
-    public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-        if(firebaseAuth.getCurrentUser() != null){
+    public synchronized void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+        if(firebaseAuth.getCurrentUser() != null && !isSignIn){
             onSignin();
         }
     }
@@ -133,6 +134,7 @@ public class LoginActivity extends Activity implements View.OnClickListener, Fir
     }
 
     private void onSignin(){
+        isSignIn = true;
         UserUtil.init();
         LoginActivity.this.startActivity(new Intent(this, DrawerActivity.class));
         //LoginActivity.this.startActivity(new Intent(this, GroupManagementActivity.class));
