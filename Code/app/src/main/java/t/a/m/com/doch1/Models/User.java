@@ -3,6 +3,7 @@ package t.a.m.com.doch1.Models;
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
+import com.activeandroid.query.Select;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.IgnoreExtraProperties;
 import com.google.firebase.database.PropertyName;
@@ -15,7 +16,8 @@ import java.util.List;
  * Created by Morad on 12/3/2016.
  */
 @IgnoreExtraProperties
-public class User{
+@Table(name = "users")
+public class User extends Model{
 
     public static final String USERS_REFERENCE_KEY = "users";
     public static final String ID_PROPERTY = "id";
@@ -30,28 +32,22 @@ public class User{
     public static final String MAIN_STATUS = "mainStatus";
     public static final String SUB_STATUS = "subStatus";
 
-
-    @PropertyName(ID_PROPERTY)
-    private Long mId;
-    @PropertyName(NAME_PROPERTY)
+    @Column(name = NAME_PROPERTY)
     private String mName;
-    @PropertyName(EMAIL_PROPERTY)
+    @Column(name = EMAIL_PROPERTY)
     private String mEmail;
-    @PropertyName(PERSONAL_ID_PROPERTY)
+    @Column(name = PERSONAL_ID_PROPERTY)
     private String mPersonalId;
-    @PropertyName(GROUP_ID_PROPERTY)
-    private String mGroupId;
-    @PropertyName(GROUPS_PROPERTY)
-    private List<Long> mGroupsId;
-    @PropertyName(PHONE_PROPERTY)
+    @Column(name = GROUPS_PROPERTY)
+    private ListOfLongs mGroupsId;
+    @Column(name = PHONE_PROPERTY)
     private String mPhone;
-    @PropertyName(LAST_UPDATE_DATE_PROPERTY)
+    @Column(name = LAST_UPDATE_DATE_PROPERTY)
     private Date mlastUpdateDate;
-    @PropertyName(IMAGE_PROPERTY)
+    @Column(name = IMAGE_PROPERTY)
     private String mImage;
-    @PropertyName(MAIN_STATUS)
+
     private String mMainStatus;
-    @PropertyName(SUB_STATUS)
     private String mSubStatus;
 
     public User(){
@@ -74,10 +70,6 @@ public class User{
         this.mPersonalId = mPersonalId;
     }
 
-    public void setGroupId(String mGroupId) {
-        this.mGroupId = mGroupId;
-    }
-
     public void setPhone(String mPhone) {
         this.mPhone = mPhone;
     }
@@ -88,10 +80,6 @@ public class User{
 
     public void setSubStatus(String mSubStatus) {
         this.mSubStatus = mSubStatus;
-    }
-
-    public Long getId() {
-        return mId;
     }
 
     public String getName() {
@@ -106,10 +94,6 @@ public class User{
         return mPersonalId;
     }
 
-    public String getGroupId() {
-        return mGroupId;
-    }
-
     public String getPhone() {
         return mPhone;
     }
@@ -119,15 +103,16 @@ public class User{
     }
 
     public void setGroups(List<Long> mGroupsId) {
-        this.mGroupsId = mGroupsId;
+        this.mGroupsId = new ListOfLongs();
+        this.mGroupsId.addAll(mGroupsId);
     }
 
-//    public void addGroupId(String newGroupID) {
-//        if(this.mGroupsId == null) {
-//            this.mGroupsId = new ArrayList<>();
-//        }
-//        this.mGroupsId.add(newGroupID);
-//    }
+    public void addGroupId(Long newGroupID) {
+        if(this.mGroupsId == null) {
+            this.mGroupsId = new ListOfLongs();
+        }
+        this.mGroupsId.add(newGroupID);
+    }
 
     public void remvoeGroupId(String toRemoveGroupID) {
         this.mGroupsId.remove(toRemoveGroupID);

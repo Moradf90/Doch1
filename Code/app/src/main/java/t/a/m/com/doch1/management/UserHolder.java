@@ -59,37 +59,37 @@ public class UserHolder extends TreeNode.BaseNodeViewHolder<User> implements Vie
     }
 
     private void deleteUser() {
-        new AlertDialog.Builder(context)
-                .setMessage("Are you sure you want to delete " + mUser.getName())
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        FirebaseDatabase.getInstance().getReference(User.USERS_REFERENCE_KEY)
-                                .child(mUser.getId().toString())
-                                .removeValue(new DatabaseReference.CompletionListener() {
-                                    @Override
-                                    public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
-                                        getTreeView().removeNode(mNode);
-                                    }
-                                });
-
-                        if(mNode.getParent() != null)
-                        {
-                            if(mNode.getParent().getValue() instanceof Group){
-                                Group group = (Group) mNode.getParent().getValue();
-                                if(group.getUsers().indexOf(mUser.getId()) != -1)
-                                {
-                                    group.getUsers().remove(mUser.getId());
-                                    FirebaseDatabase.getInstance().getReference(Group.GROUPS_REFERENCE_KEY)
-                                            .child(mUser.getGroupId()).child(Group.USERS_PROPERTY)
-                                            .setValue(group.getUsers());
-                                }
-                            }
-                        }
-                    }
-                })
-                .setNegativeButton("Cancel", null)
-                .create()
-                .show();
+//        new AlertDialog.Builder(context)
+//                .setMessage("Are you sure you want to delete " + mUser.getName())
+//                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+//                    @Override
+//                    public void onClick(DialogInterface dialogInterface, int i) {
+//                        FirebaseDatabase.getInstance().getReference(User.USERS_REFERENCE_KEY)
+//                                .child(mUser.getId().toString())
+//                                .removeValue(new DatabaseReference.CompletionListener() {
+//                                    @Override
+//                                    public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+//                                        getTreeView().removeNode(mNode);
+//                                    }
+//                                });
+//
+//                        if(mNode.getParent() != null)
+//                        {
+//                            if(mNode.getParent().getValue() instanceof Group){
+//                                Group group = (Group) mNode.getParent().getValue();
+//                                if(group.getUsers().indexOf(mUser.getId()) != -1)
+//                                {
+//                                    group.getUsers().remove(mUser.getId());
+//                                    FirebaseDatabase.getInstance().getReference(Group.GROUPS_REFERENCE_KEY)
+//                                            .child(mUser.getGroupId()).child(Group.USERS_PROPERTY)
+//                                            .setValue(group.getUsers());
+//                                }
+//                            }
+//                        }
+//                    }
+//                })
+//                .setNegativeButton("Cancel", null)
+//                .create()
+//                .show();
     }
 }
