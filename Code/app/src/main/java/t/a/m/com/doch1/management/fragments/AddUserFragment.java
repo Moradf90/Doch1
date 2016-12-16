@@ -31,6 +31,7 @@ import com.google.firebase.storage.UploadTask;
 import com.unnamed.b.atv.model.TreeNode;
 import com.unnamed.b.atv.view.AndroidTreeView;
 
+import java.util.Date;
 import java.util.UUID;
 
 import t.a.m.com.doch1.Models.Group;
@@ -101,7 +102,7 @@ public class AddUserFragment extends Fragment implements View.OnClickListener {
         {
             mSavingDialog = ProgressDialog.show(getActivity(), "", "Saving...");
             final User user = new User();
-            user.setId(UUID.randomUUID().toString());
+            user.setId(new Date().getTime());
             user.setName(mNameValidator.getValue());
             user.setEmail(mEmailValidator.getValue());
             user.setPersonalId(mPersonalIdValidator.getValue());
@@ -133,7 +134,7 @@ public class AddUserFragment extends Fragment implements View.OnClickListener {
     }
 
     private void saveUser(final User user){
-        FirebaseDatabase.getInstance().getReference("users").child(user.getId()).setValue(user)
+        FirebaseDatabase.getInstance().getReference("users").child(user.getId().toString()).setValue(user)
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
@@ -158,7 +159,7 @@ public class AddUserFragment extends Fragment implements View.OnClickListener {
             CurrentDataGetter dataGetter = ((CurrentDataGetter) activity);
 
             dataGetter.getCurrentGroup().addUser(user.getId());
-            FirebaseDatabase.getInstance().getReference("groups").child(dataGetter.getCurrentGroup().getId())
+            FirebaseDatabase.getInstance().getReference("groups").child(dataGetter.getCurrentGroup().getId().toString())
                     .child(Group.USERS_PROPERTY).setValue(dataGetter.getCurrentGroup().getUsers());
         }
     }

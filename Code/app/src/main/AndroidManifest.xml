@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
+        android:name=".StatusesApplication"
         android:allowBackup="true"
         android:hardwareAccelerated="false"
         android:icon="@drawable/superman_app_icon"
@@ -13,6 +14,10 @@
         android:largeHeap="true"
         android:supportsRtl="false"
         android:theme="@style/AppTheme">
+
+        <meta-data android:name="AA_DB_NAME" android:value="mydb.db" />
+        <meta-data android:name="AA_DB_VERSION" android:value="1" />
+
         <activity android:name=".LoginActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

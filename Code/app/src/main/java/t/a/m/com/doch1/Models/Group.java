@@ -22,23 +22,23 @@ public class Group {
     public static final String IMAGE_PROPERTY = "image";
 
     @PropertyName(ID_PROPERTY)
-    private String mId;
+    private Long mId;
     @PropertyName(NAME_PROPERTY)
     private String mName;
     @PropertyName(PARENT_ID_PROPERTY)
-    private String mParentId;
+    private Long mParentId;
     @PropertyName(USERS_PROPERTY)
-    private List<String> mUsers;
+    private List<Long> mUsers;
     @PropertyName(IMAGE_PROPERTY)
     private String mImage;
 
     public Group(){}
 
-    public String getId() {
+    public Long getId() {
         return mId;
     }
 
-    public void setId(String mId) {
+    public void setId(Long mId) {
         this.mId = mId;
     }
 
@@ -50,11 +50,11 @@ public class Group {
         this.mName = mName;
     }
 
-    public String getParentId() {
+    public Long getParentId() {
         return mParentId;
     }
 
-    public void setParentId(String mParentId) {
+    public void setParentId(Long mParentId) {
         this.mParentId = mParentId;
     }
 
@@ -66,15 +66,15 @@ public class Group {
         this.mImage = mImage;
     }
 
-    public List<String> getUsers() {
+    public List<Long> getUsers() {
         return mUsers;
     }
 
-    public void setUsers(List<String> mUsers) {
+    public void setUsers(List<Long> mUsers) {
         this.mUsers = mUsers;
     }
 
-    public void addUser(String id) {
+    public void addUser(Long id) {
         if(mUsers == null){
             mUsers = new ArrayList<>();
         }

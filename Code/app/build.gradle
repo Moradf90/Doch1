@@ -31,6 +31,7 @@ dependencies {
     compile 'com.google.firebase:firebase-database:9.6.0'
     compile 'com.google.firebase:firebase-storage:9.6.0'
     compile 'com.google.firebase:firebase-auth:9.6.0'
+    compile 'com.michaelpardo:activeandroid:3.1.0-SNAPSHOT'
     compile 'org.apmem.tools:layouts:1.10@aar'
     compile 'com.github.bmelnychuk:atv:1.2.+'
     compile 'com.github.johnkil.print:print:1.2.2'

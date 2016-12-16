@@ -35,14 +35,10 @@ public class LoginActivity extends Activity implements View.OnClickListener, Fir
     private PasswordValidator mPassValidator;
     private ProgressDialog mLoginDialog;
 
-    MediaPlayer mp;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        mp = MediaPlayer.create(this, R.raw.login_audio2);
-//        mp.start();
 
         mEmailValidator = new EmailValidator((TextInputLayout) findViewById(R.id.email_layout));
         mPassValidator = new PasswordValidator((TextInputLayout) findViewById(R.id.password_layout), 4);
@@ -63,8 +59,6 @@ public class LoginActivity extends Activity implements View.OnClickListener, Fir
     @Override
     protected void onStop() {
         super.onStop();
-        mp.stop();
-        mp.release();
         FirebaseAuth.getInstance().removeAuthStateListener(this);
     }
 
@@ -140,8 +134,8 @@ public class LoginActivity extends Activity implements View.OnClickListener, Fir
 
     private void onSignin(){
         UserUtil.init();
-        //LoginActivity.this.startActivity(new Intent(this, DrawerActivity.class));
-        LoginActivity.this.startActivity(new Intent(this, GroupManagementActivity.class));
+        LoginActivity.this.startActivity(new Intent(this, DrawerActivity.class));
+        //LoginActivity.this.startActivity(new Intent(this, GroupManagementActivity.class));
         finish();
     }
 }

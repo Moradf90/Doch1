@@ -42,7 +42,7 @@ public abstract class GroupsAdapterFilter extends Filter implements ChildEventLi
 
         mFilteredGroups.clear();
 
-        List<String> gIds = UserUtil.getCurrentUserData().getGroups();
+        List<Long> gIds = UserUtil.getCurrentUserData().getGroups();
 
         for(Group group : mAllGroups) {
             if(gIds != null && gIds.indexOf(group.getId()) != -1)

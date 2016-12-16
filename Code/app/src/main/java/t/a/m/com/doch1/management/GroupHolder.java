@@ -3,6 +3,7 @@ package t.a.m.com.doch1.management;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.renderscript.Long2;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
@@ -68,7 +69,7 @@ public class GroupHolder extends TreeNode.BaseNodeViewHolder<Group> implements V
         if(active) {
 
             if (mNode.getChildren().size() == 0) {
-                String groupId = mGroup.getId();
+                Long groupId = mGroup.getId();
                 final TreeNode groups = new TreeNode("Loading groups ...");
                 final TreeNode users = new TreeNode("Loading users ...");
                 if (mGroup.getUsers() != null && mGroup.getUsers().size() > 0) {
@@ -148,7 +149,7 @@ public class GroupHolder extends TreeNode.BaseNodeViewHolder<Group> implements V
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         FirebaseDatabase.getInstance().getReference(Group.GROUPS_REFERENCE_KEY)
-                                .child(mGroup.getId())
+                                .child(mGroup.getId().toString())
                                 .removeValue(new DatabaseReference.CompletionListener() {
                                     @Override
                                     public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
@@ -157,8 +158,8 @@ public class GroupHolder extends TreeNode.BaseNodeViewHolder<Group> implements V
                                 });
 
                         if(mGroup.getUsers() != null && mGroup.getUsers().size() > 0){
-                            for (String id : mGroup.getUsers()) {
-                                FirebaseDatabase.getInstance().getReference(User.USERS_REFERENCE_KEY).child(id);
+                            for (Long id : mGroup.getUsers()) {
+                                FirebaseDatabase.getInstance().getReference(User.USERS_REFERENCE_KEY).child(id.toString());
                             }
                         }
                     }

@@ -65,7 +65,7 @@ public class UserHolder extends TreeNode.BaseNodeViewHolder<User> implements Vie
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         FirebaseDatabase.getInstance().getReference(User.USERS_REFERENCE_KEY)
-                                .child(mUser.getId())
+                                .child(mUser.getId().toString())
                                 .removeValue(new DatabaseReference.CompletionListener() {
                                     @Override
                                     public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
