@@ -1,16 +1,24 @@
 package t.a.m.com.doch1.services;
 
-import android.app.Service;
 import android.content.Intent;
-import android.os.IBinder;
 
-public class UpdaterService extends Service {
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
+import t.a.m.com.doch1.services.tasks.UsersUpdaterTask;
+
+public class UpdaterService extends WakefulIntentService {
+
     public UpdaterService() {
+        super("Updater");
     }
 
     @Override
-    public IBinder onBind(Intent intent) {
-        // TODO: Return the communication channel to the service.
-        throw new UnsupportedOperationException("Not yet implemented");
+    protected void doWakefulWork(Intent intent) {
+
+        FirebaseUser current = FirebaseAuth.getInstance().getCurrentUser();
+        if(current != null){
+            UsersUpdaterTask.run();
+        }
     }
 }

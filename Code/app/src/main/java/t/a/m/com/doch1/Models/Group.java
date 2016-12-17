@@ -1,5 +1,8 @@
 package t.a.m.com.doch1.Models;
 
+import com.activeandroid.Model;
+import com.activeandroid.annotation.Column;
+import com.activeandroid.annotation.Table;
 import com.google.firebase.database.IgnoreExtraProperties;
 import com.google.firebase.database.PropertyName;
 
@@ -10,7 +13,8 @@ import java.util.List;
  * Created by Morad on 12/5/2016.
  */
 @IgnoreExtraProperties
-public class Group {
+@Table(name = Group.GROUPS_REFERENCE_KEY)
+public class Group extends Model{
 
     public static final String GROUPS_REFERENCE_KEY = "groups";
 
@@ -21,21 +25,17 @@ public class Group {
     public static final String USERS_PROPERTY = "users";
     public static final String IMAGE_PROPERTY = "image";
 
-    @PropertyName(ID_PROPERTY)
-    private Long mId;
-    @PropertyName(NAME_PROPERTY)
+    @Column(name = NAME_PROPERTY, index = true)
     private String mName;
-    @PropertyName(PARENT_ID_PROPERTY)
+    @Column(name = PARENT_ID_PROPERTY)
     private Long mParentId;
-    @PropertyName(USERS_PROPERTY)
-    private List<Long> mUsers;
-    @PropertyName(IMAGE_PROPERTY)
+    @Column(name = USERS_PROPERTY)
+    private ListOfLongs mUsers;
+    @Column(name = IMAGE_PROPERTY)
     private String mImage;
 
-    public Group(){}
-
-    public Long getId() {
-        return mId;
+    public Group(){
+        super();
     }
 
     public void setId(Long mId) {
@@ -71,12 +71,13 @@ public class Group {
     }
 
     public void setUsers(List<Long> mUsers) {
-        this.mUsers = mUsers;
+        this.mUsers = new ListOfLongs();
+        this.mUsers.addAll(mUsers);
     }
 
     public void addUser(Long id) {
         if(mUsers == null){
-            mUsers = new ArrayList<>();
+            mUsers = new ListOfLongs();
         }
         mUsers.add(id);
     }

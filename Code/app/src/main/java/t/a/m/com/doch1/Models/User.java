@@ -16,7 +16,7 @@ import java.util.List;
  * Created by Morad on 12/3/2016.
  */
 @IgnoreExtraProperties
-@Table(name = "users")
+@Table(name = User.USERS_REFERENCE_KEY)
 public class User extends Model{
 
     public static final String USERS_REFERENCE_KEY = "users";
@@ -32,11 +32,11 @@ public class User extends Model{
     public static final String MAIN_STATUS = "mainStatus";
     public static final String SUB_STATUS = "subStatus";
 
-    @Column(name = NAME_PROPERTY)
+    @Column(name = NAME_PROPERTY, index = true)
     private String mName;
-    @Column(name = EMAIL_PROPERTY)
+    @Column(name = EMAIL_PROPERTY, index = true)
     private String mEmail;
-    @Column(name = PERSONAL_ID_PROPERTY)
+    @Column(name = PERSONAL_ID_PROPERTY, index = true)
     private String mPersonalId;
     @Column(name = GROUPS_PROPERTY)
     private ListOfLongs mGroupsId;

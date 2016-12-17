@@ -2,6 +2,7 @@ package t.a.m.com.doch1;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.media.MediaPlayer;
@@ -136,8 +137,9 @@ public class LoginActivity extends Activity implements View.OnClickListener, Fir
     private void onSignin(){
         isSignIn = true;
         UserUtil.init();
-        LoginActivity.this.startActivity(new Intent(this, DrawerActivity.class));
-        //LoginActivity.this.startActivity(new Intent(this, GroupManagementActivity.class));
+        sendBroadcast(new Intent("t.a.m.com.doch1.LOGIN_SUCCESSED"));
+        //LoginActivity.this.startActivity(new Intent(this, DrawerActivity.class));
+        LoginActivity.this.startActivity(new Intent(this, GroupManagementActivity.class));
         finish();
     }
 }

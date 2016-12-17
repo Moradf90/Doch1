@@ -4,6 +4,8 @@
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:name=".StatusesApplication"
@@ -19,12 +21,10 @@
             android:value="mydb.db" />
         <meta-data
             android:name="AA_DB_VERSION"
-            android:value="2" />
-
+            android:value="3" />
         <meta-data
             android:name="AA_MODELS"
-            android:value="t.a.m.com.doch1.Models.User" />
-
+            android:value="t.a.m.com.doch1.Models.User, t.a.m.com.doch1.Models.Group" />
         <meta-data
             android:name="AA_SERIALIZERS"
             android:value="t.a.m.com.doch1.Models.typeSerializer.ListOfLongsSerializer" />
@@ -42,11 +42,15 @@
             android:theme="@style/MaterialDrawerTheme.Light.DarkToolbar" />
         <activity android:name=".management.GroupManagementActivity" />
 
-        <service
-            android:name=".services.UpdaterService"
-            android:enabled="true"
-            android:exported="true">
-        </service>
+        <service android:name=".services.UpdaterService" />
+
+        <receiver android:name=".services.OnAlarmReceiver" />
+        <receiver android:name=".services.StartServiceReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="t.a.m.com.doch1.LOGIN_SUCCESSED" />
+            </intent-filter>
+        </receiver>
 
     </application>
 
