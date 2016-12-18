@@ -1,5 +1,8 @@
 package t.a.m.com.doch1.Models;
 
+import com.activeandroid.Model;
+import com.activeandroid.annotation.Column;
+import com.activeandroid.annotation.Table;
 import com.google.firebase.database.IgnoreExtraProperties;
 import com.google.firebase.database.PropertyName;
 
@@ -10,7 +13,8 @@ import java.util.List;
  * Created by Morad on 12/5/2016.
  */
 @IgnoreExtraProperties
-public class Group {
+@Table(name = Group.GROUPS_REFERENCE_KEY)
+public class Group extends Model{
 
     public static final String GROUPS_REFERENCE_KEY = "groups";
 
@@ -21,24 +25,20 @@ public class Group {
     public static final String USERS_PROPERTY = "users";
     public static final String IMAGE_PROPERTY = "image";
 
-    @PropertyName(ID_PROPERTY)
-    private String mId;
-    @PropertyName(NAME_PROPERTY)
+    @Column(name = NAME_PROPERTY, index = true)
     private String mName;
-    @PropertyName(PARENT_ID_PROPERTY)
-    private String mParentId;
-    @PropertyName(USERS_PROPERTY)
-    private List<String> mUsers;
-    @PropertyName(IMAGE_PROPERTY)
+    @Column(name = PARENT_ID_PROPERTY)
+    private Long mParentId;
+    @Column(name = USERS_PROPERTY)
+    private ListOfLongs mUsers;
+    @Column(name = IMAGE_PROPERTY)
     private String mImage;
 
-    public Group(){}
-
-    public String getId() {
-        return mId;
+    public Group(){
+        super();
     }
 
-    public void setId(String mId) {
+    public void setId(Long mId) {
         this.mId = mId;
     }
 
@@ -50,11 +50,11 @@ public class Group {
         this.mName = mName;
     }
 
-    public String getParentId() {
+    public Long getParentId() {
         return mParentId;
     }
 
-    public void setParentId(String mParentId) {
+    public void setParentId(Long mParentId) {
         this.mParentId = mParentId;
     }
 
@@ -66,17 +66,18 @@ public class Group {
         this.mImage = mImage;
     }
 
-    public List<String> getUsers() {
+    public List<Long> getUsers() {
         return mUsers;
     }
 
-    public void setUsers(List<String> mUsers) {
-        this.mUsers = mUsers;
+    public void setUsers(List<Long> mUsers) {
+        this.mUsers = new ListOfLongs();
+        this.mUsers.addAll(mUsers);
     }
 
-    public void addUser(String id) {
+    public void addUser(Long id) {
         if(mUsers == null){
-            mUsers = new ArrayList<>();
+            mUsers = new ListOfLongs();
         }
         mUsers.add(id);
     }

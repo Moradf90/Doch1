@@ -3,6 +3,7 @@ package t.a.m.com.doch1.management.autocomplete;
 import android.widget.BaseAdapter;
 import android.widget.Filter;
 
+import com.activeandroid.query.Select;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -27,12 +28,12 @@ public abstract class UsersAdapterFilter extends Filter implements ChildEventLis
         mFilteredUsers = new ArrayList<>();
 
         // listen to changes in the users
-        FirebaseDatabase.getInstance().getReference(User.USERS_REFERENCE_KEY).addChildEventListener(this);
+       // FirebaseDatabase.getInstance().getReference(User.USERS_REFERENCE_KEY).addChildEventListener(this);
     }
 
     public void destroy(){
         // remove the listener
-        FirebaseDatabase.getInstance().getReference(User.USERS_REFERENCE_KEY).removeEventListener(this);
+        //FirebaseDatabase.getInstance().getReference(User.USERS_REFERENCE_KEY).removeEventListener(this);
     }
 
     // filtering
@@ -42,14 +43,15 @@ public abstract class UsersAdapterFilter extends Filter implements ChildEventLis
         String constr = search != null ? search.toString().toLowerCase() : "~!@#$";
 
         mFilteredUsers.clear();
-        for(User user : mAllUsers) {
-            if (user.getName().toLowerCase().indexOf(constr) != -1) {
-                mFilteredUsers.add(user);
-            }
-        }
+//        for(User user : mAllUsers) {
+//            if (user.getName().toLowerCase().indexOf(constr) != -1) {
+//                mFilteredUsers.add(user);
+//            }
+//        }
 
         FilterResults result = new FilterResults();
-        result.values = mFilteredUsers;
+        //result.values = mFilteredUsers;
+        result.values = new Select().from(User.class).where(User.NAME_PROPERTY + " LIKE '%" + constr + "%'").execute();
         result.count = mFilteredUsers.size();
 
         return result;

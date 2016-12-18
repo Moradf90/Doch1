@@ -166,8 +166,8 @@ public class MainFragment extends Fragment {
                                 // Get users of group
                                 Group g = dataSnapshot.getValue(Group.class);
 
-                                for (String userID : g.getUsers()) {
-                                    handleUserOfGroup(userID, vFragmentLayout, mapMainStatusToView, progress);
+                                for (Long userID : g.getUsers()) {
+                                    handleUserOfGroup(userID.toString(), vFragmentLayout, mapMainStatusToView, progress);
                                 }
                             }
 
@@ -218,7 +218,7 @@ public class MainFragment extends Fragment {
     private void setStatusForSoldierAndPlaceIt(final User currUser, final View vFragmentLayout, final Map<String, ViewGroup> mapMainStatusToView) {
         FirebaseDatabase.getInstance().getReference(UserInGroup.USERS_IN_GROUP_REFERENCE_KEY)
                 // TODO: should be listener? if yes so need to remove previous selections
-                .child(groupID).child(currUser.getId()).addListenerForSingleValueEvent(new ValueEventListener() {
+                .child(groupID).child(currUser.getId().toString()).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {

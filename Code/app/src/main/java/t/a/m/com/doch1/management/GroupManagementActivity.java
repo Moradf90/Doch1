@@ -214,7 +214,7 @@ public class GroupManagementActivity extends Activity implements AdapterView.OnI
         mSubGroupLayout.setVisibility(View.GONE);
         if(group.getParentId() != null && !group.getParentId().equals("-1")){
             FirebaseDatabase.getInstance().getReference(Group.GROUPS_REFERENCE_KEY)
-                    .child(group.getParentId())
+                    .child(group.getParentId().toString())
                     .addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {

@@ -2,6 +2,7 @@ package t.a.m.com.doch1;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.media.MediaPlayer;
@@ -34,16 +35,13 @@ public class LoginActivity extends Activity implements View.OnClickListener, Fir
     private EmailValidator mEmailValidator;
     private PasswordValidator mPassValidator;
     private ProgressDialog mLoginDialog;
-
-    MediaPlayer mp;
-
+    private boolean isSignIn;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        mp = MediaPlayer.create(this, R.raw.login_audio2);
-//        mp.start();
 
+        isSignIn = false;
         mEmailValidator = new EmailValidator((TextInputLayout) findViewById(R.id.email_layout));
         mPassValidator = new PasswordValidator((TextInputLayout) findViewById(R.id.password_layout), 4);
 
@@ -63,8 +61,6 @@ public class LoginActivity extends Activity implements View.OnClickListener, Fir
     @Override
     protected void onStop() {
         super.onStop();
-        mp.stop();
-        mp.release();
         FirebaseAuth.getInstance().removeAuthStateListener(this);
     }
 
@@ -113,8 +109,8 @@ public class LoginActivity extends Activity implements View.OnClickListener, Fir
 
 
     @Override
-    public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-        if(firebaseAuth.getCurrentUser() != null){
+    public synchronized void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+        if(firebaseAuth.getCurrentUser() != null && !isSignIn){
             onSignin();
         }
     }
@@ -139,7 +135,9 @@ public class LoginActivity extends Activity implements View.OnClickListener, Fir
     }
 
     private void onSignin(){
+        isSignIn = true;
         UserUtil.init();
+        sendBroadcast(new Intent("t.a.m.com.doch1.LOGIN_SUCCESSED"));
         //LoginActivity.this.startActivity(new Intent(this, DrawerActivity.class));
         LoginActivity.this.startActivity(new Intent(this, DrawerActivity.class));
         finish();

@@ -23,6 +23,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.unnamed.b.atv.model.TreeNode;
 import com.unnamed.b.atv.view.AndroidTreeView;
 
+import java.util.Date;
 import java.util.UUID;
 
 import t.a.m.com.doch1.Models.Group;
@@ -114,9 +115,9 @@ public class ManagementFragment extends Fragment implements GroupHolder.OnAddBut
                         final Group newGroup = new Group();
                         newGroup.setName(editText.getText().toString());
                         newGroup.setParentId(mCurrentGroup.getId());
-                        newGroup.setId(UUID.randomUUID().toString());
+                        newGroup.setId(new Date().getTime());
                         FirebaseDatabase.getInstance().getReference("groups")
-                                .child(newGroup.getId())
+                                .child(newGroup.getId().toString())
                                 .setValue(newGroup)
                                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                                     @Override

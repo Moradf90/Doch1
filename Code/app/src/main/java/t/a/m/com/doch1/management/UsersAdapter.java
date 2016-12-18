@@ -41,6 +41,8 @@ public class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.UserHolder>
     public void onBindViewHolder(UserHolder holder, int position) {
         holder.mName.setText(mUsers.get(position).getName());
 
+        holder.mImage.setImageDrawable(mContext.getDrawable(R.drawable.profile_pic));
+
         if(mUsers.get(position).getImage() != null) {
 
             Picasso.with(mContext)

@@ -1,5 +1,9 @@
 package t.a.m.com.doch1.Models;
 
+import com.activeandroid.Model;
+import com.activeandroid.annotation.Column;
+import com.activeandroid.annotation.Table;
+import com.activeandroid.query.Select;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.IgnoreExtraProperties;
 import com.google.firebase.database.PropertyName;
@@ -12,7 +16,8 @@ import java.util.List;
  * Created by Morad on 12/3/2016.
  */
 @IgnoreExtraProperties
-public class User {
+@Table(name = User.USERS_REFERENCE_KEY)
+public class User extends Model{
 
     public static final String USERS_REFERENCE_KEY = "users";
     public static final String ID_PROPERTY = "id";
@@ -27,31 +32,29 @@ public class User {
     public static final String MAIN_STATUS = "mainStatus";
     public static final String SUB_STATUS = "subStatus";
 
-
-    @PropertyName(ID_PROPERTY)
-    private String mId;
-    @PropertyName(NAME_PROPERTY)
+    @Column(name = NAME_PROPERTY, index = true)
     private String mName;
-    @PropertyName(EMAIL_PROPERTY)
+    @Column(name = EMAIL_PROPERTY, index = true)
     private String mEmail;
-    @PropertyName(PERSONAL_ID_PROPERTY)
+    @Column(name = PERSONAL_ID_PROPERTY, index = true)
     private String mPersonalId;
-    @PropertyName(GROUP_ID_PROPERTY)
-    private String mGroupId;
-    @PropertyName(GROUPS_PROPERTY)
-    private List<String> mGroupsId;
-    @PropertyName(PHONE_PROPERTY)
+    @Column(name = GROUPS_PROPERTY)
+    private ListOfLongs mGroupsId;
+    @Column(name = PHONE_PROPERTY)
     private String mPhone;
-    @PropertyName(LAST_UPDATE_DATE_PROPERTY)
+    @Column(name = LAST_UPDATE_DATE_PROPERTY)
     private Date mlastUpdateDate;
-    @PropertyName(IMAGE_PROPERTY)
+    @Column(name = IMAGE_PROPERTY)
     private String mImage;
-    @PropertyName(MAIN_STATUS)
+
     private String mMainStatus;
-    @PropertyName(SUB_STATUS)
     private String mSubStatus;
 
-    public void setId(String mId) {
+    public User(){
+        super();
+    }
+
+    public void setId(Long mId) {
         this.mId = mId;
     }
 
@@ -67,10 +70,6 @@ public class User {
         this.mPersonalId = mPersonalId;
     }
 
-    public void setGroupId(String mGroupId) {
-        this.mGroupId = mGroupId;
-    }
-
     public void setPhone(String mPhone) {
         this.mPhone = mPhone;
     }
@@ -81,10 +80,6 @@ public class User {
 
     public void setSubStatus(String mSubStatus) {
         this.mSubStatus = mSubStatus;
-    }
-
-    public String getId() {
-        return mId;
     }
 
     public String getName() {
@@ -99,25 +94,22 @@ public class User {
         return mPersonalId;
     }
 
-    public String getGroupId() {
-        return mGroupId;
-    }
-
     public String getPhone() {
         return mPhone;
     }
 
-    public List<String> getGroups() {
+    public List<Long> getGroups() {
         return mGroupsId;
     }
 
-    public void setGroups(List<String> mGroupsId) {
-        this.mGroupsId = mGroupsId;
+    public void setGroups(List<Long> mGroupsId) {
+        this.mGroupsId = new ListOfLongs();
+        this.mGroupsId.addAll(mGroupsId);
     }
 
-    public void addGroupId(String newGroupID) {
+    public void addGroupId(Long newGroupID) {
         if(this.mGroupsId == null) {
-            this.mGroupsId = new ArrayList<>();
+            this.mGroupsId = new ListOfLongs();
         }
         this.mGroupsId.add(newGroupID);
     }
@@ -160,7 +152,7 @@ public class User {
         this.setLastUpdateDate(new Date());
 
         FirebaseDatabase.getInstance().getReference(UserInGroup.USERS_IN_GROUP_REFERENCE_KEY)
-                .child(groupId).child(getId()).setValue(getUserInGroup());
+                .child(groupId).child(getId().toString()).setValue(getUserInGroup());
                 
     }
 

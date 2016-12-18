@@ -14,6 +14,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.Toast;
 
+import com.activeandroid.query.Select;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -233,12 +234,12 @@ public class DrawerActivity extends AppCompatActivity {
 //                });
 //    }
 
-    private void initUnderMyCommandGroups(final ExpandableDrawerItem allMygroupsDrawerItem, String... groupsId) {
+    private void initUnderMyCommandGroups(final ExpandableDrawerItem allMygroupsDrawerItem, Long... groupsId) {
 
         // Build my groups
         final List<IDrawerItem> lstMyGroupsDrawerItems = new ArrayList<IDrawerItem>();
 
-        for (String currGroupId : groupsId) {
+        for (Long currGroupId : groupsId) {
             FirebaseDatabase.getInstance().getReference(Group.GROUPS_REFERENCE_KEY)
                     .orderByChild(Group.ID_PROPERTY)
                     .equalTo(currGroupId)
@@ -303,7 +304,7 @@ public class DrawerActivity extends AppCompatActivity {
         // TODO: update the images in drawer
         drawableFromUrl(g.getImage(), newProfile, currGroupDrawerItem);
 
-        addAllSubUnitsToProfiles(g.getId(), newProfile, currGroupDrawerItem);
+        addAllSubUnitsToProfiles(g.getId().toString(), newProfile, currGroupDrawerItem);
 
         lstSubGroupsDrawerItems.add(currGroupDrawerItem);
     }
@@ -320,8 +321,8 @@ public class DrawerActivity extends AppCompatActivity {
                         if (dataSnapshot.exists()) {
                             final Group myGroup = dataSnapshot.getValue(Group.class);
 
-                            for (final String userId : myGroup.getUsers()) {
-                                FirebaseDatabase.getInstance().getReference(User.USERS_REFERENCE_KEY).child(userId)
+                            for (final Long userId : myGroup.getUsers()) {
+                                FirebaseDatabase.getInstance().getReference(User.USERS_REFERENCE_KEY).child(userId.toString())
                                         .addValueEventListener(new ValueEventListener() {
                                             @Override
                                             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -336,7 +337,7 @@ public class DrawerActivity extends AppCompatActivity {
 
                                                     // Get current status of current user
                                                     FirebaseDatabase.getInstance().getReference(UserInGroup.USERS_IN_GROUP_REFERENCE_KEY)
-                                                            .child(groupID).child(currUser.getId()).addValueEventListener(new ValueEventListener() {
+                                                            .child(groupID).child(currUser.getId().toString()).addValueEventListener(new ValueEventListener() {
                                                         @Override
                                                         public void onDataChange(DataSnapshot dataSnapshot) {
 
@@ -676,14 +677,14 @@ public class DrawerActivity extends AppCompatActivity {
                                 allGroupsDrawerItem = new ExpandableDrawerItem().withName(R.string.my_groups).withIcon(GoogleMaterial.Icon.gmd_group).withIdentifier(20);
 
                                 // TODO: why not working
-                                String[] groupsId = Arrays.copyOf(currUser.getGroups().toArray(), currUser.getGroups().size(), String[].class);
+                                Long[] groupsId = Arrays.copyOf(currUser.getGroups().toArray(), currUser.getGroups().size(), Long[].class);
                                 initUnderMyCommandGroups(allGroupsDrawerItem, groupsId);
 //                            initUnderMyCommandGroups(groupsDrawerItem, currUser.getGroupId());
 
                                 result.addItem(allGroupsDrawerItem);
 //                            initUnderMyCommandGroups(currUser.getGroupId(), groups, groupsDrawerItem);
 
-                                initSoldiersDrawer(currUser.getGroups().get(0));
+                                initSoldiersDrawer(currUser.getGroups().get(0).toString());
                             }
                         }
 

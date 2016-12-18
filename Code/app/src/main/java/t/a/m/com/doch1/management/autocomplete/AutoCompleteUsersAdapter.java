@@ -70,8 +70,9 @@ public class AutoCompleteUsersAdapter extends BaseAdapter implements Filterable 
         TextView text = (TextView) view.findViewById(R.id.name);
         text.setText(value.getName());
 
+        CircleImageView image = (CircleImageView) view.findViewById(R.id.image);
+        image.setImageDrawable(view.getContext().getDrawable(R.drawable.profile_pic));
         if(value.getImage() != null) {
-            CircleImageView image = (CircleImageView) view.findViewById(R.id.image);
             Picasso.with(mContext).load(value.getImage())
                     .placeholder(R.drawable.profile_pic).into(image);
         }
