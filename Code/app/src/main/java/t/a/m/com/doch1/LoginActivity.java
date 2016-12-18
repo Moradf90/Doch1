@@ -141,7 +141,7 @@ public class LoginActivity extends Activity implements View.OnClickListener, Fir
     private void onSignin(){
         UserUtil.init();
         //LoginActivity.this.startActivity(new Intent(this, DrawerActivity.class));
-        LoginActivity.this.startActivity(new Intent(this, GroupManagementActivity.class));
+        LoginActivity.this.startActivity(new Intent(this, DrawerActivity.class));
         finish();
     }
 }

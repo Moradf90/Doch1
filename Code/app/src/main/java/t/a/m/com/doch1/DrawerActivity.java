@@ -369,10 +369,10 @@ public class DrawerActivity extends AppCompatActivity {
                                                             }
                                                             lstSoldiersToExpand.add(currSoldierDrawer);
 
-                                                            // TODO: should fix problem
-                                                            synchronized(SoldiersDrawerItem){
-                                                                SoldiersDrawerItem.notifyAll();
-                                                            }
+//                                                            // TODO: should fix problem
+//                                                            synchronized(SoldiersDrawerItem){
+//                                                                SoldiersDrawerItem.notifyAll();
+//                                                            }
                                                         }
 
                                                         @NonNull
