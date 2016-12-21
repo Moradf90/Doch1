@@ -71,6 +71,7 @@ public class MainFragment extends Fragment {
 
         getActivity().setTitle(R.string.main_fragment_title);
 
+
         lstSoldiers = new ArrayList<>();
         mapMainStatusToSub = new HashMap<>();
         lstMain = new ArrayList<>();
