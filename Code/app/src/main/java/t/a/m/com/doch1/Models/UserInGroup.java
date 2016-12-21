@@ -1,26 +1,36 @@
 package t.a.m.com.doch1.Models;
 
-import com.google.firebase.database.PropertyName;
+import com.activeandroid.Model;
+import com.activeandroid.annotation.Column;
+import com.activeandroid.annotation.Table;
 
 import java.util.Date;
 
 /**
  * Created by tom on 12-Dec-16.
  */
-public class UserInGroup {
-    public static final String MAIN_STATUS = "mainStatus";
-    public static final String SUB_STATUS = "subStatus";
+@Table(name = UserInGroup.USERS_IN_GROUP_REFERENCE_KEY)
+public class UserInGroup extends Model{
+    public static final String MAIN_STATUS_PROPERTY = "mainStatus";
+    public static final String SUB_STATUS_PROPERTY = "subStatus";
     public static final String USERS_IN_GROUP_REFERENCE_KEY = "usersInGroups";
     public static final String LAST_UPDATE_DATE_PROPERTY = "lastUpdateDate";
+    private static final String GROUP_PROPERTY = "groupId";
+    private static final String USER_PROPERTY = "userId";
 
-    @PropertyName(LAST_UPDATE_DATE_PROPERTY)
+    @Column(name = LAST_UPDATE_DATE_PROPERTY)
     private Date mlastUpdateDate;
-    @PropertyName(MAIN_STATUS)
+    @Column(name = MAIN_STATUS_PROPERTY)
     private String mMainStatus;
-    @PropertyName(SUB_STATUS)
+    @Column(name = SUB_STATUS_PROPERTY)
     private String mSubStatus;
+    @Column(name = GROUP_PROPERTY)
+    private Long mGroupId;
+    @Column(name = USER_PROPERTY)
+    private Long mUserId;
 
     public UserInGroup() {
+        super();
     }
 
     public UserInGroup(String mMainStatus, String mSubStatus, Date mlastUpdateDate) {
@@ -51,6 +61,22 @@ public class UserInGroup {
 
     public void setLastUpdateDate(Date mlastUpdateDate) {
         this.mlastUpdateDate = mlastUpdateDate;
+    }
+
+    public Long getGroupId(){
+        return mGroupId;
+    }
+
+    public Long getUserId(){
+        return mUserId;
+    }
+
+    public void setGroupId(Long groupId){
+        mGroupId = groupId;
+    }
+
+    public void setUserId(Long userId){
+        mUserId = userId;
     }
 
     // Method

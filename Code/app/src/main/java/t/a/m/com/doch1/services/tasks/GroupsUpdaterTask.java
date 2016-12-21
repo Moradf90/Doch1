@@ -20,6 +20,8 @@ import t.a.m.com.doch1.Models.User;
  */
 public class GroupsUpdaterTask implements ValueEventListener {
 
+    public static final String GROUP_UPDATED_ACTION = "group_updated_action";
+
     private static GroupsUpdaterTask mTask;
 
     private Vector<Long> mGroups; //thread safe
@@ -44,6 +46,7 @@ public class GroupsUpdaterTask implements ValueEventListener {
             for(Long groupId : current.getGroups()) {
                 mGroups.add(groupId);
                 addListenerToGroup(groupId);
+                UsersStatusUpdaterTask.instance().addGroupListener(groupId);
             }
         }
     }
@@ -85,6 +88,7 @@ public class GroupsUpdaterTask implements ValueEventListener {
                     if(!user.getGroups().contains(groupId)){
                         mTask.mGroups.remove(groupId);
                         mTask.removeListenerToGroup(groupId);
+                        UsersStatusUpdaterTask.instance().removeGroupListener(groupId);
                     }
                 }
             }
