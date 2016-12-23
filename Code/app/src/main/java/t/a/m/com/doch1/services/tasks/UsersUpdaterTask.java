@@ -1,5 +1,7 @@
 package t.a.m.com.doch1.services.tasks;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 
 import com.activeandroid.util.Log;
@@ -17,13 +19,19 @@ import t.a.m.com.doch1.Models.User;
  */
 public class UsersUpdaterTask implements ChildEventListener {
 
+    private static final String USER_UPDATED_ACTION = "user_updated_action";
     private static UsersUpdaterTask mTask;
 
-    public static void run(){
+    public static void run(Context context){
         if(mTask == null) {
-            mTask = new UsersUpdaterTask();
+            mTask = new UsersUpdaterTask(context);
             mTask.execute();
         }
+    }
+
+    private Context mContext;
+    private UsersUpdaterTask(Context context){
+        mContext = context;
     }
 
     private void execute() {
@@ -47,7 +55,7 @@ public class UsersUpdaterTask implements ChildEventListener {
         User user = snapshot.getValue(User.class);
         Log.d("User-Updater", "User added : " + user.getName());
         user.save();
-
+        mContext.sendBroadcast(new Intent(USER_UPDATED_ACTION));
         if(user.getEmail().equals(FirebaseAuth.getInstance().getCurrentUser().getEmail())){
             GroupsUpdaterTask.refresh(user);
         }
@@ -59,7 +67,7 @@ public class UsersUpdaterTask implements ChildEventListener {
         User user = snapshot.getValue(User.class);
         Log.d("User-Updater", "User changed : " + user.getName());
         user.save();
-
+        mContext.sendBroadcast(new Intent(USER_UPDATED_ACTION));
         if(user.getEmail().equals(FirebaseAuth.getInstance().getCurrentUser().getEmail())){
             GroupsUpdaterTask.refresh(user);
         }
@@ -71,6 +79,7 @@ public class UsersUpdaterTask implements ChildEventListener {
         User user = dataSnapshot.getValue(User.class);
         Log.d("User-Updater", "User deleted : " + user.getName());
         user.delete();
+        mContext.sendBroadcast(new Intent(USER_UPDATED_ACTION));
     }
 
     @Override

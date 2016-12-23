@@ -1,5 +1,8 @@
 package t.a.m.com.doch1.services.tasks;
 
+import android.content.Context;
+import android.content.Intent;
+
 import com.activeandroid.query.Select;
 import com.activeandroid.util.Log;
 import com.google.firebase.auth.FirebaseAuth;
@@ -26,13 +29,15 @@ public class GroupsUpdaterTask implements ValueEventListener {
 
     private Vector<Long> mGroups; //thread safe
 
-    private GroupsUpdaterTask(){
+    private Context mContext;
+    private GroupsUpdaterTask(Context context){
+        mContext = context;
         mGroups = new Vector<>();
     }
 
-    public static void run(){
+    public static void run(Context context){
         if(mTask == null){
-            mTask = new GroupsUpdaterTask();
+            mTask = new GroupsUpdaterTask(context);
             mTask.execute();
         }
     }
@@ -46,7 +51,7 @@ public class GroupsUpdaterTask implements ValueEventListener {
             for(Long groupId : current.getGroups()) {
                 mGroups.add(groupId);
                 addListenerToGroup(groupId);
-                UsersStatusUpdaterTask.instance().addGroupListener(groupId);
+                UsersStatusUpdaterTask.instance(mContext).addGroupListener(groupId);
             }
         }
     }
@@ -64,6 +69,7 @@ public class GroupsUpdaterTask implements ValueEventListener {
             Group group = ds.getValue(Group.class);
             Log.d("Group-Updater", "Group added : " + group.getName());
             group.save();
+            mContext.sendBroadcast(new Intent(GROUP_UPDATED_ACTION));
         }
     }
 
@@ -87,8 +93,9 @@ public class GroupsUpdaterTask implements ValueEventListener {
                 for(Long groupId : mTask.mGroups) {
                     if(!user.getGroups().contains(groupId)){
                         mTask.mGroups.remove(groupId);
+                        mTask.mContext.sendBroadcast(new Intent(GROUP_UPDATED_ACTION));
                         mTask.removeListenerToGroup(groupId);
-                        UsersStatusUpdaterTask.instance().removeGroupListener(groupId);
+                        UsersStatusUpdaterTask.instance(mTask.mContext).removeGroupListener(groupId);
                     }
                 }
             }

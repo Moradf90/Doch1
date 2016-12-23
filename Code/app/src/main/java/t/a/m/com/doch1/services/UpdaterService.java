@@ -17,6 +17,7 @@ public class UpdaterService extends WakefulIntentService {
     @Override
     protected void doWakefulWork(Intent intent) {
 
+
         FirebaseUser current = FirebaseAuth.getInstance().getCurrentUser();
         if(current != null){
             UsersUpdaterTask.run();
