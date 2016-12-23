@@ -3,7 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/libs/ActiveAndroid-master/ActiveAndroid.iml" filepath="$PROJECT_DIR$/libs/ActiveAndroid-master/ActiveAndroid.iml" />
-      <module fileurl="file://$PROJECT_DIR$/libs/ActiveAndroid-master/ActiveAndroid.iml" filepath="$PROJECT_DIR$/libs/ActiveAndroid-master/ActiveAndroid.iml" />
       <module fileurl="file://$PROJECT_DIR$/Code.iml" filepath="$PROJECT_DIR$/Code.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>

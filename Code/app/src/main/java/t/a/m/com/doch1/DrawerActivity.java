@@ -2,6 +2,10 @@ package t.a.m.com.doch1;
 
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -52,6 +56,8 @@ import t.a.m.com.doch1.Models.User;
 import t.a.m.com.doch1.Models.UserInGroup;
 import t.a.m.com.doch1.common.SQLHelper;
 import t.a.m.com.doch1.management.ManagementFragment;
+import t.a.m.com.doch1.services.tasks.GroupsUpdaterTask;
+import t.a.m.com.doch1.services.tasks.UsersUpdaterTask;
 
 public class DrawerActivity extends AppCompatActivity {
     private static final int PROFILE_SETTING = 100000;
@@ -67,6 +73,21 @@ public class DrawerActivity extends AppCompatActivity {
     // TODO: get from current user
     public static User currUser;
 
+    private BroadcastReceiver mGroupsReceiver;
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        IntentFilter intentFilter = new IntentFilter(GroupsUpdaterTask.GROUP_UPDATED_ACTION);
+        registerReceiver(mGroupsReceiver, intentFilter);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        unregisterReceiver(mGroupsReceiver);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -74,6 +95,13 @@ public class DrawerActivity extends AppCompatActivity {
         setContentView(R.layout.activity_sample_dark_toolbar);
 
         mCurrentUser = FirebaseAuth.getInstance().getCurrentUser();
+
+        mGroupsReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                initUnderMyCommandGroups();
+            }
+        };
 
         //Remove line to test RTL support
         //getWindow().getDecorView().setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
@@ -235,12 +263,14 @@ public class DrawerActivity extends AppCompatActivity {
 //                });
 //    }
 
-    private void initUnderMyCommandGroups(final ExpandableDrawerItem allMygroupsDrawerItem, Long... groupsId) {
+    private void initUnderMyCommandGroups(/*final ExpandableDrawerItem allMygroupsDrawerItem, Long... groupsId*/) {
 
         // Build my groups
         final List<IDrawerItem> lstMyGroupsDrawerItems = new ArrayList<IDrawerItem>();
 
-        List<Group> MyGroups =  new Select().from(Group.class).where("id " + SQLHelper.getInQuery(groupsId)).execute();
+        //List<Group> MyGroups =  new Select().from(Group.class).where("id " + SQLHelper.getInQuery(groupsId)).execute();
+
+        List<Group> MyGroups = new Select().from(Group.class).execute();
 
         // Get my groups - which im in.
         for (Group myGroup : MyGroups) {
@@ -271,7 +301,7 @@ public class DrawerActivity extends AppCompatActivity {
 //                        }
 //                    });
 //        }
-        allMygroupsDrawerItem.withSubItems(lstMyGroupsDrawerItems);
+        allGroupsDrawerItem.withSubItems(lstMyGroupsDrawerItems);
 //        synchronized(allMygroupsDrawerItem){
 //            allMygroupsDrawerItem.notify();
 //        }
@@ -699,7 +729,7 @@ public class DrawerActivity extends AppCompatActivity {
 
                                 // TODO: why not working
                                 Long[] groupsId = Arrays.copyOf(currUser.getGroups().toArray(), currUser.getGroups().size(), Long[].class);
-                                initUnderMyCommandGroups(allGroupsDrawerItem, groupsId);
+                                initUnderMyCommandGroups(/*allGroupsDrawerItem, groupsId*/);
 //                            initUnderMyCommandGroups(groupsDrawerItem, currUser.getGroupId());
 
                                 result.addItem(allGroupsDrawerItem);

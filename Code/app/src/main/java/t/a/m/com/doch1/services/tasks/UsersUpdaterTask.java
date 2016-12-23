@@ -19,7 +19,7 @@ import t.a.m.com.doch1.Models.User;
  */
 public class UsersUpdaterTask implements ChildEventListener {
 
-    private static final String USER_UPDATED_ACTION = "user_updated_action";
+    public static final String USER_UPDATED_ACTION = "user_updated_action";
     private static UsersUpdaterTask mTask;
 
     public static void run(Context context){
