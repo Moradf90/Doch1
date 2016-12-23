@@ -138,8 +138,8 @@ public class LoginActivity extends Activity implements View.OnClickListener, Fir
         isSignIn = true;
         UserUtil.init();
         sendBroadcast(new Intent("t.a.m.com.doch1.LOGIN_SUCCESSED"));
-        //LoginActivity.this.startActivity(new Intent(this, DrawerActivity.class));
         LoginActivity.this.startActivity(new Intent(this, DrawerActivity.class));
+//        LoginActivity.this.startActivity(new Intent(this, GroupManagementActivity.class));
         finish();
     }
 }

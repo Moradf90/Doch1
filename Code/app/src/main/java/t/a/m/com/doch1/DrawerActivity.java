@@ -50,6 +50,7 @@ import java.util.List;
 import t.a.m.com.doch1.Models.Group;
 import t.a.m.com.doch1.Models.User;
 import t.a.m.com.doch1.Models.UserInGroup;
+import t.a.m.com.doch1.common.SQLHelper;
 import t.a.m.com.doch1.management.ManagementFragment;
 
 public class DrawerActivity extends AppCompatActivity {
@@ -239,28 +240,37 @@ public class DrawerActivity extends AppCompatActivity {
         // Build my groups
         final List<IDrawerItem> lstMyGroupsDrawerItems = new ArrayList<IDrawerItem>();
 
-        for (Long currGroupId : groupsId) {
-            FirebaseDatabase.getInstance().getReference(Group.GROUPS_REFERENCE_KEY)
-                    .orderByChild(Group.ID_PROPERTY)
-                    .equalTo(currGroupId)
-                    .addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            if (dataSnapshot.exists()) {
+        List<Group> MyGroups =  new Select().from(Group.class).where("id " + SQLHelper.getInQuery(groupsId)).execute();
 
-                                // Get my groups - which im in.
-                                for (DataSnapshot ds : dataSnapshot.getChildren()) {
-                                    handleGroupRecursive(lstMyGroupsDrawerItems, ds);
-                                }
-                            }
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-
-                        }
-                    });
+        // Get my groups - which im in.
+        for (Group myGroup : MyGroups) {
+            handleGroupRecursive(lstMyGroupsDrawerItems, myGroup);
         }
+
+//        for (Long currGroupId : groupsId) {
+//            FirebaseDatabase.getInstance().getReference(Group.GROUPS_REFERENCE_KEY)
+//                    .orderByChild(Group.ID_PROPERTY)
+//                    .equalTo(currGroupId)
+//                    .addListenerForSingleValueEvent(new ValueEventListener() {
+//                        @Override
+//                        public void onDataChange(DataSnapshot dataSnapshot) {
+//                            if (dataSnapshot.exists()) {
+//
+//                                // Get my groups - which im in.
+//                                for (DataSnapshot ds : dataSnapshot.getChildren()) {
+//                                            Group g = ds.getValue(Group.class);
+//
+//                                    handleGroupRecursive(lstMyGroupsDrawerItems, g);
+//                                }
+//                            }
+//                        }
+//
+//                        @Override
+//                        public void onCancelled(DatabaseError databaseError) {
+//
+//                        }
+//                    });
+//        }
         allMygroupsDrawerItem.withSubItems(lstMyGroupsDrawerItems);
 //        synchronized(allMygroupsDrawerItem){
 //            allMygroupsDrawerItem.notify();
@@ -270,31 +280,43 @@ public class DrawerActivity extends AppCompatActivity {
 
 
     private void addAllSubUnitsToProfiles(String groupID, final IProfile parentProfile, final ExpandableDrawerItem parentGroup) {
-        FirebaseDatabase.getInstance().getReference(Group.GROUPS_REFERENCE_KEY)
-                .orderByChild(Group.PARENT_ID_PROPERTY)
-                .equalTo(groupID)
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        if (dataSnapshot.exists()) {
 
-                            List<IDrawerItem> lstSubGroupsDrawerItems = new ArrayList<IDrawerItem>();
+        List<Group> subGroups =  new Select().from(Group.class).where(Group.PARENT_ID_PROPERTY + " = " + groupID).execute();
 
-                            for (DataSnapshot ds : dataSnapshot.getChildren()) {
-                                handleGroupRecursive(lstSubGroupsDrawerItems, ds);
-                            }
-                        }
-                    }
+        List<IDrawerItem> lstSubGroupsDrawerItems = new ArrayList<IDrawerItem>();
 
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
+        for (Group subGroup : subGroups) {
 
-                    }
-                });
+            handleGroupRecursive(lstSubGroupsDrawerItems, subGroup);
+        }
+
+//        FirebaseDatabase.getInstance().getReference(Group.GROUPS_REFERENCE_KEY)
+//                .orderByChild(Group.PARENT_ID_PROPERTY)
+//                .equalTo(groupID)
+//                .addListenerForSingleValueEvent(new ValueEventListener() {
+//                    @Override
+//                    public void onDataChange(DataSnapshot dataSnapshot) {
+//                        if (dataSnapshot.exists()) {
+//
+//                            List<IDrawerItem> lstSubGroupsDrawerItems = new ArrayList<IDrawerItem>();
+//
+//                            for (DataSnapshot ds : dataSnapshot.getChildren()) {
+//                                        Group g = ds.getValue(Group.class);
+//
+//                                handleGroupRecursive(lstSubGroupsDrawerItems, g);
+//                            }
+//                        }
+//                    }
+//
+//                    @Override
+//                    public void onCancelled(DatabaseError databaseError) {
+//
+//                    }
+//                });
     }
 
-    private void handleGroupRecursive(List<IDrawerItem> lstSubGroupsDrawerItems, DataSnapshot ds) {
-        Group g = ds.getValue(Group.class);
+    private void handleGroupRecursive(List<IDrawerItem> lstSubGroupsDrawerItems, Group g) {
+//        Group g = ds.getValue(Group.class);
 
         ExpandableDrawerItem currGroupDrawerItem = new ExpandableDrawerItem().withName(g.getName());
 
