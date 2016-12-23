@@ -1,8 +1,11 @@
 package t.a.m.com.doch1.services.tasks;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 
 import com.activeandroid.util.Log;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -14,49 +17,37 @@ import t.a.m.com.doch1.Models.User;
 /**
  * Created by Morad on 12/17/2016.
  */
-public class UsersUpdaterTask extends AsyncTask<Void, Void, Void> implements ChildEventListener {
+public class UsersUpdaterTask implements ChildEventListener {
 
+    private static final String USER_UPDATED_ACTION = "user_updated_action";
     private static UsersUpdaterTask mTask;
 
-    public static void run(){
+    public static void run(Context context){
         if(mTask == null) {
-            mTask = new UsersUpdaterTask();
+            mTask = new UsersUpdaterTask(context);
             mTask.execute();
         }
     }
 
-    @Override
-    protected Void doInBackground(Void... voids) {
+    private Context mContext;
+    private UsersUpdaterTask(Context context){
+        mContext = context;
+    }
 
+    private void execute() {
         FirebaseDatabase.getInstance().getReference(User.USERS_REFERENCE_KEY)
                 .addChildEventListener(this);
+    }
 
-//        while (true){
-//            try {
-//                Thread.sleep(5000);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-//        }
-//
-//        FirebaseDatabase.getInstance().getReference(User.USERS_REFERENCE_KEY)
-//                .addListenerForSingleValueEvent(new ValueEventListener() {
-//                    @Override
-//                    public void onDataChange(DataSnapshot ds) {
-//                        if(ds.exists()){
-//                            for (DataSnapshot snapshot : ds.getChildren()){
-//                                User user = snapshot.getValue(User.class);
-//                                user.save();
-//                            }
-//                        }
-//                    }
-//
-//                    @Override
-//                    public void onCancelled(DatabaseError ds) {
-//
-//                    }
-//                });
-        return null;
+    public static void cancel(){
+        if(mTask != null) {
+            mTask.stop();
+        }
+    }
+
+    private void stop(){
+        FirebaseDatabase.getInstance().getReference(User.USERS_REFERENCE_KEY)
+                .removeEventListener(this);
     }
 
     @Override
@@ -64,6 +55,10 @@ public class UsersUpdaterTask extends AsyncTask<Void, Void, Void> implements Chi
         User user = snapshot.getValue(User.class);
         Log.d("User-Updater", "User added : " + user.getName());
         user.save();
+        mContext.sendBroadcast(new Intent(USER_UPDATED_ACTION));
+        if(user.getEmail().equals(FirebaseAuth.getInstance().getCurrentUser().getEmail())){
+            GroupsUpdaterTask.refresh(user);
+        }
     }
 
     @Override
@@ -72,6 +67,10 @@ public class UsersUpdaterTask extends AsyncTask<Void, Void, Void> implements Chi
         User user = snapshot.getValue(User.class);
         Log.d("User-Updater", "User changed : " + user.getName());
         user.save();
+        mContext.sendBroadcast(new Intent(USER_UPDATED_ACTION));
+        if(user.getEmail().equals(FirebaseAuth.getInstance().getCurrentUser().getEmail())){
+            GroupsUpdaterTask.refresh(user);
+        }
     }
 
     @Override
@@ -80,6 +79,7 @@ public class UsersUpdaterTask extends AsyncTask<Void, Void, Void> implements Chi
         User user = dataSnapshot.getValue(User.class);
         Log.d("User-Updater", "User deleted : " + user.getName());
         user.delete();
+        mContext.sendBroadcast(new Intent(USER_UPDATED_ACTION));
     }
 
     @Override
