@@ -17,7 +17,7 @@ import t.a.m.com.doch1.Models.UserInGroup;
  */
 public class UsersStatusUpdaterTask implements ValueEventListener {
 
-    private static final String USER_STATUS_UPDATED_ACTION = "user_status_updated_action";
+    public static final String USER_STATUS_UPDATED_ACTION = "user_status_updated_action";
     private static UsersStatusUpdaterTask mTask;
 
     public static UsersStatusUpdaterTask instance(Context context){
