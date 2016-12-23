@@ -72,7 +72,6 @@ public class MainFragment extends Fragment {
 
         getActivity().setTitle(R.string.main_fragment_title);
 
-
         lstSoldiers = new ArrayList<>();
         mapMainStatusToSub = new HashMap<>();
         lstMain = new ArrayList<>();
@@ -91,7 +90,7 @@ public class MainFragment extends Fragment {
 
 //        List<MainStatus> mainStatuses =  new Select().from(MainStatus.class).execute();
 //
-//        for (MainStatus currStatus : mainStatuses) {
+//        for (MainStatus cnotepaddurrStatus : mainStatuses) {
 //            mapMainStatusToSub.put(currStatus.getName(), currStatus.getSubStatuses() != null ? currStatus.getSubStatuses() : new ArrayList<String>());
 //            lstMain.add(currStatus.getName());
 //        }
@@ -213,6 +212,7 @@ public class MainFragment extends Fragment {
         List<User> groupUsers =  new Select().from(User.class).where("id " + SQLHelper.getInQuery(usersID)).execute();
 
         for (User currUser : groupUsers) {
+            // TODO: one select
             // Get current status of current user
             setStatusForSoldierAndPlaceIt(currUser, vFragmentLayout, mapMainStatusToView);
 
