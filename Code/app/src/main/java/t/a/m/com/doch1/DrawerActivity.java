@@ -278,7 +278,6 @@ public class DrawerActivity extends AppCompatActivity {
     }
 
 
-
     private void addAllSubUnitsToProfiles(String groupID, final IProfile parentProfile, final ExpandableDrawerItem parentGroup) {
 
         List<Group> subGroups =  new Select().from(Group.class).where(Group.PARENT_ID_PROPERTY + " = " + groupID).execute();
