@@ -99,6 +99,7 @@ public class MainFragment extends Fragment {
 //        Map<String, ViewGroup> mapMainStatusToView = buildLayout();
 //        pullSoldiers(mapMainStatusToView);
 
+
         // Get possible statuses
         FirebaseDatabase.getInstance().getReference(MainStatus.STATUSES_REFERENCE_KEY).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -112,6 +113,11 @@ public class MainFragment extends Fragment {
                 // TODO: buildLayout should be called once. - not any creation
                 Map<String, ViewGroup> mapMainStatusToView = buildLayout();
                 pullSoldiers(mapMainStatusToView);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
             }
 
             private Map<String, ViewGroup> buildLayout() {
@@ -174,33 +180,6 @@ public class MainFragment extends Fragment {
 
                 handleUsersOfGroup(shownGroup.getUsers(), vFragmentLayout, mapMainStatusToView, progress);
 
-//                for (Long userID : shownGroup.getUsers()) {
-//                    handleUserOfGroup(userID.toString(), vFragmentLayout, mapMainStatusToView, progress);
-//                }
-
-//                FirebaseDatabase.getInstance().getReference(Group.GROUPS_REFERENCE_KEY).child(groupID)
-//                        .addListenerForSingleValueEvent(new ValueEventListener() {
-//
-//                            @Override
-//                            public void onDataChange(DataSnapshot dataSnapshot) {
-//                                // Get users of group
-//                                Group g = dataSnapshot.getValue(Group.class);
-//
-//                                for (Long userID : g.getUsers()) {
-//                                    handleUserOfGroup(userID.toString(), vFragmentLayout, mapMainStatusToView, progress);
-//                                }
-//                            }
-//
-//                            @Override
-//                            public void onCancelled(DatabaseError databaseError) {
-//
-//                            }
-//                        });
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
             }
         });
 
@@ -211,111 +190,39 @@ public class MainFragment extends Fragment {
 
         List<User> groupUsers =  new Select().from(User.class).where("id " + SQLHelper.getInQuery(usersID)).execute();
 
+        List<UserInGroup> usersInGroups = new Select().from(UserInGroup.class).where(UserInGroup.GROUP_PROPERTY + " = " + groupID).execute();
+
         for (User currUser : groupUsers) {
-            // TODO: one select
-            // Get current status of current user
-            setStatusForSoldierAndPlaceIt(currUser, vFragmentLayout, mapMainStatusToView);
-
-            lstSoldiers.add(currUser);
-        }
-
-        progress.dismiss();
-
-//        FirebaseDatabase.getInstance().getReference(User.USERS_REFERENCE_KEY).child(usersID)
-//                // must be single event or the images will be added over and over again
-//                .addListenerForSingleValueEvent(new ValueEventListener() {
-//                    @Override
-//                    public void onDataChange(DataSnapshot dataSnapshot) {
-//
-//                        if (dataSnapshot.exists()) {
-//                            final User currUser = dataSnapshot.getValue(User.class);
-//
-//                            // Get current status of current user
-//                            setStatusForSoldierAndPlaceIt(currUser, vFragmentLayout, mapMainStatusToView);
-//
-//                            lstSoldiers.add(currUser);
-//                        }
-//                        else {
-//                            Log.w("doch1", usersID + " in group: " + groupID + " but not in DB");
-//                        }
-//                        progress.dismiss();
-//                    }
-//
-//                    @Override
-//                    public void onCancelled(DatabaseError databaseError) {
-//
-//                    }
-//                });
-    }
-
-//    private void handleUserOfGroup(final String userID, final View vFragmentLayout, final Map<String, ViewGroup> mapMainStatusToView, final ProgressDialog progress) {
-//
-//        List<User> groupUsers =  new Select().from(User.class).where("id = " SQLHelper.getInQuery()).execute();
-//
-//
-//        FirebaseDatabase.getInstance().getReference(User.USERS_REFERENCE_KEY).child(userID)
-//                // must be single event or the images will be added over and over again
-//                .addListenerForSingleValueEvent(new ValueEventListener() {
-//                    @Override
-//                    public void onDataChange(DataSnapshot dataSnapshot) {
-//
-//                        if (dataSnapshot.exists()) {
-//                            final User currUser = dataSnapshot.getValue(User.class);
-//
-//                            // Get current status of current user
-//                            setStatusForSoldierAndPlaceIt(currUser, vFragmentLayout, mapMainStatusToView);
-//
-//                            lstSoldiers.add(currUser);
-//                        }
-//                        else {
-//                            Log.w("doch1", userID + " in group: " + groupID + " but not in DB");
-//                        }
-//                        progress.dismiss();
-//                    }
-//
-//                    @Override
-//                    public void onCancelled(DatabaseError databaseError) {
-//
-//                    }
-//                });
-//    }
-
-    private void setStatusForSoldierAndPlaceIt(final User currUser, final View vFragmentLayout, final Map<String, ViewGroup> mapMainStatusToView) {
-        FirebaseDatabase.getInstance().getReference(UserInGroup.USERS_IN_GROUP_REFERENCE_KEY)
-                // TODO: should be listener? if yes so need to remove previous selections
-                .child(groupID).child(currUser.getId().toString()).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()) {
-                    UserInGroup userInGroup = dataSnapshot.getValue(UserInGroup.class);
+            for (UserInGroup userInGroup : usersInGroups) {
+                if (userInGroup.getUserId().equals(currUser.getId())) {
+                    // When we got the status of the current user
                     currUser.setMainStatus(userInGroup.getMainStatus());
                     currUser.setSubStatus(userInGroup.getSubStatus());
                     currUser.setLastUpdateDate(userInGroup.getLastUpdateDate());
+
+
+                    break;
                 }
-
-                setSoldiersOnStatuses(vFragmentLayout, mapMainStatusToView, currUser);
             }
+            lstSoldiers.add(currUser);
+        }
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
+        setSoldiersOnStatuses(vFragmentLayout, mapMainStatusToView, lstSoldiers);
 
-            }
-        });
+        progress.dismiss();
+
     }
 
-//    private void setSoldierOnStatuses(View vFragmentLayout, Map<String, ViewGroup> mapMainStatusToView, User user) {
-//    }
-
-    private void setSoldiersOnStatuses(View vFragmentLayout, Map<String, ViewGroup> mapMainStatusToView, User... users) {
+    private void setSoldiersOnStatuses(View vFragmentLayout, Map<String, ViewGroup> mapMainStatusToView, List<User> users) {
 
         FlowLayout btm = (FlowLayout) vFragmentLayout.findViewById(R.id.defaultStatus);
 
-        for (int i = 0; i < users.length; i++) {
+        for (int i = 0; i < users.size(); i++) {
             RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(_nImageSizeOnDrop, _nImageSizeOnDrop);
 
             CircleImageView soldierImage = new CircleImageView(getActivity());
 
-            User currSoldier = users[i];
+            User currSoldier = users.get(i);
 
             soldierImage.setLayoutParams(layoutParams);
             Picasso.with(getActivity()).load(currSoldier.getImage()).into(soldierImage);
