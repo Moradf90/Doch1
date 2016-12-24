@@ -58,6 +58,7 @@ import t.a.m.com.doch1.Models.UserInGroup;
 import t.a.m.com.doch1.common.SQLHelper;
 import t.a.m.com.doch1.management.ManagementFragment;
 import t.a.m.com.doch1.services.tasks.GroupsUpdaterTask;
+import t.a.m.com.doch1.services.tasks.UsersStatusUpdaterTask;
 
 public class DrawerActivity extends AppCompatActivity {
     private static final int PROFILE_SETTING = 100000;
@@ -74,18 +75,24 @@ public class DrawerActivity extends AppCompatActivity {
     public static User loginUser;
 
     private BroadcastReceiver mGroupsReceiver;
+    private BroadcastReceiver mUserStatusReceiver;
+
 
     @Override
     protected void onStart() {
         super.onStart();
-        IntentFilter intentFilter = new IntentFilter(GroupsUpdaterTask.GROUP_UPDATED_ACTION);
-        registerReceiver(mGroupsReceiver, intentFilter);
+        IntentFilter intentFilterGroups = new IntentFilter(GroupsUpdaterTask.GROUP_UPDATED_ACTION);
+        registerReceiver(mGroupsReceiver, intentFilterGroups);
+
+        IntentFilter intentFilterUsersStatus = new IntentFilter(UsersStatusUpdaterTask.USER_STATUS_UPDATED_ACTION);
+        registerReceiver(mUserStatusReceiver, intentFilterUsersStatus);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
         unregisterReceiver(mGroupsReceiver);
+        unregisterReceiver(mUserStatusReceiver);
     }
 
     @Override
@@ -103,6 +110,14 @@ public class DrawerActivity extends AppCompatActivity {
                 updateGroupsInDrawer();
             }
         };
+
+        mUserStatusReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if (headerResult != null && headerResult.getActiveProfile() != null) {
+                    initSoldiersDrawer(((ProfileDrawerItem) (headerResult.getActiveProfile())).getTag().toString());
+                }
+            }};
 
         //Remove line to test RTL support
         //getWindow().getDecorView().setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
@@ -221,7 +236,7 @@ public class DrawerActivity extends AppCompatActivity {
 
         //only set the active selection or active profile if we do not recreate the activity
         if (savedInstanceState == null) {
-            // set the selection to the item with the identifier 2 - main fragment
+            // set the selection to the item with the identifier 1
             result.setSelection(1, false);
             selectItem(1);
 
@@ -230,6 +245,10 @@ public class DrawerActivity extends AppCompatActivity {
         }
 
 //        result.updateBadge(4, new StringHolder(10 + ""));
+
+        // TODO: change - dont take default first group
+        // Need to be after the initialization of result
+        initSoldiersDrawer(loginUser.getGroups().get(0).toString());
 
         updateGroupsInDrawer();
 
@@ -241,7 +260,6 @@ public class DrawerActivity extends AppCompatActivity {
             loginUser.getGroups().size() > 0) {
             allGroupsDrawerItem = new ExpandableDrawerItem().withName(R.string.my_groups).withIcon(GoogleMaterial.Icon.gmd_group).withIdentifier(MY_SOLDIERS_IDENTIFIERS);
 
-            // TODO: why not working
             Long[] groupsId = Arrays.copyOf(loginUser.getGroups().toArray(), loginUser.getGroups().size(), Long[].class);
             initUnderMyCommandGroups(allGroupsDrawerItem, groupsId);
 
@@ -251,8 +269,7 @@ public class DrawerActivity extends AppCompatActivity {
             else {
                 result.addItem(allGroupsDrawerItem);
             }
-
-            initSoldiersDrawer(loginUser.getGroups().get(0).toString());
+//            initSoldiersDrawer(loginUser.getGroups().get(0).toString());
         }
     }
 
@@ -290,14 +307,12 @@ public class DrawerActivity extends AppCompatActivity {
     }
 
     private void handleGroupRecursive(List<IDrawerItem> lstSubGroupsDrawerItems, Group g) {
-//        Group g = ds.getValue(Group.class);
 
         ExpandableDrawerItem currGroupDrawerItem = new ExpandableDrawerItem().withName(g.getName());
 
         IProfile newProfile =
                 new ProfileDrawerItem().withName(g.getName()).withIdentifier(10041).withTag(g.getId());
 
-        // TODO: update the images in drawer
         drawableFromUrl(g.getImage(), newProfile, currGroupDrawerItem);
 
         addAllSubUnitsToProfiles(g.getId().toString(), newProfile, currGroupDrawerItem);
@@ -332,9 +347,8 @@ public class DrawerActivity extends AppCompatActivity {
                     }
                     break;
                 }
-
-                addDrawerToList(lstSoldiersToExpand, currSoldierDrawer);
             }
+            addDrawerToList(lstSoldiersToExpand, currSoldierDrawer);
         }
 
         SoldiersDrawerItem.withSubItems(lstSoldiersToExpand);

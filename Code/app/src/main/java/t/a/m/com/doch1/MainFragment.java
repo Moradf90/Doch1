@@ -179,7 +179,6 @@ public class MainFragment extends Fragment {
                 Group shownGroup =  new Select().from(Group.class).where("id = " + groupID).executeSingle();
 
                 handleUsersOfGroup(shownGroup.getUsers(), vFragmentLayout, mapMainStatusToView, progress);
-
             }
         });
 
