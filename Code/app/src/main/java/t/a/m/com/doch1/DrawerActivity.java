@@ -487,41 +487,6 @@ public class DrawerActivity extends AppCompatActivity {
         task.execute(url);
     }
 
-    // TODO: prevent double code
-    public void drawableFromUrl(String url, final IProfile newProfile) {
-
-        AsyncTask<String, Void, Bitmap> task = new AsyncTask<String, Void, Bitmap>(){
-            @Override
-            protected Bitmap doInBackground(String... params) {
-                Bitmap x = null;
-                try {
-                    HttpURLConnection connection = (HttpURLConnection) new URL(params[0]).openConnection();
-                    connection.connect();
-                    InputStream input = connection.getInputStream();
-
-                    x = BitmapFactory.decodeStream(input);
-                }
-                catch (Exception ex){}
-
-                return x;
-            }
-
-            @Override
-            protected void onPostExecute(Bitmap bitmap) {
-                if(bitmap != null){
-                    newProfile.withIcon(new BitmapDrawable(bitmap));
-                }
-                else {
-                    newProfile.withIcon(DrawerActivity.this.getResources().getDrawable(R.drawable.face_icon));
-                }
-
-                addNewProfile(newProfile);
-            }
-        };
-
-        task.execute(url);
-    }
-
     private void addNewProfile(IProfile newProfile) {
         List<IProfile> profiles = headerResult.getProfiles();
         if (profiles != null && profiles.size() > 0) {

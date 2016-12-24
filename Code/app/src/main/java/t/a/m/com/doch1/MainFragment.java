@@ -44,10 +44,10 @@ import t.a.m.com.doch1.views.MySpinner;
 
 public class MainFragment extends Fragment {
 
+    private static final int STATUSES_IN_ROW_AMOUNT = 3;
     Group shownGroup;
     private static final int ENLARGE_ON_DARG = 2;
-    private static final long DOUBLE_PRESS_INTERVAL = 500;
-    private int _nImageSizeOnDrop = 125;
+    private int ImageSizeOnDrop = 125;
     List<User> lstSoldiers;
     Map<String, List<String>> mapMainStatusToSub;
     List<String> lstMain;
@@ -87,6 +87,8 @@ public class MainFragment extends Fragment {
         List<StatusesInGroup> statusesInGroup =
                 new Select().from(StatusesInGroup.class).where(StatusesInGroup.STATUSES_ID_PROPERTY + " = " + shownGroup.getStatusesId()).execute();
 
+        calculateImageSizeByStatuses(statusesInGroup);
+
         for (StatusesInGroup mainStatus : statusesInGroup) {
             mapMainStatusToSub.put(mainStatus.getName(), mainStatus.getSubStatuses() != null ? mainStatus.getSubStatuses() : new ArrayList<String>());
             lstMain.add(mainStatus.getName());
@@ -99,11 +101,16 @@ public class MainFragment extends Fragment {
         return vFragmentLayout;
     }
 
+    private void calculateImageSizeByStatuses(List<StatusesInGroup> statusesInGroup) {
+        // TODO: find a function of image sizes - maybe all images same size or depends on the layout.
+        ImageSizeOnDrop = 350 - (statusesInGroup.size() / STATUSES_IN_ROW_AMOUNT) * 50;
+    }
+
     private Map<String, ViewGroup> buildLayout() {
 
         Map<String, ViewGroup> mapMainStatusToView = new HashMap<String, ViewGroup>();
 
-        int colsSize = 3;
+        int colsSize = STATUSES_IN_ROW_AMOUNT;
         int rowsSize = lstMain.size() / colsSize;
 
         rootLinearLayout.setWeightSum(rowsSize);
@@ -189,7 +196,7 @@ public class MainFragment extends Fragment {
         FlowLayout btm = (FlowLayout) vFragmentLayout.findViewById(R.id.defaultStatus);
 
         for (int i = 0; i < users.size(); i++) {
-            RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(_nImageSizeOnDrop, _nImageSizeOnDrop);
+            RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(ImageSizeOnDrop, ImageSizeOnDrop);
 
             CircleImageView soldierImage = new CircleImageView(getActivity());
 
@@ -258,9 +265,11 @@ public class MainFragment extends Fragment {
                         break;
                     case DragEvent.ACTION_DROP:
 
-                        oldLayout.removeView(imgSoldier);
+                        removeViewFromLayout(oldLayout, imgSoldier);
+//                        oldLayout.removeView(imgSoldier);
                         FlowLayout newLayout = (FlowLayout) v;
-                        newLayout.addView(imgSoldier);
+                        addViewToLayout(newLayout, imgSoldier);
+//                        newLayout.addView(imgSoldier);
                         imgSoldier.setVisibility(View.VISIBLE);
 
                         if (oldLayout == newLayout) {
@@ -285,6 +294,37 @@ public class MainFragment extends Fragment {
                 }
             }
             return true;
+        }
+
+        private void removeViewFromLayout(ViewGroup oldLayout, View imgSoldier) {
+            oldLayout.removeView(imgSoldier);
+//            arrangeImagesInLayout(oldLayout);
+        }
+
+        private void addViewToLayout(ViewGroup newLayout, View imgSoldier) {
+            newLayout.addView(imgSoldier);
+//            arrangeImagesInLayout(newLayout);
+        }
+
+        private void arrangeImagesInLayout(ViewGroup layout) {
+            final int childCount = layout.getChildCount();
+
+            // If there are any images in this layout
+            if (childCount > 1) {
+                int beforeSqrt = (layout.getHeight() * layout.getWidth()) / (childCount - 1);
+                int ImageSize = (int) Math.sqrt(beforeSqrt);
+
+
+                for (int i = 0; i < childCount; i++) {
+                    View v = layout.getChildAt(i);
+                    if (v instanceof CircleImageView) {
+                        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ImageSize, ImageSize);
+
+                        v.setLayoutParams(layoutParams);
+                        v.invalidate();
+                    }
+                }
+            }
         }
     }
 
