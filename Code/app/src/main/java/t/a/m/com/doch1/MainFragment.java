@@ -200,7 +200,6 @@ public class MainFragment extends Fragment {
                     currUser.setSubStatus(userInGroup.getSubStatus());
                     currUser.setLastUpdateDate(userInGroup.getLastUpdateDate());
 
-
                     break;
                 }
             }
