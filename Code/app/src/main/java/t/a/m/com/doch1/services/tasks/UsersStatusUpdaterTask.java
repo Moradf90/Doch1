@@ -3,12 +3,11 @@ package t.a.m.com.doch1.services.tasks;
 import android.content.Context;
 import android.content.Intent;
 
+import com.activeandroid.query.Select;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-
-import java.util.Vector;
 
 import t.a.m.com.doch1.Models.UserInGroup;
 
@@ -50,6 +49,17 @@ public class UsersStatusUpdaterTask implements ValueEventListener {
             Long groupId = Long.parseLong(ds.getKey());
             for (DataSnapshot dataSnapshot : ds.getChildren()){
                 Long userId = Long.parseLong(dataSnapshot.getKey());
+
+                // check if the status exists
+                UserInGroup uig = new Select().from(UserInGroup.class)
+                        .where(UserInGroup.USER_PROPERTY + " = ? AND " + UserInGroup.GROUP_PROPERTY + "= ?"
+                        , userId, groupId)
+                        .executeSingle();
+
+                if(uig != null){
+                    uig.delete();
+                }
+
                 UserInGroup userInGroup = dataSnapshot.getValue(UserInGroup.class);
                 userInGroup.setGroupId(groupId);
                 userInGroup.setUserId(userId);

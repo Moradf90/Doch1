@@ -12,6 +12,7 @@ import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -21,6 +22,10 @@ import android.widget.Toast;
 import com.activeandroid.query.Select;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.mikepenz.fastadapter.commons.utils.RecyclerViewCacheUtil;
 import com.mikepenz.fontawesome_typeface_library.FontAwesome;
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
@@ -53,7 +58,6 @@ import t.a.m.com.doch1.Models.UserInGroup;
 import t.a.m.com.doch1.common.SQLHelper;
 import t.a.m.com.doch1.management.ManagementFragment;
 import t.a.m.com.doch1.services.tasks.GroupsUpdaterTask;
-import t.a.m.com.doch1.services.tasks.UsersStatusUpdaterTask;
 
 public class DrawerActivity extends AppCompatActivity {
     private static final int PROFILE_SETTING = 100000;
@@ -70,24 +74,18 @@ public class DrawerActivity extends AppCompatActivity {
     public static User loginUser;
 
     private BroadcastReceiver mGroupsReceiver;
-    private BroadcastReceiver mUserStatusReceiver;
 
     @Override
     protected void onStart() {
         super.onStart();
-        IntentFilter intentFilterGroups = new IntentFilter(GroupsUpdaterTask.GROUP_UPDATED_ACTION);
-        registerReceiver(mGroupsReceiver, intentFilterGroups);
-
-        IntentFilter intentFilterUsersStatus = new IntentFilter(UsersStatusUpdaterTask.USER_STATUS_UPDATED_ACTION);
-        registerReceiver(mUserStatusReceiver, intentFilterUsersStatus);
+        IntentFilter intentFilter = new IntentFilter(GroupsUpdaterTask.GROUP_UPDATED_ACTION);
+        registerReceiver(mGroupsReceiver, intentFilter);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
         unregisterReceiver(mGroupsReceiver);
-        unregisterReceiver(mUserStatusReceiver);
-
     }
 
     @Override
@@ -102,32 +100,9 @@ public class DrawerActivity extends AppCompatActivity {
         mGroupsReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                if (loginUser != null &&
-                        loginUser.getGroups() != null &&
-                        loginUser.getGroups().size() > 0) {
-                    allGroupsDrawerItem = new ExpandableDrawerItem().withName(R.string.my_groups).withIcon(GoogleMaterial.Icon.gmd_group).withIdentifier(MY_SOLDIERS_IDENTIFIERS);
-
-                    // TODO: why not working
-                    Long[] groupsId = Arrays.copyOf(loginUser.getGroups().toArray(), loginUser.getGroups().size(), Long[].class);
-                    initUnderMyCommandGroups(allGroupsDrawerItem, groupsId);
-
-                    if (result.getDrawerItem((long) MY_SOLDIERS_IDENTIFIERS) != null) {
-                        result.updateItem(allGroupsDrawerItem);
-                    } else {
-                        result.addItem(allGroupsDrawerItem);
-                    }
-                }
-            }};
-
-        mUserStatusReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                if (headerResult != null && headerResult.getActiveProfile() != null) {
-                    initSoldiersDrawer(((ProfileDrawerItem) (headerResult.getActiveProfile())).getTag().toString());
-                }
-            }};
-
-
+                updateGroupsInDrawer();
+            }
+        };
 
         //Remove line to test RTL support
         //getWindow().getDecorView().setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
@@ -146,17 +121,13 @@ public class DrawerActivity extends AppCompatActivity {
                             @Override
                             // TODO: why yaalom cant be chosen
                             public boolean onProfileChanged(View view, IProfile profile, boolean current) {
-                                handleProfileChanged((ProfileDrawerItem) profile);
-
-                                //false if you have not consumed the event and it should close the drawer
-                                return false;
-                            }
-
-                            private void handleProfileChanged(ProfileDrawerItem profile) {
-                                String selectedProfileGroupID = profile.getTag().toString();
+                                String selectedProfileGroupID = ((ProfileDrawerItem) profile).getTag().toString();
 
                                 initSoldiersDrawer(selectedProfileGroupID);
                                 refreshCurrFragment(selectedProfileGroupID);
+
+                                //false if you have not consumed the event and it should close the drawer
+                                return false;
                             }
 
                             private void refreshCurrFragment(String selectedProfileGroupID) {
@@ -183,6 +154,7 @@ public class DrawerActivity extends AppCompatActivity {
 
         PrimaryDrawerItem FillStatusesDrawerItem = new PrimaryDrawerItem().withName(R.string.main_fragment).withDescription(R.string.dsc_main_statuses).withIcon(FontAwesome.Icon.faw_wheelchair).withIdentifier(2).withSelectable(false);
 
+        SoldiersDrawerItem = new ExpandableDrawerItem().withName(R.string.my_members).withIcon(GoogleMaterial.Icon.gmd_accounts_list).withIdentifier(19);
 
         final PrimaryDrawerItem SendDrawerItem = new PrimaryDrawerItem().withName(R.string.send_statuses).withEnabled(true).withIcon(Octicons.Icon.oct_radio_tower).withIdentifier(9);
 
@@ -191,8 +163,6 @@ public class DrawerActivity extends AppCompatActivity {
                 new SecondaryDrawerItem().withName("By SMS").withLevel(2).withIcon(GoogleMaterial.Icon.gmd_tumblr).withIdentifier(2502),
                 new SecondaryDrawerItem().withName("By Email").withLevel(2).withIcon(GoogleMaterial.Icon.gmd_email).withIdentifier(2503));
 
-
-        SoldiersDrawerItem = new ExpandableDrawerItem().withName(R.string.my_members).withIcon(GoogleMaterial.Icon.gmd_accounts_list).withIdentifier(19);
 
         //Create the drawer
         result = new DrawerBuilder()
@@ -244,11 +214,6 @@ public class DrawerActivity extends AppCompatActivity {
                 .withShowDrawerOnFirstLaunch(true)
                 .build();
 
-
-        // TODO: change - dont take default first group
-        // Need to be after the initialization of result
-        initSoldiersDrawer(loginUser.getGroups().get(0).toString());
-
         //if you have many different types of DrawerItems you can magically pre-cache those items to get a better scroll performance
         //make sure to init the cache after the DrawerBuilder was created as this will first clear the cache to make sure no old elements are in
         //RecyclerViewCacheUtil.getInstance().withCacheSize(2).init(result);
@@ -266,6 +231,29 @@ public class DrawerActivity extends AppCompatActivity {
 
 //        result.updateBadge(4, new StringHolder(10 + ""));
 
+        updateGroupsInDrawer();
+
+    }
+
+    private void updateGroupsInDrawer() {
+        if (loginUser != null &&
+            loginUser.getGroups() != null &&
+            loginUser.getGroups().size() > 0) {
+            allGroupsDrawerItem = new ExpandableDrawerItem().withName(R.string.my_groups).withIcon(GoogleMaterial.Icon.gmd_group).withIdentifier(MY_SOLDIERS_IDENTIFIERS);
+
+            // TODO: why not working
+            Long[] groupsId = Arrays.copyOf(loginUser.getGroups().toArray(), loginUser.getGroups().size(), Long[].class);
+            initUnderMyCommandGroups(allGroupsDrawerItem, groupsId);
+
+            if (result.getDrawerItem((long)MY_SOLDIERS_IDENTIFIERS) != null) {
+                result.updateItem(allGroupsDrawerItem);
+            }
+            else {
+                result.addItem(allGroupsDrawerItem);
+            }
+
+            initSoldiersDrawer(loginUser.getGroups().get(0).toString());
+        }
     }
 
     private void initUnderMyCommandGroups(final ExpandableDrawerItem allMygroupsDrawerItem, Long... groupsId) {
@@ -334,8 +322,6 @@ public class DrawerActivity extends AppCompatActivity {
 
             drawableFromUrl(user.getImage(), currSoldierDrawer);
 
-            // TODO: make sure about the times.
-            // Find the current status of the user
             for (UserInGroup userInGroup : usersInGroups) {
                 if (userInGroup.getUserId().equals(user.getId())) {
                     // If there is main status
@@ -346,9 +332,9 @@ public class DrawerActivity extends AppCompatActivity {
                     }
                     break;
                 }
-            }
 
-            addDrawerToList(lstSoldiersToExpand, currSoldierDrawer);
+                addDrawerToList(lstSoldiersToExpand, currSoldierDrawer);
+            }
         }
 
         SoldiersDrawerItem.withSubItems(lstSoldiersToExpand);

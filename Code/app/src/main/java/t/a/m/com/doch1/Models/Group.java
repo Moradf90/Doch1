@@ -24,6 +24,7 @@ public class Group extends Model{
     public static final String PARENT_ID_PROPERTY = "parentId";
     public static final String USERS_PROPERTY = "users";
     public static final String IMAGE_PROPERTY = "image";
+    private static final String STATUSES_PROPERTY = "statusesId";
 
     @Column(name = NAME_PROPERTY, index = true)
     private String mName;
@@ -33,6 +34,8 @@ public class Group extends Model{
     private ListOfLongs mUsers;
     @Column(name = IMAGE_PROPERTY)
     private String mImage;
+    @Column(name = STATUSES_PROPERTY)
+    private Long mStatusesId;
 
     public Group(){
         super();
@@ -80,5 +83,13 @@ public class Group extends Model{
             mUsers = new ListOfLongs();
         }
         mUsers.add(id);
+    }
+
+    public Long getStatusesId() {
+        return mStatusesId;
+    }
+
+    public void setStatusesId(Long mStatusesId) {
+        this.mStatusesId = mStatusesId;
     }
 }
