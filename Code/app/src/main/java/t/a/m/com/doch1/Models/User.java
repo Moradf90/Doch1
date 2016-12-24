@@ -148,11 +148,11 @@ public class User extends Model{
     }
 
     // Update the user in the DB
-    public void updateUserStatuses(String groupId) {
+    public void updateUserStatuses(long groupId) {
         this.setLastUpdateDate(new Date());
 
         FirebaseDatabase.getInstance().getReference(UserInGroup.USERS_IN_GROUP_REFERENCE_KEY)
-                .child(groupId).child(getId().toString()).setValue(getUserInGroup());
+                .child(String.valueOf(groupId)).child(getId().toString()).setValue(getUserInGroup());
                 
     }
 

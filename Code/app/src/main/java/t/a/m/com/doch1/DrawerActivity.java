@@ -12,7 +12,6 @@ import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -22,10 +21,6 @@ import android.widget.Toast;
 import com.activeandroid.query.Select;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 import com.mikepenz.fastadapter.commons.utils.RecyclerViewCacheUtil;
 import com.mikepenz.fontawesome_typeface_library.FontAwesome;
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
@@ -115,7 +110,8 @@ public class DrawerActivity extends AppCompatActivity {
             @Override
             public void onReceive(Context context, Intent intent) {
                 if (headerResult != null && headerResult.getActiveProfile() != null) {
-                    initSoldiersDrawer(((ProfileDrawerItem) (headerResult.getActiveProfile())).getTag().toString());
+                    Group selectedProfileGroup = (Group) ((ProfileDrawerItem)headerResult.getActiveProfile()).getTag();
+                    initSoldiersDrawer(selectedProfileGroup.getId());
                 }
             }};
 
@@ -136,16 +132,16 @@ public class DrawerActivity extends AppCompatActivity {
                             @Override
                             // TODO: why yaalom cant be chosen
                             public boolean onProfileChanged(View view, IProfile profile, boolean current) {
-                                String selectedProfileGroupID = ((ProfileDrawerItem) profile).getTag().toString();
+                                Group selectedProfileGroup = (Group) ((ProfileDrawerItem) profile).getTag();
 
-                                initSoldiersDrawer(selectedProfileGroupID);
-                                refreshCurrFragment(selectedProfileGroupID);
+                                initSoldiersDrawer(selectedProfileGroup.getId());
+                                refreshCurrFragment(selectedProfileGroup);
 
                                 //false if you have not consumed the event and it should close the drawer
                                 return false;
                             }
 
-                            private void refreshCurrFragment(String selectedProfileGroupID) {
+                            private void refreshCurrFragment(Group selectedProfileGroupID) {
                                 Fragment fCurrentDisplayedFragment = getFragmentManager().findFragmentById(R.id.frame_container);
                                 if (fCurrentDisplayedFragment.getClass().getSimpleName().equals("MainFragment")) {
 
@@ -248,19 +244,24 @@ public class DrawerActivity extends AppCompatActivity {
 
         // TODO: change - dont take default first group
         // Need to be after the initialization of result
-        initSoldiersDrawer(loginUser.getGroups().get(0).toString());
+        if (loginUser != null && loginUser.getGroups() != null && loginUser.getGroups().size() > 0) {
+            initSoldiersDrawer(loginUser.getGroups().get(0));
+        }
 
         updateGroupsInDrawer();
-
     }
 
     private void updateGroupsInDrawer() {
         if (loginUser != null &&
             loginUser.getGroups() != null &&
             loginUser.getGroups().size() > 0) {
-            allGroupsDrawerItem = new ExpandableDrawerItem().withName(R.string.my_groups).withIcon(GoogleMaterial.Icon.gmd_group).withIdentifier(MY_SOLDIERS_IDENTIFIERS);
+            allGroupsDrawerItem =
+                    new ExpandableDrawerItem().withName(R.string.my_groups)
+                            .withIcon(GoogleMaterial.Icon.gmd_group)
+                            .withIdentifier(MY_SOLDIERS_IDENTIFIERS);
 
-            Long[] groupsId = Arrays.copyOf(loginUser.getGroups().toArray(), loginUser.getGroups().size(), Long[].class);
+            Long[] groupsId =
+                    Arrays.copyOf(loginUser.getGroups().toArray(), loginUser.getGroups().size(), Long[].class);
             initUnderMyCommandGroups(allGroupsDrawerItem, groupsId);
 
             if (result.getDrawerItem((long)MY_SOLDIERS_IDENTIFIERS) != null) {
@@ -269,7 +270,6 @@ public class DrawerActivity extends AppCompatActivity {
             else {
                 result.addItem(allGroupsDrawerItem);
             }
-//            initSoldiersDrawer(loginUser.getGroups().get(0).toString());
         }
     }
 
@@ -294,7 +294,7 @@ public class DrawerActivity extends AppCompatActivity {
     }
 
 
-    private void addAllSubUnitsToProfiles(String groupID, final IProfile parentProfile, final ExpandableDrawerItem parentGroup) {
+    private void addAllSubUnitsToProfiles(long groupID, final IProfile parentProfile, final ExpandableDrawerItem parentGroup) {
 
         List<Group> subGroups =  new Select().from(Group.class).where(Group.PARENT_ID_PROPERTY + " = " + groupID).execute();
 
@@ -311,16 +311,16 @@ public class DrawerActivity extends AppCompatActivity {
         ExpandableDrawerItem currGroupDrawerItem = new ExpandableDrawerItem().withName(g.getName());
 
         IProfile newProfile =
-                new ProfileDrawerItem().withName(g.getName()).withIdentifier(10041).withTag(g.getId());
+                new ProfileDrawerItem().withName(g.getName()).withIdentifier(10041).withTag(g);
 
         drawableFromUrl(g.getImage(), newProfile, currGroupDrawerItem);
 
-        addAllSubUnitsToProfiles(g.getId().toString(), newProfile, currGroupDrawerItem);
+        addAllSubUnitsToProfiles(g.getId(), newProfile, currGroupDrawerItem);
 
         lstSubGroupsDrawerItems.add(currGroupDrawerItem);
     }
 
-    private void initSoldiersDrawer(final String groupID) {
+    private void initSoldiersDrawer(final long groupID) {
 
         Group group = new Select().from(Group.class).where("id = " + groupID).executeSingle();
 
@@ -453,6 +453,7 @@ public class DrawerActivity extends AppCompatActivity {
     }
 
     private void drawableFromUrl(String url, final IProfile newProfile, final ExpandableDrawerItem currGroupDrawerItem) {
+        // TODO: save on the memory - takes too long
         AsyncTask<String, Void, Bitmap> task = new AsyncTask<String, Void, Bitmap>(){
             @Override
             protected Bitmap doInBackground(String... params) {
@@ -554,8 +555,8 @@ public class DrawerActivity extends AppCompatActivity {
                 newFragment = fCurrentDisplayedFragment;
             }
             else{
-                String selectedProfileGroupID = ((ProfileDrawerItem) headerResult.getActiveProfile()).getTag().toString();
-                newFragment = new MainFragment(selectedProfileGroupID);
+                Group selectedProfileGroup = (Group) ((ProfileDrawerItem) headerResult.getActiveProfile()).getTag();
+                newFragment = new MainFragment(selectedProfileGroup);
             }
         }
         else if (identifier == 3) {

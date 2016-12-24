@@ -15,7 +15,7 @@ import java.util.List;
 public class StatusesInGroup extends Model {
 
     public static final String STATUSES_IN_GROUP_REFERENCE_KEY = "statusesInGroup";
-    private static final String STATUSES_ID_PROPERTY = "statusesId";
+    public static final String STATUSES_ID_PROPERTY = "statusesId";
     private static final String NAME_PROPERTY = "name";
     private static final String SUB_STATUSES_PROPERTY = "subStatuses";
 

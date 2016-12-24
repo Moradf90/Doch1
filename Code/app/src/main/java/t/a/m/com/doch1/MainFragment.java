@@ -9,7 +9,6 @@ import android.graphics.Point;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.format.DateUtils;
-import android.util.Log;
 import android.view.DragEvent;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -25,10 +24,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.activeandroid.query.Select;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
 import org.apmem.tools.layouts.FlowLayout;
@@ -37,13 +32,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import t.a.m.com.doch1.Models.Group;
-import t.a.m.com.doch1.Models.MainStatus;
-import t.a.m.com.doch1.Models.User;
-
 import java.util.Random;
 
+import t.a.m.com.doch1.Models.Group;
+import t.a.m.com.doch1.Models.StatusesInGroup;
+import t.a.m.com.doch1.Models.User;
 import t.a.m.com.doch1.Models.UserInGroup;
 import t.a.m.com.doch1.common.SQLHelper;
 import t.a.m.com.doch1.views.CircleImageView;
@@ -51,19 +44,22 @@ import t.a.m.com.doch1.views.MySpinner;
 
 public class MainFragment extends Fragment {
 
-    String groupID = "3";
+    Group shownGroup;
     private static final int ENLARGE_ON_DARG = 2;
     private static final long DOUBLE_PRESS_INTERVAL = 500;
     private int _nImageSizeOnDrop = 125;
     List<User> lstSoldiers;
     Map<String, List<String>> mapMainStatusToSub;
     List<String> lstMain;
+    LinearLayout rootLinearLayout;
+    View vFragmentLayout;
+    ProgressDialog progress;
 
     public MainFragment() {
     }
 
-    public MainFragment(String strGroupID) {
-        this.groupID = strGroupID;
+    public MainFragment(Group group) {
+        shownGroup = group;
     }
 
     @Override
@@ -76,120 +72,97 @@ public class MainFragment extends Fragment {
         mapMainStatusToSub = new HashMap<>();
         lstMain = new ArrayList<>();
 
-        final ProgressDialog progress = new ProgressDialog(getActivity());
+        progress = new ProgressDialog(getActivity());
         progress.setTitle(getString(R.string.loading_title));
         progress.setMessage(getString(R.string.loading_message));
         progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
         progress.show();
 
-        final View vFragmentLayout = inflater.inflate(R.layout.activity_main, container, false);
+        vFragmentLayout = inflater.inflate(R.layout.activity_main, container, false);
 
         getActivity().setTitle(R.string.main_fragment_title);
 
-        final LinearLayout rootLinearLayout = (LinearLayout) vFragmentLayout.findViewById(R.id.root);
+        rootLinearLayout = (LinearLayout) vFragmentLayout.findViewById(R.id.root);
 
-//        List<MainStatus> mainStatuses =  new Select().from(MainStatus.class).execute();
-//
-//        for (MainStatus cnotepaddurrStatus : mainStatuses) {
-//            mapMainStatusToSub.put(currStatus.getName(), currStatus.getSubStatuses() != null ? currStatus.getSubStatuses() : new ArrayList<String>());
-//            lstMain.add(currStatus.getName());
-//        }
-//
-//        // TODO: buildLayout should be called once. - not any creation
-//        Map<String, ViewGroup> mapMainStatusToView = buildLayout();
-//        pullSoldiers(mapMainStatusToView);
+        List<StatusesInGroup> statusesInGroup =
+                new Select().from(StatusesInGroup.class).where(StatusesInGroup.STATUSES_ID_PROPERTY + " = " + shownGroup.getStatusesId()).execute();
 
+        for (StatusesInGroup mainStatus : statusesInGroup) {
+            mapMainStatusToSub.put(mainStatus.getName(), mainStatus.getSubStatuses() != null ? mainStatus.getSubStatuses() : new ArrayList<String>());
+            lstMain.add(mainStatus.getName());
+        }
 
-        // Get possible statuses
-        FirebaseDatabase.getInstance().getReference(MainStatus.STATUSES_REFERENCE_KEY).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot statusSnapshot : dataSnapshot.getChildren()) {
-                    MainStatus currStatus = statusSnapshot.getValue(MainStatus.class);
-                    mapMainStatusToSub.put(currStatus.getName(), currStatus.getSubStatuses() != null ? currStatus.getSubStatuses() : new ArrayList<String>());
-                    lstMain.add(currStatus.getName());
-                }
-
-                // TODO: buildLayout should be called once. - not any creation
-                Map<String, ViewGroup> mapMainStatusToView = buildLayout();
-                pullSoldiers(mapMainStatusToView);
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-
-            private Map<String, ViewGroup> buildLayout() {
-
-                Map<String, ViewGroup> mapMainStatusToView = new HashMap<String, ViewGroup>();
-
-                int colsSize = 3;
-                int rowsSize = lstMain.size() / colsSize;
-
-                rootLinearLayout.setWeightSum(rowsSize);
-
-                for (int rowIndex = 0; rowIndex < rowsSize; rowIndex++) {
-                    // Create new row
-                    LinearLayout newRow = new LinearLayout(getActivity());
-
-                    LinearLayout.LayoutParams newRowParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1);
-
-                    newRow.setWeightSum(colsSize);
-                    newRow.setOrientation(LinearLayout.HORIZONTAL);
-                    newRow.setLayoutParams(newRowParams);
-
-                    for (int colIndex = 0; colIndex < colsSize; colIndex++) {
-                        FlowLayout newCol = new FlowLayout(getActivity());
-
-                        if (rowIndex == 0 && colIndex ==0) {
-                            newCol.setId(R.id.defaultStatus);
-                        }
-
-                        LinearLayout.LayoutParams colParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.FILL_PARENT, 1);
-
-                        String mainStatus = lstMain.get(rowIndex * colsSize + colIndex);
-                        newCol.setLayoutParams(colParams);
-                        newCol.setTag(R.string.main_status, mainStatus);
-                        mapMainStatusToView.put(mainStatus, newCol);
-
-                        newCol.setOnDragListener(new MyDragListener());
-
-                        TextView textView = new TextView(getActivity());
-                        textView.setGravity(Gravity.CENTER);
-                        textView.setText(lstMain.get(rowIndex * colsSize + colIndex));
-
-                        newCol.addView(textView);
-
-                        Random rnd = new Random();
-                        int color = Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256));
-                        newCol.setBackgroundColor(color);
-
-                        newRow.addView(newCol);
-                    }
-
-                    rootLinearLayout.addView(newRow);
-                }
-
-                return mapMainStatusToView;
-            }
-
-            private void pullSoldiers(final Map<String, ViewGroup> mapMainStatusToView) {
-
-                Group shownGroup =  new Select().from(Group.class).where("id = " + groupID).executeSingle();
-
-                handleUsersOfGroup(shownGroup.getUsers(), vFragmentLayout, mapMainStatusToView, progress);
-            }
-        });
+        // TODO: buildLayout should be called once. - not any creation
+        Map<String, ViewGroup> mapMainStatusToView = buildLayout();
+        pullSoldiers(mapMainStatusToView);
 
         return vFragmentLayout;
     }
 
+    private Map<String, ViewGroup> buildLayout() {
+
+        Map<String, ViewGroup> mapMainStatusToView = new HashMap<String, ViewGroup>();
+
+        int colsSize = 3;
+        int rowsSize = lstMain.size() / colsSize;
+
+        rootLinearLayout.setWeightSum(rowsSize);
+
+        for (int rowIndex = 0; rowIndex < rowsSize; rowIndex++) {
+            // Create new row
+            LinearLayout newRow = new LinearLayout(getActivity());
+
+            LinearLayout.LayoutParams newRowParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1);
+
+            newRow.setWeightSum(colsSize);
+            newRow.setOrientation(LinearLayout.HORIZONTAL);
+            newRow.setLayoutParams(newRowParams);
+
+            for (int colIndex = 0; colIndex < colsSize; colIndex++) {
+                FlowLayout newCol = new FlowLayout(getActivity());
+
+                if (rowIndex == 0 && colIndex ==0) {
+                    newCol.setId(R.id.defaultStatus);
+                }
+
+                LinearLayout.LayoutParams colParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.FILL_PARENT, 1);
+
+                String mainStatus = lstMain.get(rowIndex * colsSize + colIndex);
+                newCol.setLayoutParams(colParams);
+                newCol.setTag(R.string.main_status, mainStatus);
+                mapMainStatusToView.put(mainStatus, newCol);
+
+                newCol.setOnDragListener(new MyDragListener());
+
+                TextView textView = new TextView(getActivity());
+                textView.setGravity(Gravity.CENTER);
+                textView.setText(lstMain.get(rowIndex * colsSize + colIndex));
+
+                newCol.addView(textView);
+
+                Random rnd = new Random();
+                int color = Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256));
+                newCol.setBackgroundColor(color);
+
+                newRow.addView(newCol);
+            }
+
+            rootLinearLayout.addView(newRow);
+        }
+
+        return mapMainStatusToView;
+    }
+
+    private void pullSoldiers(final Map<String, ViewGroup> mapMainStatusToView) {
+
+        handleUsersOfGroup(shownGroup.getUsers(), vFragmentLayout, mapMainStatusToView, progress);
+    }
+
     private void handleUsersOfGroup(final List<Long> usersID, final View vFragmentLayout, final Map<String, ViewGroup> mapMainStatusToView, final ProgressDialog progress) {
 
-        List<User> groupUsers =  new Select().from(User.class).where("id " + SQLHelper.getInQuery(usersID)).execute();
+        List<User> groupUsers = new Select().from(User.class).where("id " + SQLHelper.getInQuery(usersID)).execute();
 
-        List<UserInGroup> usersInGroups = new Select().from(UserInGroup.class).where(UserInGroup.GROUP_PROPERTY + " = " + groupID).execute();
+        List<UserInGroup> usersInGroups = new Select().from(UserInGroup.class).where(UserInGroup.GROUP_PROPERTY + " = " + shownGroup.getId()).execute();
 
         for (User currUser : groupUsers) {
             for (UserInGroup userInGroup : usersInGroups) {
@@ -236,7 +209,7 @@ public class MainFragment extends Fragment {
                     (!mapMainStatusToView.containsKey(soldierMainStatus))) {
                 currSoldier.setMainStatus((String) btm.getTag(R.string.main_status));
                 currSoldier.setSubStatus("");
-                currSoldier.updateUserStatuses(groupID);
+                currSoldier.updateUserStatuses(shownGroup.getId());
                 btm.addView(soldierImage);
             }
             // If there is already main status on DB, and it's update date from today
@@ -301,7 +274,7 @@ public class MainFragment extends Fragment {
 
                             // Clear sub status
                             sld.setSubStatus(null);
-                            sld.updateUserStatuses(groupID);
+                            sld.updateUserStatuses(shownGroup.getId());
                         }
 
                         break;
@@ -398,7 +371,7 @@ public class MainFragment extends Fragment {
                     @Override
                     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                         finalSoldier.setSubStatus(popupSpinner.getSelectedItem().toString());
-                        finalSoldier.updateUserStatuses(groupID);
+                        finalSoldier.updateUserStatuses(shownGroup.getId());
 
                         if (nTimesSelected[0] > 1) {
                             final Handler handler = new Handler();
