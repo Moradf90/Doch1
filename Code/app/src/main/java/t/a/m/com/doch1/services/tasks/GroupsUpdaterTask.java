@@ -11,8 +11,6 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Vector;
 
 import t.a.m.com.doch1.Models.Group;
@@ -70,6 +68,11 @@ public class GroupsUpdaterTask implements ValueEventListener {
             Log.d("Group-Updater", "Group added : " + group.getName());
             group.save();
             mContext.sendBroadcast(new Intent(GROUP_UPDATED_ACTION));
+
+            if(group.getStatusesId() != null){
+                StatusesUpdaterTask.instance(mContext).addStatusesGroupListener(group.getStatusesId());
+            }
+
         }
     }
 
@@ -96,6 +99,12 @@ public class GroupsUpdaterTask implements ValueEventListener {
                         mTask.mContext.sendBroadcast(new Intent(GROUP_UPDATED_ACTION));
                         mTask.removeListenerToGroup(groupId);
                         UsersStatusUpdaterTask.instance(mTask.mContext).removeGroupListener(groupId);
+
+                        Group group = Group.load(Group.class, groupId);
+                        if(group != null && group.getStatusesId() != null){
+                            StatusesUpdaterTask.instance(mTask.mContext)
+                                    .removeStatusesGroupListener(group.getStatusesId());
+                        }
                     }
                 }
             }

@@ -15,8 +15,8 @@ public class UserInGroup extends Model{
     public static final String SUB_STATUS_PROPERTY = "subStatus";
     public static final String USERS_IN_GROUP_REFERENCE_KEY = "usersInGroups";
     public static final String LAST_UPDATE_DATE_PROPERTY = "lastUpdateDate";
-    private static final String GROUP_PROPERTY = "groupId";
-    private static final String USER_PROPERTY = "userId";
+    public static final String GROUP_PROPERTY = "groupId";
+    public static final String USER_PROPERTY = "userId";
 
     @Column(name = LAST_UPDATE_DATE_PROPERTY)
     private Date mlastUpdateDate;
