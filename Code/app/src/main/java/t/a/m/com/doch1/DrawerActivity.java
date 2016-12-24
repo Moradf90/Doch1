@@ -100,24 +100,7 @@ public class DrawerActivity extends AppCompatActivity {
         mGroupsReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                if (loginUser != null &&
-                    loginUser.getGroups() != null &&
-                    loginUser.getGroups().size() > 0) {
-                    allGroupsDrawerItem = new ExpandableDrawerItem().withName(R.string.my_groups).withIcon(GoogleMaterial.Icon.gmd_group).withIdentifier(MY_SOLDIERS_IDENTIFIERS);
-
-                    // TODO: why not working
-                    Long[] groupsId = Arrays.copyOf(loginUser.getGroups().toArray(), loginUser.getGroups().size(), Long[].class);
-                    initUnderMyCommandGroups(allGroupsDrawerItem, groupsId);
-
-                    if (result.getDrawerItem((long)MY_SOLDIERS_IDENTIFIERS) != null) {
-                        result.updateItem(allGroupsDrawerItem);
-                    }
-                    else {
-                        result.addItem(allGroupsDrawerItem);
-                    }
-
-                    initSoldiersDrawer(loginUser.getGroups().get(0).toString());
-                }
+                updateGroupsInDrawer();
             }
         };
 
@@ -248,6 +231,29 @@ public class DrawerActivity extends AppCompatActivity {
 
 //        result.updateBadge(4, new StringHolder(10 + ""));
 
+        updateGroupsInDrawer();
+
+    }
+
+    private void updateGroupsInDrawer() {
+        if (loginUser != null &&
+            loginUser.getGroups() != null &&
+            loginUser.getGroups().size() > 0) {
+            allGroupsDrawerItem = new ExpandableDrawerItem().withName(R.string.my_groups).withIcon(GoogleMaterial.Icon.gmd_group).withIdentifier(MY_SOLDIERS_IDENTIFIERS);
+
+            // TODO: why not working
+            Long[] groupsId = Arrays.copyOf(loginUser.getGroups().toArray(), loginUser.getGroups().size(), Long[].class);
+            initUnderMyCommandGroups(allGroupsDrawerItem, groupsId);
+
+            if (result.getDrawerItem((long)MY_SOLDIERS_IDENTIFIERS) != null) {
+                result.updateItem(allGroupsDrawerItem);
+            }
+            else {
+                result.addItem(allGroupsDrawerItem);
+            }
+
+            initSoldiersDrawer(loginUser.getGroups().get(0).toString());
+        }
     }
 
     private void initUnderMyCommandGroups(final ExpandableDrawerItem allMygroupsDrawerItem, Long... groupsId) {
