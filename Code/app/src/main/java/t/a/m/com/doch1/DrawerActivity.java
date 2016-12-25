@@ -145,7 +145,7 @@ public class DrawerActivity extends AppCompatActivity {
                                 Fragment fCurrentDisplayedFragment = getFragmentManager().findFragmentById(R.id.frame_container);
                                 if (fCurrentDisplayedFragment.getClass().getSimpleName().equals("MainFragment")) {
 
-                                    Fragment newFragment = new MainFragment(selectedProfileGroupID);
+                                    Fragment newFragment = new MainFragment(selectedProfileGroupID, loginUser);
 
                                     FragmentManager fragmentManager = getFragmentManager();
                                     fragmentManager.beginTransaction()
@@ -521,7 +521,7 @@ public class DrawerActivity extends AppCompatActivity {
             }
             else{
                 Group selectedProfileGroup = (Group) ((ProfileDrawerItem) headerResult.getActiveProfile()).getTag();
-                newFragment = new MainFragment(selectedProfileGroup);
+                newFragment = new MainFragment(selectedProfileGroup, loginUser);
             }
         }
         else if (identifier == 3) {

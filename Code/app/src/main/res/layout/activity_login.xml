@@ -20,6 +20,7 @@
         app:hintTextAppearance="@style/AppTheme.Text.HintText"
         app:errorTextAppearance="@style/AppTheme.Text.ErrorText"
         android:layout_width="match_parent"
+        android:inputType="textEmailAddress"
         android:layout_height="wrap_content">
 
         <EditText

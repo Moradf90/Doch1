@@ -18,11 +18,11 @@ public class Group extends Model{
 
     public static final String GROUPS_REFERENCE_KEY = "groups";
 
-
     public static final String ID_PROPERTY = "id";
     public static final String NAME_PROPERTY = "name";
     public static final String PARENT_ID_PROPERTY = "parentId";
     public static final String USERS_PROPERTY = "users";
+    public static final String MANAGER_PROPERTY = "manager";
     public static final String IMAGE_PROPERTY = "image";
     private static final String STATUSES_PROPERTY = "statusesId";
 
@@ -32,6 +32,8 @@ public class Group extends Model{
     private Long mParentId;
     @Column(name = USERS_PROPERTY)
     private ListOfLongs mUsers;
+    @Column(name = MANAGER_PROPERTY)
+    private Long mManager;
     @Column(name = IMAGE_PROPERTY)
     private String mImage;
     @Column(name = STATUSES_PROPERTY)
@@ -59,6 +61,14 @@ public class Group extends Model{
 
     public void setParentId(Long mParentId) {
         this.mParentId = mParentId;
+    }
+
+    public Long getManager() {
+        return mManager;
+    }
+
+    public void setManager(Long mManager) {
+        this.mManager = mManager;
     }
 
     public String getImage() {

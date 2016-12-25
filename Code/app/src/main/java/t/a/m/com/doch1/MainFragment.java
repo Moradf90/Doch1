@@ -2,7 +2,9 @@ package t.a.m.com.doch1;
 
 import android.app.Fragment;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.ClipData;
+import android.content.IntentFilter;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Point;
@@ -17,6 +19,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
@@ -28,6 +31,7 @@ import com.squareup.picasso.Picasso;
 
 import org.apmem.tools.layouts.FlowLayout;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -39,6 +43,8 @@ import t.a.m.com.doch1.Models.StatusesInGroup;
 import t.a.m.com.doch1.Models.User;
 import t.a.m.com.doch1.Models.UserInGroup;
 import t.a.m.com.doch1.common.SQLHelper;
+import t.a.m.com.doch1.services.tasks.GroupsUpdaterTask;
+import t.a.m.com.doch1.services.tasks.UsersStatusUpdaterTask;
 import t.a.m.com.doch1.views.CircleImageView;
 import t.a.m.com.doch1.views.MySpinner;
 
@@ -48,18 +54,23 @@ public class MainFragment extends Fragment {
     Group shownGroup;
     private static final int ENLARGE_ON_DARG = 2;
     private int ImageSizeOnDrop = 125;
-    List<User> lstSoldiers;
+    List<User> lstMembers;
     Map<String, List<String>> mapMainStatusToSub;
     List<String> lstMain;
     LinearLayout rootLinearLayout;
     View vFragmentLayout;
     ProgressDialog progress;
+    public static User loginUser;
+    Map<String, ViewGroup> mapMainStatusToView;
+    private BroadcastReceiver mUserStatusReceiver;
+
 
     public MainFragment() {
     }
 
-    public MainFragment(Group group) {
-        shownGroup = group;
+    public MainFragment(Group group, User loginUser) {
+        this.shownGroup = group;
+        this.loginUser = loginUser;
     }
 
     @Override
@@ -68,7 +79,7 @@ public class MainFragment extends Fragment {
 
         getActivity().setTitle(R.string.main_fragment_title);
 
-        lstSoldiers = new ArrayList<>();
+        lstMembers = new ArrayList<>();
         mapMainStatusToSub = new HashMap<>();
         lstMain = new ArrayList<>();
 
@@ -95,8 +106,8 @@ public class MainFragment extends Fragment {
         }
 
         // TODO: buildLayout should be called once. - not any creation
-        Map<String, ViewGroup> mapMainStatusToView = buildLayout();
-        pullSoldiers(mapMainStatusToView);
+        mapMainStatusToView = buildLayout();
+        pullMembers();
 
         return vFragmentLayout;
     }
@@ -160,12 +171,13 @@ public class MainFragment extends Fragment {
         return mapMainStatusToView;
     }
 
-    private void pullSoldiers(final Map<String, ViewGroup> mapMainStatusToView) {
+    // todo: should be called on broadcast
+    private void pullMembers() {
 
-        handleUsersOfGroup(shownGroup.getUsers(), vFragmentLayout, mapMainStatusToView, progress);
+        handleUsersOfGroup(shownGroup.getUsers(), vFragmentLayout, progress);
     }
 
-    private void handleUsersOfGroup(final List<Long> usersID, final View vFragmentLayout, final Map<String, ViewGroup> mapMainStatusToView, final ProgressDialog progress) {
+    private void handleUsersOfGroup(final List<Long> usersID, final View vFragmentLayout, final ProgressDialog progress) {
 
         List<User> groupUsers = new Select().from(User.class).where("id " + SQLHelper.getInQuery(usersID)).execute();
 
@@ -182,52 +194,56 @@ public class MainFragment extends Fragment {
                     break;
                 }
             }
-            lstSoldiers.add(currUser);
+            lstMembers.add(currUser);
         }
 
-        setSoldiersOnStatuses(vFragmentLayout, mapMainStatusToView, lstSoldiers);
+        setMembersOnStatuses(vFragmentLayout, lstMembers);
 
         progress.dismiss();
 
     }
 
-    private void setSoldiersOnStatuses(View vFragmentLayout, Map<String, ViewGroup> mapMainStatusToView, List<User> users) {
+    private void setMembersOnStatuses(View vFragmentLayout, List<User> users) {
 
         FlowLayout btm = (FlowLayout) vFragmentLayout.findViewById(R.id.defaultStatus);
 
         for (int i = 0; i < users.size(); i++) {
             RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(ImageSizeOnDrop, ImageSizeOnDrop);
 
-            CircleImageView soldierImage = new CircleImageView(getActivity());
+            CircleImageView memberImage = new CircleImageView(getActivity());
 
-            User currSoldier = users.get(i);
+            User currGroupMember = users.get(i);
 
-            soldierImage.setLayoutParams(layoutParams);
-            Picasso.with(getActivity()).load(currSoldier.getImage()).into(soldierImage);
+            memberImage.setLayoutParams(layoutParams);
+            Picasso.with(getActivity()).load(currGroupMember.getImage()).into(memberImage);
 
-            String soldierMainStatus = currSoldier.getMainStatus();
+            String memberMainStatus = currGroupMember.getMainStatus();
             // If there is no status,
             // or the status is irrelevant
             // or main status in the DB isnt valid
             // Then give default status
-            if ((currSoldier.getLastUpdateDate() == null) ||
-                    (!DateUtils.isToday(currSoldier.getLastUpdateDate().getTime())) ||
-                    (soldierMainStatus.equals("")) ||
-                    (!mapMainStatusToView.containsKey(soldierMainStatus))) {
-                currSoldier.setMainStatus((String) btm.getTag(R.string.main_status));
-                currSoldier.setSubStatus("");
-                currSoldier.updateUserStatuses(shownGroup.getId());
-                btm.addView(soldierImage);
+            if ((currGroupMember.getLastUpdateDate() == null) ||
+                    (!DateUtils.isToday(currGroupMember.getLastUpdateDate().getTime())) ||
+                    (memberMainStatus.equals("")) ||
+                    (!mapMainStatusToView.containsKey(memberMainStatus))) {
+                currGroupMember.setMainStatus((String) btm.getTag(R.string.main_status));
+                currGroupMember.setSubStatus("");
+                currGroupMember.updateUserStatuses(shownGroup.getId());
+                btm.addView(memberImage);
             }
             // If there is already main status on DB, and it's update date from today
             else {
-                mapMainStatusToView.get(soldierMainStatus).addView(soldierImage);
+                mapMainStatusToView.get(memberMainStatus).addView(memberImage);
             }
 
-            soldierImage.setTag(R.string.soldier, currSoldier);
+            memberImage.setTag(R.string.user, currGroupMember);
 
-            // TODO: only if has privilges
-            soldierImage.setOnTouchListener(new MyTouchListener());
+            // the member's image will be able to be dragged only if the logged on user is manager or
+            // he is the specific member itself
+            if ((shownGroup.getManager().equals(loginUser.getId())) ||
+                (currGroupMember.getId().equals(loginUser.getId()))) {
+                memberImage.setOnTouchListener(new MyTouchListener());
+            }
         }
     }
 
@@ -251,10 +267,10 @@ public class MainFragment extends Fragment {
     class MyDragListener implements View.OnDragListener {
         @Override
         public boolean onDrag(View v, DragEvent event) {
-            View imgSoldier = (View) event.getLocalState();
+            View imgMember = (View) event.getLocalState();
 
-            if (imgSoldier != null) {
-                ViewGroup oldLayout = (ViewGroup) imgSoldier.getParent();
+            if (imgMember != null) {
+                ViewGroup oldLayout = (ViewGroup) imgMember.getParent();
 
                 switch (event.getAction()) {
                     case DragEvent.ACTION_DRAG_STARTED:
@@ -266,19 +282,17 @@ public class MainFragment extends Fragment {
                         break;
                     case DragEvent.ACTION_DROP:
 
-                        removeViewFromLayout(oldLayout, imgSoldier);
-//                        oldLayout.removeView(imgSoldier);
+                        removeViewFromLayout(oldLayout, imgMember);
                         FlowLayout newLayout = (FlowLayout) v;
-                        addViewToLayout(newLayout, imgSoldier);
-//                        newLayout.addView(imgSoldier);
-                        imgSoldier.setVisibility(View.VISIBLE);
+                        addViewToLayout(newLayout, imgMember);
+                        imgMember.setVisibility(View.VISIBLE);
 
                         if (oldLayout == newLayout) {
-                            showPopupSubStatus(imgSoldier);
+                            showPopupSubStatus(imgMember);
                         }
                         // New mainStatus, Clear the sub status
                         else {
-                            User sld = ((User) imgSoldier.getTag(R.string.soldier));
+                            User sld = ((User) imgMember.getTag(R.string.user));
                             // Set main status
                             sld.setMainStatus((String) newLayout.getTag(R.string.main_status));
 
@@ -296,13 +310,13 @@ public class MainFragment extends Fragment {
             return true;
         }
 
-        private void removeViewFromLayout(ViewGroup oldLayout, View imgSoldier) {
-            oldLayout.removeView(imgSoldier);
+        private void removeViewFromLayout(ViewGroup oldLayout, View imgMember) {
+            oldLayout.removeView(imgMember);
 //            arrangeImagesInLayout(oldLayout);
         }
 
-        private void addViewToLayout(ViewGroup newLayout, View imgSoldier) {
-            newLayout.addView(imgSoldier);
+        private void addViewToLayout(ViewGroup newLayout, View imgMember) {
+            newLayout.addView(imgMember);
 //            arrangeImagesInLayout(newLayout);
         }
 
@@ -372,16 +386,16 @@ public class MainFragment extends Fragment {
         }
     }
 
-    public void showPopupSubStatus(final View imgSoldier) {
+    public void showPopupSubStatus(final View imgMember) {
 
-        User soldier = null;
+        User user = null;
         // If there is already selected sub status - select it
-        if (imgSoldier.getTag(R.string.soldier) != null) {
-            soldier = ((User) imgSoldier.getTag(R.string.soldier));
+        if (imgMember.getTag(R.string.user) != null) {
+            user = ((User) imgMember.getTag(R.string.user));
         }
 
-        if (soldier != null) {
-            List<String> subStatuses = mapMainStatusToSub.get(soldier.getMainStatus());
+        if (user != null) {
+            List<String> subStatuses = mapMainStatusToSub.get(user.getMainStatus());
             // Open spinner only if there is sub status
             if ((subStatuses == null) || (subStatuses.size() == 0)) {
                 Toast.makeText(getActivity(), R.string.noSubStatusMessage, Toast.LENGTH_SHORT).show();
@@ -394,9 +408,12 @@ public class MainFragment extends Fragment {
                 final PopupWindow popupWindow = new PopupWindow(
                         popupView, LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
                 final MySpinner popupSpinner = (MySpinner) popupView.findViewById(R.id.popupspinner);
-                TextView txtSoldierName = (TextView) popupView.findViewById(R.id.txt_soldier_name);
+                TextView txtMemberName = (TextView) popupView.findViewById(R.id.txt_member_name);
 
-                txtSoldierName.setText(soldier.getName());
+                txtMemberName.setText(user.getName());
+
+//                ImageView imgSmallImageMember = (ImageView) popupView.findViewById(R.id.img_small_member);
+//                imgSmallImageMember.setImageDrawable(((ImageView)imgMember).getDrawable());
 
                 ArrayAdapter<String> adapter =
                         new ArrayAdapter<String>(getActivity(),
@@ -406,12 +423,12 @@ public class MainFragment extends Fragment {
 
                 final Integer[] nTimesSelected = {0};
 
-                final User finalSoldier = soldier;
+                final User finalMember = user;
                 popupSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                     @Override
                     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                        finalSoldier.setSubStatus(popupSpinner.getSelectedItem().toString());
-                        finalSoldier.updateUserStatuses(shownGroup.getId());
+                        finalMember.setSubStatus(popupSpinner.getSelectedItem().toString());
+                        finalMember.updateUserStatuses(shownGroup.getId());
 
                         if (nTimesSelected[0] > 1) {
                             final Handler handler = new Handler();
@@ -437,14 +454,14 @@ public class MainFragment extends Fragment {
                 });
 
                 // If there is already selected sub status - select it
-                if ((soldier.getSubStatus() != null) && (!soldier.getSubStatus().equals(""))) {
+                if ((user.getSubStatus() != null) && (!user.getSubStatus().equals(""))) {
 
-                    String selectedOptionValue = soldier.getSubStatus();
+                    String selectedOptionValue = user.getSubStatus();
                     popupSpinner.setSelection(((ArrayAdapter<String>) popupSpinner.getAdapter()).getPosition(selectedOptionValue));
                 }
 
                 popupWindow.setFocusable(true);
-                popupWindow.showAsDropDown(imgSoldier, 0, 0);
+                popupWindow.showAsDropDown(imgMember, 0, 0);
             }
         }
     }
