@@ -226,6 +226,7 @@ public class MainFragment extends Fragment {
 
             soldierImage.setTag(R.string.soldier, currSoldier);
 
+            // TODO: only if has privilges
             soldierImage.setOnTouchListener(new MyTouchListener());
         }
     }
@@ -285,7 +286,6 @@ public class MainFragment extends Fragment {
                             sld.setSubStatus(null);
                             sld.updateUserStatuses(shownGroup.getId());
                         }
-
                         break;
                     case DragEvent.ACTION_DRAG_ENDED:
 
@@ -444,7 +444,7 @@ public class MainFragment extends Fragment {
                 }
 
                 popupWindow.setFocusable(true);
-                popupWindow.showAsDropDown(imgSoldier, 50, -30);
+                popupWindow.showAsDropDown(imgSoldier, 0, 0);
             }
         }
     }
