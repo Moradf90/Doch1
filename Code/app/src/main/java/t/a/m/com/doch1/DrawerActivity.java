@@ -16,6 +16,7 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.widget.CompoundButton;
 import android.widget.Toast;
 
 import com.activeandroid.query.Select;
@@ -29,6 +30,7 @@ import com.mikepenz.materialdrawer.AccountHeader;
 import com.mikepenz.materialdrawer.AccountHeaderBuilder;
 import com.mikepenz.materialdrawer.Drawer;
 import com.mikepenz.materialdrawer.DrawerBuilder;
+import com.mikepenz.materialdrawer.interfaces.OnCheckedChangeListener;
 import com.mikepenz.materialdrawer.model.AbstractBadgeableDrawerItem;
 import com.mikepenz.materialdrawer.model.DividerDrawerItem;
 import com.mikepenz.materialdrawer.model.ExpandableDrawerItem;
@@ -36,6 +38,7 @@ import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
 import com.mikepenz.materialdrawer.model.ProfileDrawerItem;
 import com.mikepenz.materialdrawer.model.SecondaryDrawerItem;
 import com.mikepenz.materialdrawer.model.SectionDrawerItem;
+import com.mikepenz.materialdrawer.model.SwitchDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IProfile;
 import com.mikepenz.octicons_typeface_library.Octicons;
@@ -45,6 +48,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 import t.a.m.com.doch1.Models.Group;
@@ -62,15 +66,16 @@ public class DrawerActivity extends AppCompatActivity {
     private AccountHeader headerResult = null;
     private Drawer result = null;
     public static FirebaseUser mCurrentUser;
-    List<IDrawerItem>  lstSoldiersToExpand;
-    ExpandableDrawerItem SoldiersDrawerItem;
+    List<IDrawerItem> lstMembersToExpand;
+    ExpandableDrawerItem MembersDrawerItem;
     ExpandableDrawerItem allGroupsDrawerItem;
-    private final Long MY_SOLDIERS_IDENTIFIERS = 20l;
+    private final Long MY_MEMBERS_IDENTIFIERS = 20l;
 
     public static User loginUser;
 
     private BroadcastReceiver mGroupsReceiver;
     private BroadcastReceiver mUserStatusReceiver;
+    private Boolean bShowSubMembers = false;
 
 
     @Override
@@ -111,7 +116,7 @@ public class DrawerActivity extends AppCompatActivity {
             public void onReceive(Context context, Intent intent) {
                 if (headerResult != null && headerResult.getActiveProfile() != null) {
                     Group selectedProfileGroup = (Group) ((ProfileDrawerItem)headerResult.getActiveProfile()).getTag();
-                    initSoldiersDrawer(selectedProfileGroup.getId());
+                    initMembersDrawer(selectedProfileGroup.getId());
                 }
             }};
 
@@ -134,7 +139,7 @@ public class DrawerActivity extends AppCompatActivity {
                             public boolean onProfileChanged(View view, IProfile profile, boolean current) {
                                 Group selectedProfileGroup = (Group) ((ProfileDrawerItem) profile).getTag();
 
-                                initSoldiersDrawer(selectedProfileGroup.getId());
+                                initMembersDrawer(selectedProfileGroup.getId());
                                 refreshCurrFragment(selectedProfileGroup);
 
                                 //false if you have not consumed the event and it should close the drawer
@@ -146,7 +151,7 @@ public class DrawerActivity extends AppCompatActivity {
                                 if (fCurrentDisplayedFragment.getClass().getSimpleName().equals("MainFragment")) {
 
                                     // TODO: create new only if not exist
-                                    Fragment newFragment = new MainFragment(selectedProfileGroupID, loginUser);
+                                    Fragment newFragment = new MainFragment(selectedProfileGroupID, loginUser, bShowSubMembers);
 
                                     FragmentManager fragmentManager = getFragmentManager();
                                     fragmentManager.beginTransaction()
@@ -160,13 +165,22 @@ public class DrawerActivity extends AppCompatActivity {
                 .build();
 
 
+        SwitchDrawerItem switchShowSubMembers =  new SwitchDrawerItem().withName(R.string.show_sub_members).withIcon(Octicons.Icon.oct_tools).withChecked(bShowSubMembers).withSelectable(false).withOnCheckedChangeListener(new OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(IDrawerItem drawerItem, CompoundButton buttonView, boolean isChecked) {
+                // TODO: refresh fragment
+                bShowSubMembers = isChecked;
+                initMembersDrawer(getSelectedGroupId());
+            }
+        });
+
 
         PrimaryDrawerItem MyProfileDrawerItem = new PrimaryDrawerItem().withName(R.string.profile_fragment).withIcon(GoogleMaterial.Icon.gmd_account).withIdentifier(1);
         PrimaryDrawerItem ManagementGroupsDrawerItem = new PrimaryDrawerItem().withName(R.string.managment_fragment).withIcon(GoogleMaterial.Icon.gmd_accounts_list_alt).withIdentifier(3);
 
         PrimaryDrawerItem FillStatusesDrawerItem = new PrimaryDrawerItem().withName(R.string.main_fragment).withDescription(R.string.dsc_main_statuses).withIcon(FontAwesome.Icon.faw_wheelchair).withIdentifier(2);
 
-        SoldiersDrawerItem = new ExpandableDrawerItem().withName(R.string.my_members).withIcon(GoogleMaterial.Icon.gmd_accounts_list).withIdentifier(19);
+        MembersDrawerItem = new ExpandableDrawerItem().withName(R.string.my_members).withIcon(GoogleMaterial.Icon.gmd_accounts_list).withIdentifier(19);
 
         final PrimaryDrawerItem SendDrawerItem = new PrimaryDrawerItem().withName(R.string.send_statuses).withEnabled(true).withIcon(Octicons.Icon.oct_radio_tower).withIdentifier(9);
 
@@ -188,14 +202,13 @@ public class DrawerActivity extends AppCompatActivity {
                         ManagementGroupsDrawerItem,
                         new SectionDrawerItem().withName(R.string.drawer_item_section_header),
                         FillStatusesDrawerItem,
-                        SoldiersDrawerItem,
+                        MembersDrawerItem,
+                        switchShowSubMembers,
                         SendDrawerItem,
                         new DividerDrawerItem(),
 
                         contactDrawerItem
                         //                        new SwitchDrawerItem().withName("Switch").withIcon(Octicons.Icon.oct_tools).withChecked(true).withOnCheckedChangeListener(onCheckedChangeListener),
-//                        new SwitchDrawerItem().withName("Switch2").withIcon(Octicons.Icon.oct_tools).withChecked(true).withOnCheckedChangeListener(onCheckedChangeListener).withSelectable(false),
-//                        new ToggleDrawerItem().withName("Toggle").withIcon(Octicons.Icon.oct_tools).withChecked(true).withOnCheckedChangeListener(onCheckedChangeListener),
 //                        new DividerDrawerItem(),
 //                        new SecondarySwitchDrawerItem().withName("Secondary switch").withIcon(Octicons.Icon.oct_tools).withChecked(true).withOnCheckedChangeListener(onCheckedChangeListener),
 //                        new SecondarySwitchDrawerItem().withName("Secondary Switch2").withIcon(Octicons.Icon.oct_tools).withChecked(true).withOnCheckedChangeListener(onCheckedChangeListener).withSelectable(false),
@@ -246,10 +259,15 @@ public class DrawerActivity extends AppCompatActivity {
         // TODO: change - dont take default first group
         // Need to be after the initialization of result
         if (loginUser != null && loginUser.getGroups() != null && loginUser.getGroups().size() > 0) {
-            initSoldiersDrawer(loginUser.getGroups().get(0));
+            initMembersDrawer(loginUser.getGroups().get(0));
         }
 
         updateGroupsInDrawer();
+    }
+
+    private long getSelectedGroupId() {
+        Group selectedProfileGroup = (Group) ((ProfileDrawerItem) headerResult.getActiveProfile()).getTag();
+        return selectedProfileGroup.getId();
     }
 
     private void updateGroupsInDrawer() {
@@ -259,13 +277,13 @@ public class DrawerActivity extends AppCompatActivity {
             allGroupsDrawerItem =
                     new ExpandableDrawerItem().withName(R.string.my_groups)
                             .withIcon(GoogleMaterial.Icon.gmd_group)
-                            .withIdentifier(MY_SOLDIERS_IDENTIFIERS);
+                            .withIdentifier(MY_MEMBERS_IDENTIFIERS);
 
             Long[] groupsId =
                     Arrays.copyOf(loginUser.getGroups().toArray(), loginUser.getGroups().size(), Long[].class);
             initUnderMyCommandGroups(allGroupsDrawerItem, groupsId);
 
-            if (result.getDrawerItem((long)MY_SOLDIERS_IDENTIFIERS) != null) {
+            if (result.getDrawerItem((long) MY_MEMBERS_IDENTIFIERS) != null) {
                 result.updateItem(allGroupsDrawerItem);
             }
             else {
@@ -321,63 +339,86 @@ public class DrawerActivity extends AppCompatActivity {
         lstSubGroupsDrawerItems.add(currGroupDrawerItem);
     }
 
-    private void initSoldiersDrawer(final long groupID) {
+    private void initMembersDrawer(final long groupID) {
+
+        lstMembersToExpand = new ArrayList<>();
 
         Group group = new Select().from(Group.class).where("id = " + groupID).executeSingle();
 
+        handleMemberDrawerOfGroup(group);
+
+        MembersDrawerItem.withSubItems(lstMembersToExpand);
+        // TODO: should fix problem
+//        synchronized(MembersDrawerItem){
+//            MembersDrawerItem.notifyAll();
+//        }
+        result.updateItem(MembersDrawerItem);
+    }
+
+    // todo: should be called on broadcast
+    private void handleMemberDrawerOfGroup(Group g) {
+        handleMembersOfGroup(g);
+
+        if (bShowSubMembers) {
+            List<Group> subGroups =  new Select().from(Group.class).where(Group.PARENT_ID_PROPERTY + " = " + g.getId()).execute();
+            for (Group currSubGroup : subGroups) {
+                handleMemberDrawerOfGroup(currSubGroup);
+            }
+        }
+    }
+
+    private void handleMembersOfGroup(Group group) {
         List<User> groupUsers = new Select().from(User.class).where("id " + SQLHelper.getInQuery(group.getUsers())).execute();
 
-        List<UserInGroup> usersInGroups = new Select().from(UserInGroup.class).where(UserInGroup.GROUP_PROPERTY + " = " + groupID).execute();
+        List<UserInGroup> usersInGroups = new Select().from(UserInGroup.class).where(UserInGroup.GROUP_PROPERTY + " = " + group.getId()).execute();
 
-        // TODO: build hashmap - 1 for.
-        lstSoldiersToExpand = new ArrayList<>();
+        HashMap<Long, UserInGroup> mapUserIdToStatus = new HashMap<>();
+
+        // Set statuses in hashmap
+        for (UserInGroup userInGroup : usersInGroups) {
+            if (!mapUserIdToStatus.containsKey(userInGroup.getUserId())) {
+                mapUserIdToStatus.put(userInGroup.getUserId(), userInGroup);
+            }
+        }
+
 
         for (User user : groupUsers) {
-            final SecondaryDrawerItem currSoldierDrawer = new SecondaryDrawerItem().withName(user.getName()).withLevel(2)
+            final SecondaryDrawerItem currMemberDrawer = new SecondaryDrawerItem().withName(user.getName()).withLevel(2)
                     .withIdentifier(Long.parseLong(user.getPersonalId()))
                     .withSelectable(false);
 
-            drawableFromUrl(user.getImage(), currSoldierDrawer);
+            drawableFromUrl(user.getImage(), currMemberDrawer);
 
-            for (UserInGroup userInGroup : usersInGroups) {
-                if (userInGroup.getUserId().equals(user.getId())) {
-                    // If there is main status
-                    if (userInGroup.getMainStatus() != "") {
-                        currSoldierDrawer.withDescription(getDescription(userInGroup)).withTextColor(Color.rgb(20, 170, 20));
-                    } else {
-                        currSoldierDrawer.withDescription(R.string.no_status).withTextColor(Color.rgb(170, 20, 20));
-                    }
-                    break;
-                }
+            UserInGroup userInGroup = mapUserIdToStatus.get(user.getId());
+
+            // If there is main status
+            if ((userInGroup != null) && (userInGroup.getMainStatus() != "")) {
+                currMemberDrawer.withDescription(getDescription(userInGroup)).withTextColor(Color.rgb(20, 170, 20));
+            } else {
+                currMemberDrawer.withDescription(R.string.no_status).withTextColor(Color.rgb(170, 20, 20));
             }
-            addDrawerToList(lstSoldiersToExpand, currSoldierDrawer);
-        }
 
-        SoldiersDrawerItem.withSubItems(lstSoldiersToExpand);
-        // TODO: should fix problem
-//        synchronized(SoldiersDrawerItem){
-//            SoldiersDrawerItem.notifyAll();
-//        }
-        result.updateItem(SoldiersDrawerItem);
+            addDrawerToList(lstMembersToExpand, currMemberDrawer);
+        }
     }
 
-    private void addDrawerToList(List<IDrawerItem> lstSoldiersToExpand, SecondaryDrawerItem currSoldierDrawer) {
+    private void addDrawerToList(List<IDrawerItem> lstMembersToExpand, SecondaryDrawerItem currMemberDrawer) {
         int indexToRemove = -1;
-        for (int i = 0; i < lstSoldiersToExpand.size(); i++) {
-            if (((SecondaryDrawerItem) lstSoldiersToExpand.get(i)).getName().getText().equals(currSoldierDrawer.getName().getText())) {
+        for (int i = 0; i < lstMembersToExpand.size(); i++) {
+            if (((SecondaryDrawerItem) lstMembersToExpand.get(i)).getName().getText().equals(currMemberDrawer.getName().getText())) {
                 indexToRemove = i;
                 break;
             }
         }
 
         if (indexToRemove >= 0) {
-            lstSoldiersToExpand.remove(indexToRemove);
+            lstMembersToExpand.remove(indexToRemove);
         }
-        lstSoldiersToExpand.add(currSoldierDrawer);
+        lstMembersToExpand.add(currMemberDrawer);
 
 //     // TODO: should fix problem
-//     synchronized(SoldiersDrawerItem){
-//         SoldiersDrawerItem.notifyAll();
+//     synchronized(MembersDrawerItem){
+//         MembersDrawerItem.notifyAll();
 //     }
     }
 
@@ -523,7 +564,7 @@ public class DrawerActivity extends AppCompatActivity {
             }
             else{
                 Group selectedProfileGroup = (Group) ((ProfileDrawerItem) headerResult.getActiveProfile()).getTag();
-                newFragment = new MainFragment(selectedProfileGroup, loginUser);
+                newFragment = new MainFragment(selectedProfileGroup, loginUser, bShowSubMembers);
             }
         }
         else if (identifier == 3) {

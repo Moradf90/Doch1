@@ -11,6 +11,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.List;
 import java.util.Vector;
 
 import t.a.m.com.doch1.Models.Group;
@@ -50,15 +51,47 @@ public class GroupsUpdaterTask implements ValueEventListener {
                 mGroups.add(groupId);
                 addListenerToGroup(groupId);
                 UsersStatusUpdaterTask.instance(mContext).addGroupListener(groupId);
+
+                addSubGroups(groupId);
             }
         }
     }
 
-    private void addListenerToGroup(Long groupId){
+    private void addSubGroups(Long groupId) {
         FirebaseDatabase.getInstance()
                 .getReference(Group.GROUPS_REFERENCE_KEY)
-                .child(groupId.toString())
-                .addValueEventListener(this);
+                .orderByChild(Group.PARENT_ID_PROPERTY).
+                equalTo(groupId).addListenerForSingleValueEvent(
+                new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot subGroups) {
+                        if (subGroups.exists()) {
+                            for (DataSnapshot postSnapshot: subGroups.getChildren()) {
+                                Group subGroup = postSnapshot.getValue(Group.class);
+                                if (!mGroups.contains(subGroup.getId())) {
+                                    mGroups.add(subGroup.getId());
+                                    addListenerToGroup(subGroup.getId());
+                                    UsersStatusUpdaterTask.instance(mContext).addGroupListener(subGroup.getId());
+
+                                    addSubGroups(subGroup.getId());
+                                }
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                }
+        );
+    }
+
+    private void addListenerToGroup(Long groupId){
+            FirebaseDatabase.getInstance()
+                    .getReference(Group.GROUPS_REFERENCE_KEY)
+                    .child(groupId.toString())
+                    .addValueEventListener(this);
     }
 
     @Override
@@ -91,23 +124,24 @@ public class GroupsUpdaterTask implements ValueEventListener {
                 }
             }
 
+            // TODO: change cause mGroups now contains sub Groups, which user doesnt have
             // there are removed groups
-            if(mTask.mGroups.size() > user.getGroups().size()){
-                for(Long groupId : mTask.mGroups) {
-                    if(!user.getGroups().contains(groupId)){
-                        mTask.mGroups.remove(groupId);
-                        mTask.mContext.sendBroadcast(new Intent(GROUP_UPDATED_ACTION));
-                        mTask.removeListenerToGroup(groupId);
-                        UsersStatusUpdaterTask.instance(mTask.mContext).removeGroupListener(groupId);
-
-                        Group group = Group.load(Group.class, groupId);
-                        if(group != null && group.getStatusesId() != null){
-                            StatusesUpdaterTask.instance(mTask.mContext)
-                                    .removeStatusesGroupListener(group.getStatusesId());
-                        }
-                    }
-                }
-            }
+//            if(mTask.mGroups.size() > user.getGroups().size()){
+//                for(Long groupId : mTask.mGroups) {
+//                    if(!user.getGroups().contains(groupId)){
+//                        mTask.mGroups.remove(groupId);
+//                        mTask.mContext.sendBroadcast(new Intent(GROUP_UPDATED_ACTION));
+//                        mTask.removeListenerToGroup(groupId);
+//                        UsersStatusUpdaterTask.instance(mTask.mContext).removeGroupListener(groupId);
+//
+//                        Group group = Group.load(Group.class, groupId);
+//                        if(group != null && group.getStatusesId() != null){
+//                            StatusesUpdaterTask.instance(mTask.mContext)
+//                                    .removeStatusesGroupListener(group.getStatusesId());
+//                        }
+//                    }
+//                }
+//            }
         }
     }
 

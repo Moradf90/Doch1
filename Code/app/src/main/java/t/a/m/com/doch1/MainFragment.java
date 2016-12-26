@@ -63,15 +63,16 @@ public class MainFragment extends Fragment {
     public static User loginUser;
     Map<String, ViewGroup> mapMainStatusToView;
     private BroadcastReceiver mUserStatusReceiver;
-
+    private Boolean bShowSubMembers;
 
     public MainFragment() {
     }
 
     // TODO: save on bundle, not in CTOR
-    public MainFragment(Group group, User loginUser) {
+    public MainFragment(Group group, User loginUser, boolean bShowSubMembers) {
         this.shownGroup = group;
         this.loginUser = loginUser;
+        this.bShowSubMembers = bShowSubMembers;
     }
 
     @Override
@@ -110,7 +111,7 @@ public class MainFragment extends Fragment {
 
         // TODO: buildLayout should be called once. - not any creation
         mapMainStatusToView = buildLayout();
-        pullMembers();
+        pullMembers(shownGroup);
 
         return vFragmentLayout;
     }
@@ -175,30 +176,45 @@ public class MainFragment extends Fragment {
     }
 
     // todo: should be called on broadcast
-    private void pullMembers() {
-        handleUsersOfGroup(shownGroup.getUsers(), vFragmentLayout, progress);
+    private void pullMembers(Group g) {
+        handleUsersOfGroup(g.getUsers(), vFragmentLayout, progress);
+
+        if (bShowSubMembers) {
+            List<Group> subGroups =  new Select().from(Group.class).where(Group.PARENT_ID_PROPERTY + " = " + g.getId()).execute();
+            for (Group currSubGroup : subGroups) {
+                pullMembers(currSubGroup);
+            }
+        }
     }
+
     private void handleUsersOfGroup(final List<Long> usersID, final View vFragmentLayout, final ProgressDialog progress) {
 
         List<User> groupUsers = new Select().from(User.class).where("id " + SQLHelper.getInQuery(usersID)).execute();
 
         List<UserInGroup> usersInGroups = new Select().from(UserInGroup.class).where(UserInGroup.GROUP_PROPERTY + " = " + shownGroup.getId()).execute();
-// TODO: HASHMAP
-        for (User currUser : groupUsers) {
-            for (UserInGroup userInGroup : usersInGroups) {
-                if (userInGroup.getUserId().equals(currUser.getId())) {
-                    // When we got the status of the current user
-                    currUser.setMainStatus(userInGroup.getMainStatus());
-                    currUser.setSubStatus(userInGroup.getSubStatus());
-                    currUser.setLastUpdateDate(userInGroup.getLastUpdateDate());
 
-                    break;
-                }
+        HashMap<Long, UserInGroup> mapUserIdToStatus = new HashMap<>();
+
+        // Set statuses in hashmap
+        for (UserInGroup userInGroup : usersInGroups) {
+            if (!mapUserIdToStatus.containsKey(userInGroup.getUserId())) {
+                mapUserIdToStatus.put(userInGroup.getUserId(), userInGroup);
+            }
+        }
+
+        for (User currUser : groupUsers) {
+            UserInGroup userInGroup = mapUserIdToStatus.get(currUser.getId());
+
+            if (userInGroup != null) {
+                // When we got the status of the current user
+                currUser.setMainStatus(userInGroup.getMainStatus());
+                currUser.setSubStatus(userInGroup.getSubStatus());
+                currUser.setLastUpdateDate(userInGroup.getLastUpdateDate());
             }
             lstMembers.add(currUser);
         }
 
-        setMembersOnStatuses(vFragmentLayout, lstMembers);
+        setMembersOnStatuses(vFragmentLayout, groupUsers);
 
         progress.dismiss();
 

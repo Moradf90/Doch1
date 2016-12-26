@@ -9,21 +9,28 @@ public class SQLHelper {
 
 
     public static String getInQuery(Long... groupsId) {
-        StringBuilder query = new StringBuilder(" in (");
-        for (long groupID: groupsId) {
-            query.append(groupID + ",");
-        }
+        if (groupsId != null) {
+            StringBuilder query = new StringBuilder(" in (");
+            for (long groupID : groupsId) {
+                query.append(groupID + ",");
+            }
 
-        return query.substring(0, query.length() - 1) + ") ";
+            return query.substring(0, query.length() - 1) + ") ";
+        }
+        return " in () ";
     }
 
     public static String getInQuery(List<Long> groupsId) {
-        StringBuilder query = new StringBuilder(" in (");
-        for (long groupID: groupsId) {
-            query.append(groupID + ",");
+        if (groupsId != null) {
+            StringBuilder query = new StringBuilder(" in (");
+            for (long groupID : groupsId) {
+                query.append(groupID + ",");
+            }
+
+            return query.substring(0, query.length() - 1) + ") ";
         }
 
-        return query.substring(0, query.length() - 1) + ") ";
+        return " in () ";
     }
 
 //    public static String getInQuery(List<Object> groupsId) {
