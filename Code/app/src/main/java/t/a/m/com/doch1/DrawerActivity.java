@@ -145,6 +145,7 @@ public class DrawerActivity extends AppCompatActivity {
                                 Fragment fCurrentDisplayedFragment = getFragmentManager().findFragmentById(R.id.frame_container);
                                 if (fCurrentDisplayedFragment.getClass().getSimpleName().equals("MainFragment")) {
 
+                                    // TODO: create new only if not exist
                                     Fragment newFragment = new MainFragment(selectedProfileGroupID, loginUser);
 
                                     FragmentManager fragmentManager = getFragmentManager();
@@ -328,6 +329,7 @@ public class DrawerActivity extends AppCompatActivity {
 
         List<UserInGroup> usersInGroups = new Select().from(UserInGroup.class).where(UserInGroup.GROUP_PROPERTY + " = " + groupID).execute();
 
+        // TODO: build hashmap - 1 for.
         lstSoldiersToExpand = new ArrayList<>();
 
         for (User user : groupUsers) {

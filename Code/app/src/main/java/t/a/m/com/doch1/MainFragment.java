@@ -68,6 +68,7 @@ public class MainFragment extends Fragment {
     public MainFragment() {
     }
 
+    // TODO: save on bundle, not in CTOR
     public MainFragment(Group group, User loginUser) {
         this.shownGroup = group;
         this.loginUser = loginUser;
@@ -81,6 +82,8 @@ public class MainFragment extends Fragment {
 
         lstMembers = new ArrayList<>();
         mapMainStatusToSub = new HashMap<>();
+
+        // TODO: check if needed - can use mapMainStatusToSub.keys
         lstMain = new ArrayList<>();
 
         progress = new ProgressDialog(getActivity());
@@ -173,16 +176,14 @@ public class MainFragment extends Fragment {
 
     // todo: should be called on broadcast
     private void pullMembers() {
-
         handleUsersOfGroup(shownGroup.getUsers(), vFragmentLayout, progress);
     }
-
     private void handleUsersOfGroup(final List<Long> usersID, final View vFragmentLayout, final ProgressDialog progress) {
 
         List<User> groupUsers = new Select().from(User.class).where("id " + SQLHelper.getInQuery(usersID)).execute();
 
         List<UserInGroup> usersInGroups = new Select().from(UserInGroup.class).where(UserInGroup.GROUP_PROPERTY + " = " + shownGroup.getId()).execute();
-
+// TODO: HASHMAP
         for (User currUser : groupUsers) {
             for (UserInGroup userInGroup : usersInGroups) {
                 if (userInGroup.getUserId().equals(currUser.getId())) {
