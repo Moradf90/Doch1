@@ -150,7 +150,7 @@ public class DrawerActivity extends AppCompatActivity {
                                 Fragment fCurrentDisplayedFragment = getFragmentManager().findFragmentById(R.id.frame_container);
                                 if (fCurrentDisplayedFragment.getClass().getSimpleName().equals("MainFragment")) {
 
-                                    // TODO: create new only if not exist
+                                    // TODO: create new only if not exist - take from the manager
                                     Fragment newFragment = new MainFragment(selectedProfileGroupID, loginUser, bShowSubMembers);
 
                                     FragmentManager fragmentManager = getFragmentManager();

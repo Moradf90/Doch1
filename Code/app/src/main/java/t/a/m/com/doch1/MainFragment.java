@@ -84,7 +84,6 @@ public class MainFragment extends Fragment {
         lstMembers = new ArrayList<>();
         mapMainStatusToSub = new HashMap<>();
 
-        // TODO: check if needed - can use mapMainStatusToSub.keys
         lstMain = new ArrayList<>();
 
         progress = new ProgressDialog(getActivity());
@@ -102,12 +101,12 @@ public class MainFragment extends Fragment {
         List<StatusesInGroup> statusesInGroup =
                 new Select().from(StatusesInGroup.class).where(StatusesInGroup.STATUSES_ID_PROPERTY + " = " + shownGroup.getStatusesId()).execute();
 
-        calculateImageSizeByStatuses(statusesInGroup);
-
         for (StatusesInGroup mainStatus : statusesInGroup) {
             mapMainStatusToSub.put(mainStatus.getName(), mainStatus.getSubStatuses() != null ? mainStatus.getSubStatuses() : new ArrayList<String>());
             lstMain.add(mainStatus.getName());
         }
+
+        calculateImageSizeByStatuses(statusesInGroup);
 
         // TODO: buildLayout should be called once. - not any creation
         mapMainStatusToView = buildLayout();
@@ -217,7 +216,6 @@ public class MainFragment extends Fragment {
         setMembersOnStatuses(vFragmentLayout, groupUsers);
 
         progress.dismiss();
-
     }
 
     private void setMembersOnStatuses(View vFragmentLayout, List<User> users) {
