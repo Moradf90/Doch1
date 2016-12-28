@@ -2,6 +2,7 @@ package t.a.m.com.doch1.services.tasks;
 
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -18,21 +19,12 @@ import t.a.m.com.doch1.Models.StatusesInGroup;
 public class StatusesUpdaterTask implements ValueEventListener {
     public static final String STATUSES_UPDATED_ACTION = "statuses_updated_action";
 
-    private static StatusesUpdaterTask mTask;
-
     private Vector<Long> mStatusesIds; //thread safe
 
     private Context mContext;
-    private StatusesUpdaterTask(Context context){
+    public StatusesUpdaterTask(Context context){
         mContext = context;
         mStatusesIds = new Vector<>();
-    }
-
-    public static StatusesUpdaterTask instance(Context context){
-        if(mTask == null){
-            mTask = new StatusesUpdaterTask(context);
-        }
-        return mTask;
     }
 
     public void addStatusesGroupListener(Long statusesId){

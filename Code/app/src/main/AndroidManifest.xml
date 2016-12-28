@@ -24,14 +24,10 @@
             android:value="5" />
         <meta-data
             android:name="AA_MODELS"
-            android:value="t.a.m.com.doch1.Models.User,
-                            t.a.m.com.doch1.Models.Group,
-                            t.a.m.com.doch1.Models.UserInGroup,
-                            t.a.m.com.doch1.Models.StatusesInGroup" />
+            android:value="t.a.m.com.doch1.Models.User,                             t.a.m.com.doch1.Models.Group,                             t.a.m.com.doch1.Models.UserInGroup,                             t.a.m.com.doch1.Models.StatusesInGroup" />
         <meta-data
             android:name="AA_SERIALIZERS"
-            android:value="t.a.m.com.doch1.Models.typeSerializer.ListOfLongsSerializer,
-            t.a.m.com.doch1.Models.typeSerializer.ListOfStringsSerializer" />
+            android:value="t.a.m.com.doch1.Models.typeSerializer.ListOfLongsSerializer,             t.a.m.com.doch1.Models.typeSerializer.ListOfStringsSerializer" />
 
         <activity android:name=".LoginActivity">
             <intent-filter>
@@ -46,8 +42,6 @@
             android:theme="@style/MaterialDrawerTheme.Light.DarkToolbar" />
         <activity android:name=".management.GroupManagementActivity" />
 
-        <service android:name=".services.UpdaterService" />
-
         <receiver android:name=".services.OnAlarmReceiver" />
         <receiver android:name=".services.StartServiceReceiver">
             <intent-filter>
@@ -56,6 +50,10 @@
             </intent-filter>
         </receiver>
 
+        <service
+            android:name=".services.UpdaterService"
+            android:enabled="true"
+            android:exported="true"></service>
     </application>
 
 </manifest>
