@@ -49,6 +49,7 @@ public class User extends Model{
 
     private String mMainStatus;
     private String mSubStatus;
+    private long mGroupId;
 
     public User(){
         super();
@@ -82,6 +83,10 @@ public class User extends Model{
         this.mSubStatus = mSubStatus;
     }
 
+    public void setGroupId(long mGroupId) {
+        this.mGroupId = mGroupId;
+    }
+
     public String getName() {
         return mName;
     }
@@ -96,6 +101,10 @@ public class User extends Model{
 
     public String getPhone() {
         return mPhone;
+    }
+
+    public long getGroupId() {
+        return mGroupId;
     }
 
     public List<Long> getGroups() {
@@ -148,11 +157,11 @@ public class User extends Model{
     }
 
     // Update the user in the DB
-    public void updateUserStatuses(long groupId) {
+    public void updateUserStatuses() {
         this.setLastUpdateDate(new Date());
 
         FirebaseDatabase.getInstance().getReference(UserInGroup.USERS_IN_GROUP_REFERENCE_KEY)
-                .child(String.valueOf(groupId)).child(getId().toString()).setValue(getUserInGroup());
+                .child(String.valueOf(getGroupId())).child(getId().toString()).setValue(getUserInGroup());
                 
     }
 

@@ -39,6 +39,9 @@ public class Group extends Model{
     @Column(name = STATUSES_PROPERTY)
     private Long mStatusesId;
 
+
+    private boolean mIsManager = false;
+
     public Group(){
         super();
     }
@@ -101,5 +104,14 @@ public class Group extends Model{
 
     public void setStatusesId(Long mStatusesId) {
         this.mStatusesId = mStatusesId;
+    }
+
+    // this method doesnt called isManager cause of firebase (exception - 'andoid firebase Found conflicting getters for name')
+    public boolean getIsManager() {
+        return mIsManager;
+    }
+
+    public void setIsManager(boolean isManager) {
+        this.mIsManager = isManager;
     }
 }

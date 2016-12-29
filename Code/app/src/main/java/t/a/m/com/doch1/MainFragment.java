@@ -4,7 +4,6 @@ import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.ClipData;
-import android.content.IntentFilter;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Point;
@@ -19,7 +18,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
@@ -31,7 +29,6 @@ import com.squareup.picasso.Picasso;
 
 import org.apmem.tools.layouts.FlowLayout;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -43,8 +40,6 @@ import t.a.m.com.doch1.Models.StatusesInGroup;
 import t.a.m.com.doch1.Models.User;
 import t.a.m.com.doch1.Models.UserInGroup;
 import t.a.m.com.doch1.common.SQLHelper;
-import t.a.m.com.doch1.services.tasks.GroupsUpdaterTask;
-import t.a.m.com.doch1.services.tasks.UsersStatusUpdaterTask;
 import t.a.m.com.doch1.views.CircleImageView;
 import t.a.m.com.doch1.views.MySpinner;
 
@@ -176,7 +171,7 @@ public class MainFragment extends Fragment {
 
     // todo: should be called on broadcast
     private void pullMembers(Group g) {
-        handleUsersOfGroup(g.getUsers(), vFragmentLayout, progress);
+        handleUsersOfGroup(g, g.getUsers(), vFragmentLayout, progress);
 
         if (bShowSubMembers) {
             List<Group> subGroups =  new Select().from(Group.class).where(Group.PARENT_ID_PROPERTY + " = " + g.getId()).execute();
@@ -186,11 +181,11 @@ public class MainFragment extends Fragment {
         }
     }
 
-    private void handleUsersOfGroup(final List<Long> usersID, final View vFragmentLayout, final ProgressDialog progress) {
+    private void handleUsersOfGroup(Group groupOfUsers, final List<Long> usersID, final View vFragmentLayout, final ProgressDialog progress) {
 
         List<User> groupUsers = new Select().from(User.class).where("id " + SQLHelper.getInQuery(usersID)).execute();
 
-        List<UserInGroup> usersInGroups = new Select().from(UserInGroup.class).where(UserInGroup.GROUP_PROPERTY + " = " + shownGroup.getId()).execute();
+        List<UserInGroup> usersInGroups = new Select().from(UserInGroup.class).where(UserInGroup.GROUP_PROPERTY + " = " + groupOfUsers.getId()).execute();
 
         HashMap<Long, UserInGroup> mapUserIdToStatus = new HashMap<>();
 
@@ -209,6 +204,7 @@ public class MainFragment extends Fragment {
                 currUser.setMainStatus(userInGroup.getMainStatus());
                 currUser.setSubStatus(userInGroup.getSubStatus());
                 currUser.setLastUpdateDate(userInGroup.getLastUpdateDate());
+                currUser.setGroupId(groupOfUsers.getId());
             }
             lstMembers.add(currUser);
         }
@@ -243,7 +239,7 @@ public class MainFragment extends Fragment {
                     (!mapMainStatusToView.containsKey(memberMainStatus))) {
                 currGroupMember.setMainStatus((String) btm.getTag(R.string.main_status));
                 currGroupMember.setSubStatus("");
-                currGroupMember.updateUserStatuses(shownGroup.getId());
+                currGroupMember.updateUserStatuses();
                 btm.addView(memberImage);
             }
             // If there is already main status on DB, and it's update date from today
@@ -255,7 +251,7 @@ public class MainFragment extends Fragment {
 
             // the member's image will be able to be dragged only if the logged on user is manager or
             // he is the specific member itself
-            if ((shownGroup.getManager().equals(loginUser.getId())) ||
+            if ((shownGroup.getIsManager()) ||
                 (currGroupMember.getId().equals(loginUser.getId()))) {
                 memberImage.setOnTouchListener(new MyTouchListener());
             }
@@ -297,9 +293,9 @@ public class MainFragment extends Fragment {
                         break;
                     case DragEvent.ACTION_DROP:
 
-                        removeViewFromLayout(oldLayout, imgMember);
+//                        removeViewFromLayout(oldLayout, imgMember);
                         FlowLayout newLayout = (FlowLayout) v;
-                        addViewToLayout(newLayout, imgMember);
+//                        addViewToLayout(newLayout, imgMember);
                         imgMember.setVisibility(View.VISIBLE);
 
                         if (oldLayout == newLayout) {
@@ -307,13 +303,16 @@ public class MainFragment extends Fragment {
                         }
                         // New mainStatus, Clear the sub status
                         else {
+                            removeViewFromLayout(oldLayout, imgMember);
+                            addViewToLayout(newLayout, imgMember);
+
                             User sld = ((User) imgMember.getTag(R.string.user));
                             // Set main status
                             sld.setMainStatus((String) newLayout.getTag(R.string.main_status));
 
                             // Clear sub status
                             sld.setSubStatus(null);
-                            sld.updateUserStatuses(shownGroup.getId());
+                            sld.updateUserStatuses();
                         }
                         break;
                     case DragEvent.ACTION_DRAG_ENDED:
@@ -443,7 +442,7 @@ public class MainFragment extends Fragment {
                     @Override
                     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                         finalMember.setSubStatus(popupSpinner.getSelectedItem().toString());
-                        finalMember.updateUserStatuses(shownGroup.getId());
+                        finalMember.updateUserStatuses();
 
                         if (nTimesSelected[0] > 1) {
                             final Handler handler = new Handler();

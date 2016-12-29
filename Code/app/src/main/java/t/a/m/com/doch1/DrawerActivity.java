@@ -266,8 +266,14 @@ public class DrawerActivity extends AppCompatActivity {
     }
 
     private long getSelectedGroupId() {
-        Group selectedProfileGroup = (Group) ((ProfileDrawerItem) headerResult.getActiveProfile()).getTag();
-        return selectedProfileGroup.getId();
+        ProfileDrawerItem activeProfile = ((ProfileDrawerItem) headerResult.getActiveProfile());
+        if (activeProfile != null) {
+            Group selectedProfileGroup = (Group) ((ProfileDrawerItem) headerResult.getActiveProfile()).getTag();
+            return selectedProfileGroup.getId();
+        }
+        else {
+            return -1;
+        }
     }
 
     private void updateGroupsInDrawer() {
@@ -301,7 +307,8 @@ public class DrawerActivity extends AppCompatActivity {
 
         // Get my groups - which im in.
         for (Group myGroup : MyGroups) {
-            handleGroupRecursive(lstMyGroupsDrawerItems, myGroup);
+            boolean isManager = myGroup.getManager().equals(loginUser.getId());
+            handleGroupRecursive(lstMyGroupsDrawerItems, myGroup, isManager);
         }
 
         if (allGroupsDrawerItem != null) {
@@ -313,7 +320,7 @@ public class DrawerActivity extends AppCompatActivity {
     }
 
 
-    private void addAllSubUnitsToProfiles(long groupID, final IProfile parentProfile, final ExpandableDrawerItem parentGroup) {
+    private void addAllSubUnitsToProfiles(long groupID, final IProfile parentProfile, final ExpandableDrawerItem parentGroup, Boolean isManager) {
 
         List<Group> subGroups =  new Select().from(Group.class).where(Group.PARENT_ID_PROPERTY + " = " + groupID).execute();
 
@@ -321,11 +328,14 @@ public class DrawerActivity extends AppCompatActivity {
 
         for (Group subGroup : subGroups) {
 
-            handleGroupRecursive(lstSubGroupsDrawerItems, subGroup);
+            handleGroupRecursive(lstSubGroupsDrawerItems, subGroup, isManager);
         }
     }
 
-    private void handleGroupRecursive(List<IDrawerItem> lstSubGroupsDrawerItems, Group g) {
+    // The isManager param is an indication if the login user is manager of the root group,
+    // If it does so he is also have control on each sub group
+    private void handleGroupRecursive(List<IDrawerItem> lstSubGroupsDrawerItems, Group g, Boolean isManager) {
+        g.setIsManager(isManager);
 
         ExpandableDrawerItem currGroupDrawerItem = new ExpandableDrawerItem().withName(g.getName());
 
@@ -334,7 +344,7 @@ public class DrawerActivity extends AppCompatActivity {
 
         drawableFromUrl(g.getImage(), newProfile, currGroupDrawerItem);
 
-        addAllSubUnitsToProfiles(g.getId(), newProfile, currGroupDrawerItem);
+        addAllSubUnitsToProfiles(g.getId(), newProfile, currGroupDrawerItem, isManager);
 
         lstSubGroupsDrawerItems.add(currGroupDrawerItem);
     }
