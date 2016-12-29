@@ -63,16 +63,23 @@ public class MainFragment extends Fragment {
     public MainFragment() {
     }
 
-    // TODO: save on bundle, not in CTOR
-    public MainFragment(Group group, User loginUser, boolean bShowSubMembers) {
-        this.shownGroup = group;
-        this.loginUser = loginUser;
-        this.bShowSubMembers = bShowSubMembers;
-    }
+//    // TODO: save on bundle, not in CTOR
+//    public MainFragment(Group group, User loginUser, boolean bShowSubMembers) {
+//        this.shownGroup = group;
+//        this.loginUser = loginUser;
+//        this.bShowSubMembers = bShowSubMembers;
+//    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        Bundle bundle = this.getArguments();
+        if (bundle != null) {
+            this.shownGroup = (Group) bundle.getSerializable(getString(R.string.group));
+            this.loginUser = (User) bundle.getSerializable(getString(R.string.login_user));
+            this.bShowSubMembers = bundle.getBoolean(getString(R.string.is_show_sub_members));
+        }
 
         getActivity().setTitle(R.string.main_fragment_title);
 

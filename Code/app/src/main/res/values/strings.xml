@@ -57,4 +57,7 @@
     <string name="select_group_message">Select Group...</string>
     <string name="my_groups">My Groups</string>
     <string name="show_sub_members">Show sub members</string>
+    <string name="group">group</string>
+    <string name="login_user">loginUser</string>
+    <string name="is_show_sub_members">isShowSubMembers</string>
 </resources>

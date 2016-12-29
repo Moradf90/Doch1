@@ -68,7 +68,6 @@ public class DrawerActivity extends AppCompatActivity {
     public static FirebaseUser mCurrentUser;
     List<IDrawerItem> lstMembersToExpand;
     ExpandableDrawerItem MembersDrawerItem;
-    ExpandableDrawerItem allGroupsDrawerItem;
     private final Long MY_MEMBERS_IDENTIFIERS = 20l;
 
     public static User loginUser;
@@ -115,7 +114,7 @@ public class DrawerActivity extends AppCompatActivity {
             @Override
             public void onReceive(Context context, Intent intent) {
                 if (headerResult != null && headerResult.getActiveProfile() != null) {
-                    Group selectedProfileGroup = (Group) ((ProfileDrawerItem)headerResult.getActiveProfile()).getTag();
+                    Group selectedProfileGroup = getSelectedGroup();
                     initMembersDrawer(selectedProfileGroup.getId());
                 }
             }};
@@ -137,27 +136,13 @@ public class DrawerActivity extends AppCompatActivity {
                             @Override
                             // TODO: why yaalom cant be chosen
                             public boolean onProfileChanged(View view, IProfile profile, boolean current) {
-                                Group selectedProfileGroup = (Group) ((ProfileDrawerItem) profile).getTag();
+                                Group selectedProfileGroup = getSelectedGroup();
 
                                 initMembersDrawer(selectedProfileGroup.getId());
-                                refreshCurrFragment(selectedProfileGroup);
+                                refreshCurrFragment();
 
                                 //false if you have not consumed the event and it should close the drawer
                                 return false;
-                            }
-
-                            private void refreshCurrFragment(Group selectedProfileGroupID) {
-                                Fragment fCurrentDisplayedFragment = getFragmentManager().findFragmentById(R.id.frame_container);
-                                if (fCurrentDisplayedFragment.getClass().getSimpleName().equals("MainFragment")) {
-
-                                    // TODO: create new only if not exist - take from the manager
-                                    Fragment newFragment = new MainFragment(selectedProfileGroupID, loginUser, bShowSubMembers);
-
-                                    FragmentManager fragmentManager = getFragmentManager();
-                                    fragmentManager.beginTransaction()
-                                            .replace(R.id.frame_container, newFragment, newFragment.getClass().getSimpleName())
-                                            .commit();
-                                }
                             }
                         }
                 )
@@ -168,9 +153,9 @@ public class DrawerActivity extends AppCompatActivity {
         SwitchDrawerItem switchShowSubMembers =  new SwitchDrawerItem().withName(R.string.show_sub_members).withIcon(Octicons.Icon.oct_tools).withChecked(bShowSubMembers).withSelectable(false).withOnCheckedChangeListener(new OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(IDrawerItem drawerItem, CompoundButton buttonView, boolean isChecked) {
-                // TODO: refresh fragment
                 bShowSubMembers = isChecked;
                 initMembersDrawer(getSelectedGroupId());
+                refreshCurrFragment();
             }
         });
 
@@ -266,56 +251,72 @@ public class DrawerActivity extends AppCompatActivity {
     }
 
     private long getSelectedGroupId() {
-        ProfileDrawerItem activeProfile = ((ProfileDrawerItem) headerResult.getActiveProfile());
-        if (activeProfile != null) {
-            Group selectedProfileGroup = (Group) ((ProfileDrawerItem) headerResult.getActiveProfile()).getTag();
-            return selectedProfileGroup.getId();
+        Group g = getSelectedGroup();
+        if (g != null) {
+            return g.getId();
         }
         else {
             return -1;
         }
     }
 
+    private Group getSelectedGroup() {
+        ProfileDrawerItem activeProfile = ((ProfileDrawerItem) headerResult.getActiveProfile());
+        if (activeProfile != null) {
+            return (Group) ((ProfileDrawerItem) headerResult.getActiveProfile()).getTag();
+        }
+        else {
+            return null;
+        }
+    }
+
+    private void refreshCurrFragment() {
+        Fragment fCurrentDisplayedFragment = getFragmentManager().findFragmentById(R.id.frame_container);
+        if (fCurrentDisplayedFragment instanceof MainFragment) {
+
+            // TODO: create new only if not exist - take from the manager
+            Fragment newFragment = new MainFragment();
+            newFragment.setArguments(getBundleForMainFragment());
+
+            FragmentManager fragmentManager = getFragmentManager();
+            fragmentManager.beginTransaction()
+                    .replace(R.id.frame_container, newFragment, newFragment.getClass().getSimpleName())
+                    .commit();
+        }
+    }
+
+    @NonNull
+    private Bundle getBundleForMainFragment() {
+        Bundle bundle = new Bundle();
+        bundle.putSerializable(getString(R.string.group), getSelectedGroup());
+
+        bundle.putSerializable(getString(R.string.login_user), loginUser);
+        bundle.putBoolean(getString(R.string.is_show_sub_members), bShowSubMembers);
+        return bundle;
+    }
+
     private void updateGroupsInDrawer() {
         if (loginUser != null &&
             loginUser.getGroups() != null &&
             loginUser.getGroups().size() > 0) {
-            allGroupsDrawerItem =
-                    new ExpandableDrawerItem().withName(R.string.my_groups)
-                            .withIcon(GoogleMaterial.Icon.gmd_group)
-                            .withIdentifier(MY_MEMBERS_IDENTIFIERS);
 
             Long[] groupsId =
                     Arrays.copyOf(loginUser.getGroups().toArray(), loginUser.getGroups().size(), Long[].class);
-            initUnderMyCommandGroups(allGroupsDrawerItem, groupsId);
-
-            if (result.getDrawerItem((long) MY_MEMBERS_IDENTIFIERS) != null) {
-                result.updateItem(allGroupsDrawerItem);
-            }
-            else {
-                result.addItem(allGroupsDrawerItem);
-            }
+            initUnderMyCommandGroups(groupsId);
         }
     }
 
-    private void initUnderMyCommandGroups(final ExpandableDrawerItem allMygroupsDrawerItem, Long... groupsId) {
+    private void initUnderMyCommandGroups(Long... groupsId) {
 
         // Build my groups
         final List<IDrawerItem> lstMyGroupsDrawerItems = new ArrayList<IDrawerItem>();
 
-        List<Group> MyGroups =  new Select().from(Group.class).where("id " + SQLHelper.getInQuery(groupsId)).execute();
+        List<Group> MyGroups = new Select().from(Group.class).where("id " + SQLHelper.getInQuery(groupsId)).execute();
 
         // Get my groups - which im in.
         for (Group myGroup : MyGroups) {
             boolean isManager = myGroup.getManager().equals(loginUser.getId());
             handleGroupRecursive(lstMyGroupsDrawerItems, myGroup, isManager);
-        }
-
-        if (allGroupsDrawerItem != null) {
-            allGroupsDrawerItem.withSubItems(lstMyGroupsDrawerItems);
-//        synchronized(allMygroupsDrawerItem){
-//            allMygroupsDrawerItem.notify();
-//        }
         }
     }
 
@@ -568,13 +569,13 @@ public class DrawerActivity extends AppCompatActivity {
             newFragment = new ProfileFragment();
         }
         else if (identifier == 2) {
-            if ((ProfileDrawerItem) headerResult.getActiveProfile() == null) {
+            if (headerResult.getActiveProfile() == null) {
                 Toast.makeText(DrawerActivity.this, R.string.select_group_message, Toast.LENGTH_SHORT).show();
                 newFragment = fCurrentDisplayedFragment;
             }
             else{
-                Group selectedProfileGroup = (Group) ((ProfileDrawerItem) headerResult.getActiveProfile()).getTag();
-                newFragment = new MainFragment(selectedProfileGroup, loginUser, bShowSubMembers);
+                newFragment = new MainFragment();
+                newFragment.setArguments(getBundleForMainFragment());
             }
         }
         else if (identifier == 3) {
