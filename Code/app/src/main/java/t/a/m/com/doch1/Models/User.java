@@ -8,6 +8,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.IgnoreExtraProperties;
 import com.google.firebase.database.PropertyName;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -17,7 +18,7 @@ import java.util.List;
  */
 @IgnoreExtraProperties
 @Table(name = User.USERS_REFERENCE_KEY)
-public class User extends Model{
+public class User extends Model implements Serializable{
 
     public static final String USERS_REFERENCE_KEY = "users";
     public static final String ID_PROPERTY = "id";

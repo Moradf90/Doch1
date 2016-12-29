@@ -6,6 +6,7 @@ import com.activeandroid.annotation.Table;
 import com.google.firebase.database.IgnoreExtraProperties;
 import com.google.firebase.database.PropertyName;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,7 +15,7 @@ import java.util.List;
  */
 @IgnoreExtraProperties
 @Table(name = Group.GROUPS_REFERENCE_KEY)
-public class Group extends Model{
+public class Group extends Model implements Serializable{
 
     public static final String GROUPS_REFERENCE_KEY = "groups";
 
