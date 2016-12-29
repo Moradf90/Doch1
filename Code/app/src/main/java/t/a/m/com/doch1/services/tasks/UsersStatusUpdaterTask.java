@@ -2,6 +2,7 @@ package t.a.m.com.doch1.services.tasks;
 
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 
 import com.activeandroid.query.Select;
 import com.google.firebase.database.DataSnapshot;
@@ -17,17 +18,9 @@ import t.a.m.com.doch1.Models.UserInGroup;
 public class UsersStatusUpdaterTask implements ValueEventListener {
 
     public static final String USER_STATUS_UPDATED_ACTION = "user_status_updated_action";
-    private static UsersStatusUpdaterTask mTask;
-
-    public static UsersStatusUpdaterTask instance(Context context){
-        if(mTask == null){
-            mTask = new UsersStatusUpdaterTask(context);
-        }
-        return mTask;
-    }
 
     private Context mContext;
-    private UsersStatusUpdaterTask(Context context){
+    public UsersStatusUpdaterTask(Context context){
         mContext = context;
     }
 

@@ -10,6 +10,8 @@ import android.content.Intent;
 public class OnAlarmReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
-        WakefulIntentService.sendWakefulWork(context, UpdaterService.class);
+        // if the service not started or when the user logout, updates the tasks updaters
+        Intent service = new Intent(context, UpdaterService.class);
+        context.startService(service);
     }
 }
