@@ -170,31 +170,48 @@ public class DrawerActivity extends AppCompatActivity {
                         }
                 )
                 .addProfiles(
-                        new ProfileSettingDrawerItem().withName(getString(R.string.add_group)).withIcon(new IconicsDrawable(this, GoogleMaterial.Icon.gmd_plus).actionBar().paddingDp(5).colorRes(R.color.material_drawer_primary_text)).withIdentifier(PROFILE_SETTING)
+                        new ProfileSettingDrawerItem().withName(getString(R.string.add_group)).withIcon(R.drawable.add_group).withIdentifier(PROFILE_SETTING)
 
                 )
                 .withSavedInstance(savedInstanceState)
                 .build();
 
 
-        SwitchDrawerItem switchShowSubMembers = new SwitchDrawerItem().withName(R.string.show_sub_members).withIcon(Octicons.Icon.oct_tools).withChecked(bShowSubMembers).withSelectable(false).withOnCheckedChangeListener(new OnCheckedChangeListener() {
+
+        final SwitchDrawerItem switchShowSubMembers = new SwitchDrawerItem().withName(R.string.show_sub_members).withIcon(R.drawable.sub_members_off).withChecked(bShowSubMembers).withSelectable(false);
+        OnCheckedChangeListener switchListener = new OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(IDrawerItem drawerItem, CompoundButton buttonView, boolean isChecked) {
-                bShowSubMembers = isChecked;
-                initMembersDrawer(getSelectedGroupId());
-                refreshCurrFragment();
+
+                if (getSelectedGroup() != null) {
+                    bShowSubMembers = isChecked;
+                    initMembersDrawer(getSelectedGroupId());
+                    if (isChecked) {
+                        switchShowSubMembers.withIcon(R.drawable.sub_members_on);
+                    } else {
+                        switchShowSubMembers.withIcon(R.drawable.sub_members_off);
+                    }
+
+                    result.updateItem(switchShowSubMembers);
+
+                    refreshCurrFragment();
+                }
+                else {
+                    Toast.makeText(DrawerActivity.this, R.string.select_group_message, Toast.LENGTH_SHORT).show();
+                }
             }
-        });
+        };
 
+        switchShowSubMembers.withOnCheckedChangeListener(switchListener);
 
-        PrimaryDrawerItem MyProfileDrawerItem = new PrimaryDrawerItem().withName(R.string.profile_fragment).withIcon(GoogleMaterial.Icon.gmd_account).withIdentifier(1);
-        PrimaryDrawerItem ManagementGroupsDrawerItem = new PrimaryDrawerItem().withName(R.string.managment_fragment).withIcon(GoogleMaterial.Icon.gmd_accounts_list_alt).withIdentifier(3);
+        PrimaryDrawerItem MyProfileDrawerItem = new PrimaryDrawerItem().withName(R.string.profile_fragment).withIcon(R.drawable.profile).withIdentifier(1);
+        PrimaryDrawerItem ManagementGroupsDrawerItem = new PrimaryDrawerItem().withName(R.string.managment_fragment).withIcon(R.drawable.manage_groups).withIdentifier(3);
 
-        PrimaryDrawerItem FillStatusesDrawerItem = new PrimaryDrawerItem().withName(R.string.main_fragment).withDescription(R.string.dsc_main_statuses).withIcon(FontAwesome.Icon.faw_wheelchair).withIdentifier(2);
+        PrimaryDrawerItem FillStatusesDrawerItem = new PrimaryDrawerItem().withName(R.string.main_fragment).withDescription(R.string.dsc_main_statuses).withIcon(R.drawable.statuses).withIdentifier(2);
 
-        MembersDrawerItem = new ExpandableDrawerItem().withName(R.string.my_members).withIcon(GoogleMaterial.Icon.gmd_accounts_list).withIdentifier(19);
+        MembersDrawerItem = new ExpandableDrawerItem().withName(R.string.my_members).withIcon(R.drawable.conference).withIdentifier(19);
 
-        final PrimaryDrawerItem SendDrawerItem = new PrimaryDrawerItem().withName(R.string.send_statuses).withEnabled(true).withIcon(Octicons.Icon.oct_radio_tower).withIdentifier(9);
+        final PrimaryDrawerItem SendDrawerItem = new PrimaryDrawerItem().withName(R.string.send_statuses).withEnabled(true).withIcon(R.drawable.send).withIdentifier(9);
 
         ExpandableDrawerItem contactDrawerItem = new ExpandableDrawerItem().withName("Contact developer").withIcon(GoogleMaterial.Icon.gmd_code).withIdentifier(25).withSelectable(false).withSubItems(
                 new SecondaryDrawerItem().withName("By Phone").withLevel(2).withIcon(GoogleMaterial.Icon.gmd_phone).withIdentifier(2501),
@@ -410,37 +427,38 @@ public class DrawerActivity extends AppCompatActivity {
     }
 
     private void handleMembersOfGroup(Group group) {
-        List<User> groupUsers = new Select().from(User.class).where("id " + SQLHelper.getInQuery(group.getUsers())).execute();
+        if (group != null) {
+            List<User> groupUsers = new Select().from(User.class).where("id " + SQLHelper.getInQuery(group.getUsers())).execute();
 
-        List<UserInGroup> usersInGroups = new Select().from(UserInGroup.class).where(UserInGroup.GROUP_PROPERTY + " = " + group.getId()).execute();
+            List<UserInGroup> usersInGroups = new Select().from(UserInGroup.class).where(UserInGroup.GROUP_PROPERTY + " = " + group.getId()).execute();
 
-        HashMap<Long, UserInGroup> mapUserIdToStatus = new HashMap<>();
+            HashMap<Long, UserInGroup> mapUserIdToStatus = new HashMap<>();
 
-        // Set statuses in hashmap
-        for (UserInGroup userInGroup : usersInGroups) {
-            if (!mapUserIdToStatus.containsKey(userInGroup.getUserId())) {
-                mapUserIdToStatus.put(userInGroup.getUserId(), userInGroup);
-            }
-        }
-
-
-        for (User user : groupUsers) {
-            final SecondaryDrawerItem currMemberDrawer = new SecondaryDrawerItem().withName(user.getName()).withLevel(2)
-                    .withIdentifier(Long.parseLong(user.getPersonalId()))
-                    .withSelectable(false);
-
-            drawableFromUrl(user.getImage(), currMemberDrawer);
-
-            UserInGroup userInGroup = mapUserIdToStatus.get(user.getId());
-
-            // If there is main status
-            if ((userInGroup != null) && (userInGroup.getMainStatus() != "")) {
-                currMemberDrawer.withDescription(getDescription(userInGroup)).withTextColor(Color.rgb(20, 170, 20));
-            } else {
-                currMemberDrawer.withDescription(R.string.no_status).withTextColor(Color.rgb(170, 20, 20));
+            // Set statuses in hashmap
+            for (UserInGroup userInGroup : usersInGroups) {
+                if (!mapUserIdToStatus.containsKey(userInGroup.getUserId())) {
+                    mapUserIdToStatus.put(userInGroup.getUserId(), userInGroup);
+                }
             }
 
-            addDrawerToList(lstMembersToExpand, currMemberDrawer);
+            for (User user : groupUsers) {
+                final SecondaryDrawerItem currMemberDrawer = new SecondaryDrawerItem().withName(user.getName()).withLevel(2)
+                        .withIdentifier(Long.parseLong(user.getPersonalId()))
+                        .withSelectable(false);
+
+                drawableFromUrl(user.getImage(), currMemberDrawer);
+
+                UserInGroup userInGroup = mapUserIdToStatus.get(user.getId());
+
+                // If there is main status
+                if ((userInGroup != null) && (userInGroup.getMainStatus() != "")) {
+                    currMemberDrawer.withDescription(getDescription(userInGroup)).withTextColor(Color.rgb(20, 170, 20));
+                } else {
+                    currMemberDrawer.withDescription(R.string.no_status).withTextColor(Color.rgb(170, 20, 20));
+                }
+
+                addDrawerToList(lstMembersToExpand, currMemberDrawer);
+            }
         }
     }
 

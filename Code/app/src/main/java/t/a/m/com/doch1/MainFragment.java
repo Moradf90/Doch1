@@ -9,6 +9,7 @@ import android.graphics.Color;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.MediaStore;
 import android.text.format.DateUtils;
 import android.view.DragEvent;
 import android.view.Gravity;
@@ -49,6 +50,7 @@ public class MainFragment extends Fragment {
     Group shownGroup;
     private static final int ENLARGE_ON_DARG = 2;
     private int ImageSizeOnDrop = 125;
+    private int CLUSTER_SIZE = 200;
     List<User> lstMembers;
     Map<String, List<String>> mapMainStatusToSub;
     List<String> lstMain;
@@ -57,10 +59,22 @@ public class MainFragment extends Fragment {
     ProgressDialog progress;
     public static User loginUser;
     Map<String, ViewGroup> mapMainStatusToView;
+    Map<ViewGroup, List<CircleImageView>> mapLayoutToImages;
     private BroadcastReceiver mUserStatusReceiver;
     private Boolean bShowSubMembers;
+    private int MAX_MEMBERS_IN_STATUS = 5;
 
-    public MainFragment() {
+    private static HashMap<Integer, Integer> mapNumberToImage;
+    static
+    {
+        mapNumberToImage = new HashMap<>();
+        mapNumberToImage.put(6, R.drawable.six);
+        mapNumberToImage.put(7, R.drawable.seven);
+        mapNumberToImage.put(8, R.drawable.eight);
+        mapNumberToImage.put(9, R.drawable.nine);
+        mapNumberToImage.put(10, R.drawable.ten);
+        mapNumberToImage.put(11, R.drawable.eleven);
+        mapNumberToImage.put(12, R.drawable.twelve);
     }
 
     @Override
@@ -78,6 +92,8 @@ public class MainFragment extends Fragment {
 
         lstMembers = new ArrayList<>();
         mapMainStatusToSub = new HashMap<>();
+        mapLayoutToImages = new HashMap<>();
+        mapMainStatusToView = new HashMap<>();
 
         lstMain = new ArrayList<>();
 
@@ -104,7 +120,7 @@ public class MainFragment extends Fragment {
         calculateImageSizeByStatuses(statusesInGroup);
 
         // TODO: buildLayout should be called once. - not any creation
-        mapMainStatusToView = buildLayout();
+        buildLayout();
         pullMembers(shownGroup);
 
         return vFragmentLayout;
@@ -115,9 +131,7 @@ public class MainFragment extends Fragment {
         ImageSizeOnDrop = 350 - (statusesInGroup.size() / STATUSES_IN_ROW_AMOUNT) * 50;
     }
 
-    private Map<String, ViewGroup> buildLayout() {
-
-        Map<String, ViewGroup> mapMainStatusToView = new HashMap<String, ViewGroup>();
+    private void buildLayout() {
 
         int colsSize = STATUSES_IN_ROW_AMOUNT;
         int rowsSize = lstMain.size() / colsSize;
@@ -147,6 +161,7 @@ public class MainFragment extends Fragment {
                 newCol.setLayoutParams(colParams);
                 newCol.setTag(R.string.main_status, mainStatus);
                 mapMainStatusToView.put(mainStatus, newCol);
+                mapLayoutToImages.put(newCol, new ArrayList<CircleImageView>());
 
                 newCol.setOnDragListener(new MyDragListener());
 
@@ -165,8 +180,6 @@ public class MainFragment extends Fragment {
 
             rootLinearLayout.addView(newRow);
         }
-
-        return mapMainStatusToView;
     }
 
     // todo: should be called on broadcast
@@ -240,11 +253,12 @@ public class MainFragment extends Fragment {
                 currGroupMember.setMainStatus((String) btm.getTag(R.string.main_status));
                 currGroupMember.setSubStatus("");
                 currGroupMember.updateUserStatuses();
-                btm.addView(memberImage);
+
+                addImageToView(btm, memberImage);
             }
             // If there is already main status on DB, and it's update date from today
             else {
-                mapMainStatusToView.get(memberMainStatus).addView(memberImage);
+                addImageToView((FlowLayout) mapMainStatusToView.get(memberMainStatus), memberImage);
             }
 
             memberImage.setTag(R.string.user, currGroupMember);
@@ -267,6 +281,8 @@ public class MainFragment extends Fragment {
         }
     }
 
+
+
     private final class MyTouchListener implements View.OnTouchListener {
         public boolean onTouch(View view, MotionEvent motionEvent) {
             if (motionEvent.getAction() == MotionEvent.ACTION_DOWN)
@@ -287,7 +303,7 @@ public class MainFragment extends Fragment {
     class MyDragListener implements View.OnDragListener {
         @Override
         public boolean onDrag(View v, DragEvent event) {
-            View imgMember = (View) event.getLocalState();
+            CircleImageView imgMember = (CircleImageView) event.getLocalState();
 
             if (imgMember != null) {
                 ViewGroup oldLayout = (ViewGroup) imgMember.getParent();
@@ -302,9 +318,7 @@ public class MainFragment extends Fragment {
                         break;
                     case DragEvent.ACTION_DROP:
 
-//                        removeViewFromLayout(oldLayout, imgMember);
                         FlowLayout newLayout = (FlowLayout) v;
-//                        addViewToLayout(newLayout, imgMember);
                         imgMember.setVisibility(View.VISIBLE);
 
                         if (oldLayout == newLayout) {
@@ -312,8 +326,8 @@ public class MainFragment extends Fragment {
                         }
                         // New mainStatus, Clear the sub status
                         else {
-                            removeViewFromLayout(oldLayout, imgMember);
-                            addViewToLayout(newLayout, imgMember);
+                            removeImageFromView(oldLayout, imgMember);
+                            addImageToView(newLayout, imgMember);
 
                             User sld = ((User) imgMember.getTag(R.string.user));
                             // Set main status
@@ -331,16 +345,6 @@ public class MainFragment extends Fragment {
                 }
             }
             return true;
-        }
-
-        private void removeViewFromLayout(ViewGroup oldLayout, View imgMember) {
-            oldLayout.removeView(imgMember);
-//            arrangeImagesInLayout(oldLayout);
-        }
-
-        private void addViewToLayout(ViewGroup newLayout, View imgMember) {
-            newLayout.addView(imgMember);
-//            arrangeImagesInLayout(newLayout);
         }
 
         private void arrangeImagesInLayout(ViewGroup layout) {
@@ -361,6 +365,67 @@ public class MainFragment extends Fragment {
                         v.invalidate();
                     }
                 }
+            }
+        }
+    }
+
+    private void removeImageFromView(ViewGroup oldLayout, CircleImageView memberImage) {
+        oldLayout.removeView(memberImage);
+        mapLayoutToImages.get(oldLayout).remove(memberImage);
+
+        // If we now reach the number we can show
+        if (mapLayoutToImages.get(oldLayout).size() == MAX_MEMBERS_IN_STATUS) {
+
+            // Make all images visible
+            for (CircleImageView circleImageView : mapLayoutToImages.get(oldLayout)) {
+                circleImageView.setVisibility(View.INVISIBLE);
+            }
+
+            for (int i = 0; i < oldLayout.getChildCount(); i++) {
+                if ((oldLayout.getChildAt(i).getTag() != null) &&
+                        (oldLayout.getChildAt(i).getTag().equals("cluster"))) {
+                    CircleImageView cluster = (CircleImageView) oldLayout.getChildAt(i);
+                    oldLayout.removeView(cluster);
+                    break;
+                }
+            }
+        }
+    }
+
+    private void addImageToView(FlowLayout newLayout, CircleImageView memberImage) {
+        newLayout.addView(memberImage);
+        mapLayoutToImages.get(newLayout).add(memberImage);
+
+        // If we now have too much images for (before the addition it was ok)
+        if (mapLayoutToImages.get(newLayout).size() - 1 == MAX_MEMBERS_IN_STATUS) {
+
+            // Make all images not visible
+            for (CircleImageView circleImageView : mapLayoutToImages.get(newLayout)) {
+                circleImageView.setVisibility(View.GONE);
+            }
+
+            RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(CLUSTER_SIZE, CLUSTER_SIZE);
+            CircleImageView cluster = new CircleImageView(getActivity());
+            cluster.setLayoutParams(layoutParams);
+            cluster.setImageResource(mapNumberToImage.get(mapLayoutToImages.get(newLayout).size()));
+            cluster.setTag("cluster");
+
+            newLayout.addView(cluster);
+        }
+        //  If we have too much but there is already cluster
+        else if (mapLayoutToImages.get(newLayout).size() - 1 > MAX_MEMBERS_IN_STATUS) {
+            memberImage.setVisibility(View.GONE);
+            CircleImageView cluster = null;
+            for (int i = 0; i < newLayout.getChildCount(); i++) {
+                if ((newLayout.getChildAt(i).getTag() != null) &&
+                    (newLayout.getChildAt(i).getTag().equals("cluster"))) {
+                    cluster = (CircleImageView) newLayout.getChildAt(i);
+                    break;
+                }
+            }
+
+            if (cluster != null) {
+                cluster.setImageResource(mapNumberToImage.get(mapLayoutToImages.get(newLayout).size()));
             }
         }
     }
