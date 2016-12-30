@@ -1,9 +1,14 @@
 package t.a.m.com.doch1.Models;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
+
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
 import com.activeandroid.query.Select;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.IgnoreExtraProperties;
 import com.google.firebase.database.PropertyName;
@@ -185,5 +190,25 @@ public class User extends Model implements Serializable{
                     && Utils.isObjectsEquals(getImage(), user.getImage());
         }
         return false;
+    }
+
+    public static User current(Context context){
+
+
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
+        Long userId = pref.getLong("userId", -1);
+        if(userId != -1){
+            return User.load(User.class, userId);
+        }
+
+        User current = new Select().from(User.class)
+                .where(User.EMAIL_PROPERTY + "= ?", FirebaseAuth.getInstance().getCurrentUser().getEmail())
+                .executeSingle();
+
+        if(current != null) {
+            pref.edit().putLong("userId", current.getId()).commit();
+        }
+
+        return current;
     }
 }

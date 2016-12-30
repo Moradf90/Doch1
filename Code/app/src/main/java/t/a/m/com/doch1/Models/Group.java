@@ -3,13 +3,16 @@ package t.a.m.com.doch1.Models;
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
+import com.activeandroid.query.Delete;
 import com.google.firebase.database.IgnoreExtraProperties;
 import com.google.firebase.database.PropertyName;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
+import t.a.m.com.doch1.common.SQLHelper;
 import t.a.m.com.doch1.common.Utils;
 
 /**
@@ -132,5 +135,12 @@ public class Group extends Model implements Serializable{
                     && Utils.isObjectsEquals(mUsers, group.mUsers));
         }
         return false;
+    }
+
+    public static void deleteGroups(Collection<Long> ids){
+        if(ids != null && ids.size() > 0) {
+            new Delete().from(Group.class)
+                    .where(Group.ID_PROPERTY + SQLHelper.getInQuery(ids)).execute();
+        }
     }
 }

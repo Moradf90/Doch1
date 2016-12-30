@@ -1,5 +1,6 @@
 package t.a.m.com.doch1.common;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -20,7 +21,7 @@ public class SQLHelper {
         return " in () ";
     }
 
-    public static String getInQuery(List<Long> groupsId) {
+    public static String getInQuery(Collection<Long> groupsId) {
         if (groupsId != null) {
             StringBuilder query = new StringBuilder(" in (");
             for (long groupID : groupsId) {
