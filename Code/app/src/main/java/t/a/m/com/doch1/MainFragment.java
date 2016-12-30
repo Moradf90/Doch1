@@ -63,13 +63,6 @@ public class MainFragment extends Fragment {
     public MainFragment() {
     }
 
-//    // TODO: save on bundle, not in CTOR
-//    public MainFragment(Group group, User loginUser, boolean bShowSubMembers) {
-//        this.shownGroup = group;
-//        this.loginUser = loginUser;
-//        this.bShowSubMembers = bShowSubMembers;
-//    }
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -463,7 +456,6 @@ public class MainFragment extends Fragment {
                 popupSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                     @Override
                     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                        // todo: check if work
                         finalMember.setSubStatus(popupSpinner.getSelectedItem().toString());
                         finalMember.updateUserStatuses();
 

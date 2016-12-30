@@ -25,6 +25,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.mikepenz.fastadapter.commons.utils.RecyclerViewCacheUtil;
 import com.mikepenz.fontawesome_typeface_library.FontAwesome;
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
+import com.mikepenz.iconics.IconicsDrawable;
 import com.mikepenz.itemanimators.AlphaCrossFadeAnimator;
 import com.mikepenz.materialdrawer.AccountHeader;
 import com.mikepenz.materialdrawer.AccountHeaderBuilder;
@@ -36,6 +37,7 @@ import com.mikepenz.materialdrawer.model.DividerDrawerItem;
 import com.mikepenz.materialdrawer.model.ExpandableDrawerItem;
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
 import com.mikepenz.materialdrawer.model.ProfileDrawerItem;
+import com.mikepenz.materialdrawer.model.ProfileSettingDrawerItem;
 import com.mikepenz.materialdrawer.model.SecondaryDrawerItem;
 import com.mikepenz.materialdrawer.model.SectionDrawerItem;
 import com.mikepenz.materialdrawer.model.SwitchDrawerItem;
@@ -75,6 +77,8 @@ public class DrawerActivity extends AppCompatActivity {
     private BroadcastReceiver mGroupsReceiver;
     private BroadcastReceiver mUserStatusReceiver;
     private Boolean bShowSubMembers = false;
+
+    private HashMap<String, IProfile> mapNameToProfile;
 
 
     @Override
@@ -148,13 +152,23 @@ public class DrawerActivity extends AppCompatActivity {
                             public boolean onProfileChanged(View view, IProfile profile, boolean current) {
                                 Group selectedProfileGroup = getSelectedGroup();
 
-                                initMembersDrawer(selectedProfileGroup.getId());
-                                refreshCurrFragment();
+                                if (selectedProfileGroup != null) {
+                                    initMembersDrawer(selectedProfileGroup.getId());
+                                    refreshCurrFragment();
+                                }
+                                // Add group
+                                else {
+                                    // todo: open manage group fragment
+                                }
 
                                 //false if you have not consumed the event and it should close the drawer
                                 return false;
                             }
                         }
+                )
+                .addProfiles(
+                        new ProfileSettingDrawerItem().withName(getString(R.string.add_group)).withIcon(new IconicsDrawable(this, GoogleMaterial.Icon.gmd_plus).actionBar().paddingDp(5).colorRes(R.color.material_drawer_primary_text)).withIdentifier(PROFILE_SETTING)
+
                 )
                 .withSavedInstance(savedInstanceState)
                 .build();
@@ -305,8 +319,6 @@ public class DrawerActivity extends AppCompatActivity {
         return bundle;
     }
 
-    private void updateG
-
     private void updateGroupsInDrawer() {
         if (loginUser != null &&
             loginUser.getGroups() != null &&
@@ -319,47 +331,49 @@ public class DrawerActivity extends AppCompatActivity {
     }
 
     private void initUnderMyCommandGroups(Long... groupsId) {
-
         // Build my groups
-        final List<IDrawerItem> lstMyGroupsDrawerItems = new ArrayList<IDrawerItem>();
+//        final List<IDrawerItem> lstMyGroupsDrawerItems = new ArrayList<IDrawerItem>();
 
         List<Group> MyGroups = new Select().from(Group.class).where("id " + SQLHelper.getInQuery(groupsId)).execute();
 
         // Get my groups - which im in.
         for (Group myGroup : MyGroups) {
             boolean isManager = myGroup.getManager().equals(loginUser.getId());
-            handleGroupRecursive(lstMyGroupsDrawerItems, myGroup, isManager);
+            handleGroupRecursive(myGroup, isManager);
         }
     }
 
 
-    private void addAllSubUnitsToProfiles(long groupID, final IProfile parentProfile, final ExpandableDrawerItem parentGroup, Boolean isManager) {
+    private void addAllSubUnitsToProfiles(long groupID, Boolean isManager) {
 
         List<Group> subGroups =  new Select().from(Group.class).where(Group.PARENT_ID_PROPERTY + " = " + groupID).execute();
 
-        List<IDrawerItem> lstSubGroupsDrawerItems = new ArrayList<IDrawerItem>();
+//        List<IDrawerItem> lstSubGroupsDrawerItems = new ArrayList<IDrawerItem>();
 
         for (Group subGroup : subGroups) {
-
-            handleGroupRecursive(lstSubGroupsDrawerItems, subGroup, isManager);
+            handleGroupRecursive(subGroup, isManager);
         }
     }
 
     // The isManager param is an indication if the login user is manager of the root group,
     // If it does so he is also have control on each sub group
-    private void handleGroupRecursive(List<IDrawerItem> lstSubGroupsDrawerItems, Group g, Boolean isManager) {
+    private void handleGroupRecursive(Group g, Boolean isManager) {
+
+//        ExpandableDrawerItem currGroupDrawerItem = new ExpandableDrawerItem().withName(g.getName());
+
         g.setIsManager(isManager);
 
-        ExpandableDrawerItem currGroupDrawerItem = new ExpandableDrawerItem().withName(g.getName());
+        // Add the profile only if not exists yet
+        if (!isProfileExists(g.getName())) {
+            IProfile newProfile =
+                    new ProfileDrawerItem().withName(g.getName()).withIdentifier(10041).withTag(g);
 
-        IProfile newProfile =
-                new ProfileDrawerItem().withName(g.getName()).withIdentifier(10041).withTag(g);
+            drawableFromUrl(g.getImage(), newProfile);
+        }
 
-        drawableFromUrl(g.getImage(), newProfile, currGroupDrawerItem);
+        addAllSubUnitsToProfiles(g.getId(), isManager);
 
-        addAllSubUnitsToProfiles(g.getId(), newProfile, currGroupDrawerItem, isManager);
-
-        lstSubGroupsDrawerItems.add(currGroupDrawerItem);
+//        lstSubGroupsDrawerItems.add(currGroupDrawerItem);
     }
 
     private void initMembersDrawer(final long groupID) {
@@ -382,6 +396,7 @@ public class DrawerActivity extends AppCompatActivity {
     private void handleMemberDrawerOfGroup(Group g) {
         handleMembersOfGroup(g);
 
+        // If we want to show sub members - start recursive
         if (bShowSubMembers) {
             List<Group> subGroups =  new Select().from(Group.class).where(Group.PARENT_ID_PROPERTY + " = " + g.getId()).execute();
             for (Group currSubGroup : subGroups) {
@@ -518,7 +533,7 @@ public class DrawerActivity extends AppCompatActivity {
         task.execute(url);
     }
 
-    private void drawableFromUrl(String url, final IProfile newProfile, final ExpandableDrawerItem currGroupDrawerItem) {
+    private void drawableFromUrl(String url, final IProfile newProfile) {
         // TODO: save on the memory - takes too long
         AsyncTask<String, Void, Bitmap> task = new AsyncTask<String, Void, Bitmap>(){
             @Override
@@ -540,10 +555,10 @@ public class DrawerActivity extends AppCompatActivity {
             protected void onPostExecute(Bitmap bitmap) {
                 if (bitmap != null) {
                     newProfile.withIcon(new BitmapDrawable(bitmap));
-                    currGroupDrawerItem.withIcon(new BitmapDrawable(bitmap));
+//                    currGroupDrawerItem.withIcon(new BitmapDrawable(bitmap));
                 } else {
                     newProfile.withIcon(DrawerActivity.this.getResources().getDrawable(R.drawable.face_icon));
-                    currGroupDrawerItem.withIcon(DrawerActivity.this.getResources().getDrawable(R.drawable.face_icon));
+//                    currGroupDrawerItem.withIcon(DrawerActivity.this.getResources().getDrawable(R.drawable.face_icon));
                 }
 
                 addNewProfile(newProfile);
@@ -553,19 +568,32 @@ public class DrawerActivity extends AppCompatActivity {
         task.execute(url);
     }
 
+    // Add the profile if not exists
     private void addNewProfile(IProfile newProfile) {
-        List<IProfile> profiles = headerResult.getProfiles();
-        if (profiles != null && profiles.size() > 0) {
-            for (int iProfileIndex = 0; iProfileIndex < profiles.size(); iProfileIndex++) {
-                IProfile currProfile = profiles.get(iProfileIndex);
-                if (currProfile.getName().getText().equals(newProfile.getName().getText())) {
-                    headerResult.removeProfile(currProfile);
-                }
-                break;
-            }
+        if (mapNameToProfile == null) {
+            mapNameToProfile = new HashMap<>();
         }
 
-        headerResult.addProfiles(newProfile);
+        String profileName = newProfile.getName().getText();
+
+        // If it's new profile - add it.
+        if ((!isProfileExists(profileName)) && (headerResult != null)) {
+            //we know that there is 1 setting element. set the new profile above it ;)
+            headerResult.addProfile(newProfile, headerResult.getProfiles().size() - 1);
+//            headerResult.notifyAll();
+            mapNameToProfile.put(profileName, newProfile);
+        }
+    }
+
+    // Add the profile if not exists
+    private boolean isProfileExists(String profileName) {
+        if (mapNameToProfile == null) {
+            return false;
+        }
+        else {
+            return mapNameToProfile.containsKey(profileName);
+        }
+
     }
 
     /** Swaps fragments in the main content view */
