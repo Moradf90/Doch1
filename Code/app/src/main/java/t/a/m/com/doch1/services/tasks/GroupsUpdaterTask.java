@@ -28,6 +28,7 @@ public class GroupsUpdaterTask implements ValueEventListener {
 
     public static final String GROUP_UPDATED_ACTION = "group_updated_action";
     public static final String UPDATED_GROUP_EXTRA = "updated_group";
+    public static final String ID = "id";
     public static final String DELETED_GROUPS_EXTRA = "deleted_groups";
 
     // user groups
@@ -71,7 +72,7 @@ public class GroupsUpdaterTask implements ValueEventListener {
                             @Override
                             public void onDataChange(DataSnapshot subGroups) {
                                 if (subGroups.exists()) {
-                                    for (DataSnapshot postSnapshot: subGroups.getChildren()) {
+                                    for (DataSnapshot postSnapshot : subGroups.getChildren()) {
                                         Group subGroup = postSnapshot.getValue(Group.class);
                                         subGroup.save();
 
@@ -119,6 +120,8 @@ public class GroupsUpdaterTask implements ValueEventListener {
 
                 Intent intent = new Intent(GROUP_UPDATED_ACTION);
                 intent.putExtra(UPDATED_GROUP_EXTRA, group);
+                intent.putExtra(ID, group.getId());
+
                 mContext.sendBroadcast(intent);
 
                 if (group.getStatusesId() != null) {
