@@ -558,12 +558,11 @@ public class DrawerActivity extends AppCompatActivity {
         }
         // Update existing profile
         else {
-            Group oldProfileGroup = (Group) ((ProfileDrawerItem) newProfile).getTag();
+            ProfileDrawerItem toUpdate = mapGroupIDToProfile.get(updatedGroup.getId());
 
             // Todo: isManager - get from parents if we dont get it.
-            updatedGroup.setIsManager(updatedGroup.getIsManager() || oldProfileGroup.getIsManager());
+            updatedGroup.setIsManager(updatedGroup.getIsManager() || ((Group)toUpdate.getTag()).getIsManager());
 
-            ProfileDrawerItem toUpdate = mapGroupIDToProfile.get(oldProfileGroup.getId());
             toUpdate/*.withIcon(newProfile.getIcon().getBitmap())*/.withTag(updatedGroup).withName(newProfile.getName().getText());
             headerResult.updateProfile(toUpdate);
         }
