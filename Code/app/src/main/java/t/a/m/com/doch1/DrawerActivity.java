@@ -142,8 +142,14 @@ public class DrawerActivity extends AppCompatActivity {
                             public boolean onProfileChanged(View view, IProfile profile, boolean current) {
                                 Group selectedProfileGroup = getSelectedGroup();
 
-                                initMembersDrawer(selectedProfileGroup.getId());
-                                refreshCurrFragment();
+                                if (selectedProfileGroup != null) {
+                                    initMembersDrawer(selectedProfileGroup.getId());
+                                    refreshCurrFragment();
+                                }
+                                // Add group
+                                else {
+                                    // todo: open manage group fragment
+                                }
 
                                 //false if you have not consumed the event and it should close the drawer
                                 return false;
@@ -151,7 +157,7 @@ public class DrawerActivity extends AppCompatActivity {
                         }
                 )
                 .addProfiles(
-                        new ProfileSettingDrawerItem().withName(getString(R.string.add_group)).withDescription("Add new GitHub Account").withIcon(new IconicsDrawable(this, GoogleMaterial.Icon.gmd_plus).actionBar().paddingDp(5).colorRes(R.color.material_drawer_primary_text)).withIdentifier(PROFILE_SETTING)
+                        new ProfileSettingDrawerItem().withName(getString(R.string.add_group)).withIcon(new IconicsDrawable(this, GoogleMaterial.Icon.gmd_plus).actionBar().paddingDp(5).colorRes(R.color.material_drawer_primary_text)).withIdentifier(PROFILE_SETTING)
 
                 )
                 .withSavedInstance(savedInstanceState)
