@@ -112,13 +112,10 @@ public class DrawerActivity extends AppCompatActivity {
             public void onReceive(Context context, Intent intent) {
                 if (intent.getExtras().size() > 0) {
                     Group updatedGroup = (Group) intent.getExtras().get(GroupsUpdaterTask.UPDATED_GROUP_EXTRA);
-<<<<<<< HEAD
-                    updatedGroup.setId((Long) intent.getExtras().get(GroupsUpdaterTask.ID));
-
-=======
                     Long id = intent.getLongExtra(GroupsUpdaterTask.UPDATED_GROUP_ID_EXTRA, 0);
+
                     updatedGroup.setId(id);
->>>>>>> 7d63cf5b9670a784faf366dcdf1d3701f4b22274
+
                     if (updatedGroup != null) {
                         // todo: update only the changed group
                         updateGroupInDrawer(updatedGroup);
