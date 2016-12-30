@@ -10,6 +10,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import t.a.m.com.doch1.common.Utils;
+
 /**
  * Created by Morad on 12/5/2016.
  */
@@ -114,5 +116,21 @@ public class Group extends Model implements Serializable{
 
     public void setIsManager(boolean isManager) {
         this.mIsManager = isManager;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if(object != null && object instanceof Group) {
+            Group group = (Group) object;
+
+            return (Utils.isLongsEquals(getId(),group.getId())
+                    && Utils.isObjectsEquals(getImage(), group.getImage())
+                    && Utils.isObjectsEquals(getName(), group.getName())
+                    && Utils.isLongsEquals(getParentId(), group.getParentId())
+                    && Utils.isLongsEquals(getManager(), group.getManager())
+                    && Utils.isLongsEquals(getStatusesId(), group.getStatusesId())
+                    && Utils.isObjectsEquals(mUsers, group.mUsers));
+        }
+        return false;
     }
 }
