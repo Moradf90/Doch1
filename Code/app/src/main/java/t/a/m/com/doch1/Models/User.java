@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import t.a.m.com.doch1.common.Utils;
+
 /**
  * Created by Morad on 12/3/2016.
  */
@@ -168,5 +170,20 @@ public class User extends Model implements Serializable{
 
     private UserInGroup getUserInGroup() {
         return new UserInGroup(getMainStatus(), getSubStatus(), new Date());
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if(object != null && object instanceof User){
+            User user = (User)object;
+            return Utils.isLongsEquals(getId(),user.getId())
+                    && Utils.isObjectsEquals(getName(), user.getName())
+                    && Utils.isObjectsEquals(getEmail(), user.getEmail())
+                    && Utils.isObjectsEquals(getPersonalId(), user.getPersonalId())
+                    && Utils.isObjectsEquals(mGroupsId, user.mGroupsId)
+                    && Utils.isObjectsEquals(getPhone(), user.getPhone())
+                    && Utils.isObjectsEquals(getImage(), user.getImage());
+        }
+        return false;
     }
 }

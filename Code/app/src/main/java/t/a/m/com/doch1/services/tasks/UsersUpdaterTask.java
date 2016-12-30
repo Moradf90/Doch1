@@ -19,6 +19,9 @@ import t.a.m.com.doch1.services.UpdaterService;
 public class UsersUpdaterTask implements ChildEventListener {
 
     public static final String USER_UPDATED_ACTION = "user_updated_action";
+    public static final String UPDATED_USER_EXTRA = "user_updated";
+    public static final String NEW_USER_EXTRA = "new_user";
+    public static final String DELETED_USER_EXTRA = "deleted_user";
 
     private Context mContext;
     private boolean isExecuted;
@@ -44,13 +47,20 @@ public class UsersUpdaterTask implements ChildEventListener {
     @Override
     public void onChildAdded(DataSnapshot snapshot, String s) {
         User user = snapshot.getValue(User.class);
-        Log.d("User-Updater", "User added : " + user.getName());
-        user.save();
-        mContext.sendBroadcast(new Intent(USER_UPDATED_ACTION));
+        User currentUser = User.load(User.class, user.getId());
+        if(!user.equals(currentUser)){
+            Log.d("User-Updater", "User added : " + user.getName());
+            user.save();
 
-        if(user.getEmail().equals(FirebaseAuth.getInstance().getCurrentUser().getEmail())
-                && mContext instanceof UpdaterService) {
-            ((UpdaterService)mContext).refresh(user);
+            Intent intent = new Intent(USER_UPDATED_ACTION);
+            intent.putExtra(NEW_USER_EXTRA, user);
+
+            mContext.sendBroadcast(intent);
+
+            if(user.getEmail().equals(FirebaseAuth.getInstance().getCurrentUser().getEmail())
+                    && mContext instanceof UpdaterService) {
+                ((UpdaterService)mContext).refresh(user);
+            }
         }
     }
 
@@ -60,7 +70,10 @@ public class UsersUpdaterTask implements ChildEventListener {
         User user = snapshot.getValue(User.class);
         Log.d("User-Updater", "User changed : " + user.getName());
         user.save();
-        mContext.sendBroadcast(new Intent(USER_UPDATED_ACTION));
+        Intent intent = new Intent(USER_UPDATED_ACTION);
+        intent.putExtra(UPDATED_USER_EXTRA, user);
+        mContext.sendBroadcast(intent);
+
         if(user.getEmail().equals(FirebaseAuth.getInstance().getCurrentUser().getEmail())
                 && mContext instanceof UpdaterService) {
             ((UpdaterService)mContext).refresh(user);
@@ -73,7 +86,9 @@ public class UsersUpdaterTask implements ChildEventListener {
         User user = dataSnapshot.getValue(User.class);
         Log.d("User-Updater", "User deleted : " + user.getName());
         user.delete();
-        mContext.sendBroadcast(new Intent(USER_UPDATED_ACTION));
+        Intent intent = new Intent(USER_UPDATED_ACTION);
+        intent.putExtra(DELETED_USER_EXTRA, user);
+        mContext.sendBroadcast(intent);
     }
 
     @Override

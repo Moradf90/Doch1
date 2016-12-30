@@ -11,10 +11,13 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
 import t.a.m.com.doch1.Models.Group;
+import t.a.m.com.doch1.Models.ListOfLongs;
 import t.a.m.com.doch1.Models.User;
 import t.a.m.com.doch1.services.UpdaterService;
 
@@ -24,6 +27,8 @@ import t.a.m.com.doch1.services.UpdaterService;
 public class GroupsUpdaterTask implements ValueEventListener {
 
     public static final String GROUP_UPDATED_ACTION = "group_updated_action";
+    public static final String UPDATED_GROUP_EXTRA = "updated_group";
+    public static final String DELETED_GROUPS_EXTRA = "deleted_groups";
 
     // user groups
     private Vector<Long> mGroups; //thread safe
@@ -107,14 +112,19 @@ public class GroupsUpdaterTask implements ValueEventListener {
     public void onDataChange(DataSnapshot ds) {
         if(ds.exists()){
             Group group = ds.getValue(Group.class);
-            Log.d("Group-Updater", "Group added : " + group.getName());
-            group.save();
-            mContext.sendBroadcast(new Intent(GROUP_UPDATED_ACTION));
+            Group currentG = Group.load(Group.class, group.getId());
+            if(!group.equals(currentG)) {
+                Log.d("Group-Updater", "Group added : " + group.getName());
+                group.save();
 
-            if(group.getStatusesId() != null){
-                ((UpdaterService)mContext).getStatusesUpdaterTask().addStatusesGroupListener(group.getStatusesId());
+                Intent intent = new Intent(GROUP_UPDATED_ACTION);
+                intent.putExtra(UPDATED_GROUP_EXTRA, group);
+                mContext.sendBroadcast(intent);
+
+                if (group.getStatusesId() != null) {
+                    ((UpdaterService) mContext).getStatusesUpdaterTask().addStatusesGroupListener(group.getStatusesId());
+                }
             }
-
         }
     }
 
@@ -133,17 +143,24 @@ public class GroupsUpdaterTask implements ValueEventListener {
                 }
             }
 
+            ListOfLongs removedGroups = new ListOfLongs();
+
             // there are removed groups
             if(mGroups.size() > user.getGroups().size()){
                 for(Long groupId : mGroups) {
                     if(!user.getGroups().contains(groupId)){
                         mGroups.remove(groupId);
+                        removedGroups.add(groupId);
                         removeListenerToGroup(groupId);
                     }
                 }
             }
 
-            mContext.sendBroadcast(new Intent(GROUP_UPDATED_ACTION));
+            if(removedGroups.size() > 0) {
+                Intent intent = new Intent(GROUP_UPDATED_ACTION);
+                intent.putExtra(DELETED_GROUPS_EXTRA, removedGroups);
+                mContext.sendBroadcast(intent);
+            }
         }
     }
 
