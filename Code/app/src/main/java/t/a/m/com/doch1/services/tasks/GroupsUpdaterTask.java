@@ -27,6 +27,7 @@ public class GroupsUpdaterTask implements ValueEventListener, ChildEventListener
 
     public static final String GROUP_UPDATED_ACTION = "group_updated_action";
     public static final String UPDATED_GROUP_EXTRA = "updated_group";
+    public static final String UPDATED_GROUP_ID_EXTRA = "updated_group_id";
     public static final String NEW_GROUP_EXTRA = "new_group";
     public static final String DELETED_GROUPS_EXTRA = "deleted_groups";
 
@@ -123,6 +124,7 @@ public class GroupsUpdaterTask implements ValueEventListener, ChildEventListener
 
                 Intent intent = new Intent(GROUP_UPDATED_ACTION);
                 intent.putExtra(UPDATED_GROUP_EXTRA, group);
+                intent.putExtra(UPDATED_GROUP_ID_EXTRA, group.getId());
                 mContext.sendBroadcast(intent);
 
                 if (group.getStatusesId() != null) {
