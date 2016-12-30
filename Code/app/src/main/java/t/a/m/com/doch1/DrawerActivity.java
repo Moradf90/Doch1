@@ -78,7 +78,7 @@ public class DrawerActivity extends AppCompatActivity {
     private BroadcastReceiver mUserStatusReceiver;
     private Boolean bShowSubMembers = false;
 
-    private HashMap<String, IProfile> mapNameToProfile;
+    private HashMap<Long, ProfileDrawerItem> mapGroupIDToProfile;
 
 
     @Override
@@ -110,15 +110,14 @@ public class DrawerActivity extends AppCompatActivity {
         mGroupsReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                if(intent.getExtras().size() > 0) {
-                    Group updatedGroup = (Group)intent.getExtras().get(GroupsUpdaterTask.UPDATED_GROUP_EXTRA);
+                if (intent.getExtras().size() > 0) {
+                    Group updatedGroup = (Group) intent.getExtras().get(GroupsUpdaterTask.UPDATED_GROUP_EXTRA);
 
-                    if(updatedGroup != null) {
-                        // update only the changed group
-                        updateGroupsInDrawer();
+                    if (updatedGroup != null) {
+                        // todo: update only the changed group
+                        updateGroupInDrawer(updatedGroup);
                     }
-                }
-                else {
+                } else {
                     updateGroupsInDrawer();
                 }
             }
@@ -131,7 +130,8 @@ public class DrawerActivity extends AppCompatActivity {
                     Group selectedProfileGroup = getSelectedGroup();
                     initMembersDrawer(selectedProfileGroup.getId());
                 }
-            }};
+            }
+        };
 
         //Remove line to test RTL support
         //getWindow().getDecorView().setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
@@ -174,7 +174,7 @@ public class DrawerActivity extends AppCompatActivity {
                 .build();
 
 
-        SwitchDrawerItem switchShowSubMembers =  new SwitchDrawerItem().withName(R.string.show_sub_members).withIcon(Octicons.Icon.oct_tools).withChecked(bShowSubMembers).withSelectable(false).withOnCheckedChangeListener(new OnCheckedChangeListener() {
+        SwitchDrawerItem switchShowSubMembers = new SwitchDrawerItem().withName(R.string.show_sub_members).withIcon(Octicons.Icon.oct_tools).withChecked(bShowSubMembers).withSelectable(false).withOnCheckedChangeListener(new OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(IDrawerItem drawerItem, CompoundButton buttonView, boolean isChecked) {
                 bShowSubMembers = isChecked;
@@ -274,12 +274,23 @@ public class DrawerActivity extends AppCompatActivity {
         updateGroupsInDrawer();
     }
 
+    private void updateGroupInDrawer(Group updatedGroup) {
+        addOrUpdateProfileFromGroup(updatedGroup);
+    }
+
+    private void addOrUpdateProfileFromGroup(Group updatedGroup) {
+        // If this group already exists
+        IProfile newProfile =
+                new ProfileDrawerItem().withName(updatedGroup.getName()).withIdentifier(updatedGroup.getId()).withTag(updatedGroup);
+
+        drawableFromUrl(updatedGroup.getImage(), newProfile);
+    }
+
     private long getSelectedGroupId() {
         Group g = getSelectedGroup();
         if (g != null) {
             return g.getId();
-        }
-        else {
+        } else {
             return -1;
         }
     }
@@ -288,8 +299,7 @@ public class DrawerActivity extends AppCompatActivity {
         ProfileDrawerItem activeProfile = ((ProfileDrawerItem) headerResult.getActiveProfile());
         if (activeProfile != null) {
             return (Group) ((ProfileDrawerItem) headerResult.getActiveProfile()).getTag();
-        }
-        else {
+        } else {
             return null;
         }
     }
@@ -321,13 +331,17 @@ public class DrawerActivity extends AppCompatActivity {
 
     private void updateGroupsInDrawer() {
         if (loginUser != null &&
-            loginUser.getGroups() != null &&
-            loginUser.getGroups().size() > 0) {
+                loginUser.getGroups() != null &&
+                loginUser.getGroups().size() > 0) {
 
             Long[] groupsId =
                     Arrays.copyOf(loginUser.getGroups().toArray(), loginUser.getGroups().size(), Long[].class);
-            initUnderMyCommandGroups(groupsId);
+            updateGroupsInDrawer(groupsId);
         }
+    }
+
+    private void updateGroupsInDrawer(Long[] groupsId) {
+        initUnderMyCommandGroups(groupsId);
     }
 
     private void initUnderMyCommandGroups(Long... groupsId) {
@@ -348,8 +362,6 @@ public class DrawerActivity extends AppCompatActivity {
 
         List<Group> subGroups =  new Select().from(Group.class).where(Group.PARENT_ID_PROPERTY + " = " + groupID).execute();
 
-//        List<IDrawerItem> lstSubGroupsDrawerItems = new ArrayList<IDrawerItem>();
-
         for (Group subGroup : subGroups) {
             handleGroupRecursive(subGroup, isManager);
         }
@@ -358,22 +370,11 @@ public class DrawerActivity extends AppCompatActivity {
     // The isManager param is an indication if the login user is manager of the root group,
     // If it does so he is also have control on each sub group
     private void handleGroupRecursive(Group g, Boolean isManager) {
-
-//        ExpandableDrawerItem currGroupDrawerItem = new ExpandableDrawerItem().withName(g.getName());
-
         g.setIsManager(isManager);
 
-        // Add the profile only if not exists yet
-        if (!isProfileExists(g.getName())) {
-            IProfile newProfile =
-                    new ProfileDrawerItem().withName(g.getName()).withIdentifier(10041).withTag(g);
-
-            drawableFromUrl(g.getImage(), newProfile);
-        }
+        addOrUpdateProfileFromGroup(g);
 
         addAllSubUnitsToProfiles(g.getId(), isManager);
-
-//        lstSubGroupsDrawerItems.add(currGroupDrawerItem);
     }
 
     private void initMembersDrawer(final long groupID) {
@@ -501,38 +502,6 @@ public class DrawerActivity extends AppCompatActivity {
         task.execute(url);
     }
 
-    public void drawableFromUrl(String url, final ExpandableDrawerItem item) {
-
-        AsyncTask<String, Void, Bitmap> task = new AsyncTask<String, Void, Bitmap>(){
-            @Override
-            protected Bitmap doInBackground(String... params) {
-                Bitmap x = null;
-                try {
-                    HttpURLConnection connection = (HttpURLConnection) new URL(params[0]).openConnection();
-                    connection.connect();
-                    InputStream input = connection.getInputStream();
-
-                    x = BitmapFactory.decodeStream(input);
-                }
-                catch (Exception ex){}
-
-                return x;
-            }
-
-            @Override
-            protected void onPostExecute(Bitmap bitmap) {
-                if(bitmap != null){
-                    item.withIcon(new BitmapDrawable(bitmap));
-                }
-                else {
-                    item.withIcon(DrawerActivity.this.getResources().getDrawable(R.drawable.face_icon));
-                }
-            }
-        };
-
-        task.execute(url);
-    }
-
     private void drawableFromUrl(String url, final IProfile newProfile) {
         // TODO: save on the memory - takes too long
         AsyncTask<String, Void, Bitmap> task = new AsyncTask<String, Void, Bitmap>(){
@@ -568,30 +537,42 @@ public class DrawerActivity extends AppCompatActivity {
         task.execute(url);
     }
 
+
+
     // Add the profile if not exists
     private void addNewProfile(IProfile newProfile) {
-        if (mapNameToProfile == null) {
-            mapNameToProfile = new HashMap<>();
+        if (mapGroupIDToProfile == null) {
+            mapGroupIDToProfile = new HashMap<>();
         }
 
-        String profileName = newProfile.getName().getText();
+        Group updatedGroup = (Group) ((ProfileDrawerItem)newProfile).getTag();
 
-        // If it's new profile - add it.
-        if ((!isProfileExists(profileName)) && (headerResult != null)) {
+        // If it's new profile (group) - add it.
+        if ((!isProfileExists(updatedGroup.getId())) && (headerResult != null)) {
             //we know that there is 1 setting element. set the new profile above it ;)
             headerResult.addProfile(newProfile, headerResult.getProfiles().size() - 1);
-//            headerResult.notifyAll();
-            mapNameToProfile.put(profileName, newProfile);
+            mapGroupIDToProfile.put(updatedGroup.getId(), (ProfileDrawerItem) newProfile);
+        }
+        // Update existing profile
+        else {
+            Group oldProfileGroup = (Group) ((ProfileDrawerItem) newProfile).getTag();
+
+            // Todo: isManager - get from parents if we dont get it.
+            updatedGroup.setIsManager(updatedGroup.getIsManager() || oldProfileGroup.getIsManager());
+
+            ProfileDrawerItem toUpdate = mapGroupIDToProfile.get(oldProfileGroup.getId());
+            toUpdate/*.withIcon(newProfile.getIcon().getBitmap())*/.withTag(updatedGroup).withName(newProfile.getName().getText());
+            headerResult.updateProfile(toUpdate);
         }
     }
 
     // Add the profile if not exists
-    private boolean isProfileExists(String profileName) {
-        if (mapNameToProfile == null) {
+    private boolean isProfileExists(long groupID) {
+        if (mapGroupIDToProfile == null) {
             return false;
         }
         else {
-            return mapNameToProfile.containsKey(profileName);
+            return mapGroupIDToProfile.containsKey(groupID);
         }
 
     }
