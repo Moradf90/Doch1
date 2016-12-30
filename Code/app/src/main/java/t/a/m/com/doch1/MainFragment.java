@@ -211,8 +211,8 @@ public class MainFragment extends Fragment {
                 currUser.setMainStatus(userInGroup.getMainStatus());
                 currUser.setSubStatus(userInGroup.getSubStatus());
                 currUser.setLastUpdateDate(userInGroup.getLastUpdateDate());
-                currUser.setGroupId(groupOfUsers.getId());
             }
+            currUser.setGroupId(groupOfUsers.getId());
             lstMembers.add(currUser);
         }
 
@@ -261,6 +261,15 @@ public class MainFragment extends Fragment {
             if ((shownGroup.getIsManager()) ||
                 (currGroupMember.getId().equals(loginUser.getId()))) {
                 memberImage.setOnTouchListener(new MyTouchListener());
+            }
+            else {
+                // Even if it's isnt dragable we want to show the sub status when click
+                memberImage.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        showPopupSubStatus(view, false);
+                    }
+                });
             }
         }
     }
@@ -406,8 +415,11 @@ public class MainFragment extends Fragment {
             getView().draw(canvas);
         }
     }
-
     public void showPopupSubStatus(final View imgMember) {
+        showPopupSubStatus(imgMember, true);
+    }
+
+    public void showPopupSubStatus(final View imgMember, final boolean bEnabled) {
 
         User user = null;
         // If there is already selected sub status - select it
@@ -431,6 +443,9 @@ public class MainFragment extends Fragment {
                 final MySpinner popupSpinner = (MySpinner) popupView.findViewById(R.id.popupspinner);
                 TextView txtMemberName = (TextView) popupView.findViewById(R.id.txt_member_name);
 
+                popupSpinner.setEnabled(bEnabled);
+                popupSpinner.setClickable(bEnabled);
+
                 txtMemberName.setText(user.getName());
 
 //                ImageView imgSmallImageMember = (ImageView) popupView.findViewById(R.id.img_small_member);
@@ -448,6 +463,7 @@ public class MainFragment extends Fragment {
                 popupSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                     @Override
                     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                        // todo: check if work
                         finalMember.setSubStatus(popupSpinner.getSelectedItem().toString());
                         finalMember.updateUserStatuses();
 
