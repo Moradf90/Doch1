@@ -106,7 +106,17 @@ public class DrawerActivity extends AppCompatActivity {
         mGroupsReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                updateGroupsInDrawer();
+                if(intent.getExtras().size() > 0) {
+                    Group updatedGroup = (Group)intent.getExtras().get(GroupsUpdaterTask.UPDATED_GROUP_EXTRA);
+
+                    if(updatedGroup != null) {
+                        // update only the changed group
+                        updateGroupsInDrawer();
+                    }
+                }
+                else {
+                    updateGroupsInDrawer();
+                }
             }
         };
 
@@ -294,6 +304,8 @@ public class DrawerActivity extends AppCompatActivity {
         bundle.putBoolean(getString(R.string.is_show_sub_members), bShowSubMembers);
         return bundle;
     }
+
+    private void updateG
 
     private void updateGroupsInDrawer() {
         if (loginUser != null &&
