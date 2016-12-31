@@ -1,7 +1,7 @@
 package t.a.m.com.doch1;
 
-import android.app.Dialog;
 import android.app.Fragment;
+import android.app.FragmentManager;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.ClipData;
@@ -10,7 +10,6 @@ import android.graphics.Color;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.os.Handler;
-import android.provider.MediaStore;
 import android.text.format.DateUtils;
 import android.view.DragEvent;
 import android.view.Gravity;
@@ -20,7 +19,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
@@ -39,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import t.a.m.com.doch1.DragNDrop.MyTouchListener;
 import t.a.m.com.doch1.Models.Group;
 import t.a.m.com.doch1.Models.StatusesInGroup;
 import t.a.m.com.doch1.Models.User;
@@ -47,11 +47,11 @@ import t.a.m.com.doch1.common.SQLHelper;
 import t.a.m.com.doch1.common.Utils;
 import t.a.m.com.doch1.views.CircleImageView;
 import t.a.m.com.doch1.views.MySpinner;
+import t.a.m.com.doch1.views.ClusterDialogFragment;
 
 public class MainFragment extends Fragment {
 
     private static final int STATUSES_IN_ROW_AMOUNT = 3;
-    private static final int ENLARGE_ON_DARG = 2;
 
     private static MainFragment mInstance;
     public static Fragment instance() {
@@ -68,7 +68,7 @@ public class MainFragment extends Fragment {
     private List<User> lstMembers;
     private Map<String, List<String>> mapMainStatusToSub;
     private List<String> lstMain;
-    private LinearLayout rootLinearLayout;
+    private LinearLayout rootLinearLayoutStatuses;
     private View vFragmentLayout;
     private ProgressDialog progress;
     public static User loginUser;
@@ -108,7 +108,7 @@ public class MainFragment extends Fragment {
 
         if(vFragmentLayout == null) {
             vFragmentLayout = inflater.inflate(R.layout.activity_main, container, false);
-            rootLinearLayout = (LinearLayout) vFragmentLayout.findViewById(R.id.root);
+            rootLinearLayoutStatuses = (LinearLayout) vFragmentLayout.findViewById(R.id.statuses_root);
         }
 
         showProgress();
@@ -143,8 +143,8 @@ public class MainFragment extends Fragment {
         int colsSize = STATUSES_IN_ROW_AMOUNT;
         int rowsSize = lstMain.size() / colsSize;
 
-        rootLinearLayout.setWeightSum(rowsSize);
-        rootLinearLayout.removeAllViewsInLayout();
+        rootLinearLayoutStatuses.setWeightSum(rowsSize);
+        rootLinearLayoutStatuses.removeAllViewsInLayout();
         mapLayoutToImages.clear();
         mapMainStatusToView.clear();
 
@@ -188,7 +188,7 @@ public class MainFragment extends Fragment {
                 newRow.addView(newCol);
             }
 
-            rootLinearLayout.addView(newRow);
+            rootLinearLayoutStatuses.addView(newRow);
         }
     }
 
@@ -347,22 +347,7 @@ public class MainFragment extends Fragment {
         }
     }
 
-    private final class MyTouchListener implements View.OnTouchListener {
-        public boolean onTouch(View view, MotionEvent motionEvent) {
-            if (motionEvent.getAction() == MotionEvent.ACTION_DOWN)
-            {
-                ClipData data = ClipData.newPlainText("", "");
-                View.DragShadowBuilder shadowBuilder = new MyDragShadowBuilder(
-                        view);
-                view.startDrag(data, shadowBuilder, view, 0);
-                // TODO: if you click many times fast it remains invisible so think about timeout or something
-//                view.setVisibility(View.INVISIBLE);
-                return true;
-            } else {
-                return false;
-            }
-        }
-    }
+
 
     class MyDragListener implements View.OnDragListener {
         @Override
@@ -504,77 +489,42 @@ public class MainFragment extends Fragment {
 
     public void statusClusterDialog() {
         // custom dialog
-        final Dialog dialog = new Dialog(getActivity());
-        dialog.setContentView(R.layout.custom);
-        dialog.setTitle("Title...");
 
-        RelativeLayout rl = (RelativeLayout) dialog.findViewById(R.id.cluster_layout);
-        rl.setOnDragListener(new MyDragListener());
-
-        // set the custom dialog components - text, image and button
-        TextView text = (TextView) dialog.findViewById(R.id.text);
-        text.setText("Android custom dialog example!");
-        ImageView image = (ImageView) dialog.findViewById(R.id.image);
-
-        image.setImageResource(R.drawable.ic_launcher);
-        image.setOnTouchListener(new MyTouchListener());
+        FragmentManager fm = getFragmentManager();
+        ClusterDialogFragment clusterDialogFragment = new ClusterDialogFragment();
+        clusterDialogFragment.show(fm, "Sample Fragment");
 
 
-        Button dialogButton = (Button) dialog.findViewById(R.id.dialogButtonOK);
-        // if button is clicked, close the custom dialog
-        dialogButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.dismiss();
-            }
-        });
 
-        dialog.show();
+//        final Dialog dialog = new Dialog(getActivity());
+//        dialog.setContentView(R.layout.custom);
+//        dialog.setTitle("Title...");
+//
+//        RelativeLayout rl = (RelativeLayout) dialog.findViewById(R.id.cluster_layout);
+//        rl.setOnDragListener(new MyDragListener());
+//
+//        // set the custom dialog components - text, image and button
+//        TextView text = (TextView) dialog.findViewById(R.id.text);
+//        text.setText("Android custom dialog example!");
+//        ImageView image = (ImageView) dialog.findViewById(R.id.image);
+//
+//        image.setImageResource(R.drawable.ic_launcher);
+//        image.setOnTouchListener(new MyTouchListener());
+//
+//
+//        Button dialogButton = (Button) dialog.findViewById(R.id.dialogButtonOK);
+//        // if button is clicked, close the custom dialog
+//        dialogButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                dialog.dismiss();
+//            }
+//        });
+//
+//        dialog.show();
     }
 
-    private static class MyDragShadowBuilder extends View.DragShadowBuilder {
 
-        private Point mScaleFactor;
-        // Defines the constructor for myDragShadowBuilder
-        public MyDragShadowBuilder(View v) {
-
-            // Stores the View parameter passed to myDragShadowBuilder.
-            super(v);
-        }
-
-        // Defines a callback that sends the drag shadow dimensions and touch point back to the
-        // system.
-        @Override
-        public void onProvideShadowMetrics (Point size, Point touch) {
-            // Defines local variables
-            int width;
-            int height;
-
-            // Sets the width of the shadow to half the width of the original View
-            width = getView().getWidth() * ENLARGE_ON_DARG;
-
-            // Sets the height of the shadow to half the height of the original View
-            height = getView().getHeight() * ENLARGE_ON_DARG;
-
-            // Sets the size parameter's width and height values. These get back to the system
-            // through the size parameter.
-            size.set(width, height);
-
-            // Sets size parameter to member that will be used for scaling shadow image.
-            mScaleFactor = size;
-
-            // Sets the touch point's position to be in the middle of the drag shadow
-            touch.set(width / ENLARGE_ON_DARG, height / ENLARGE_ON_DARG);
-        }
-
-        @Override
-        public void onDrawShadow(Canvas canvas) {
-
-            // Draws the ColorDrawable in the Canvas passed in from the system.
-            canvas.scale(mScaleFactor.x/(float)getView().getWidth(), mScaleFactor.y/(float)getView().getHeight());
-            getView().draw(canvas);
-        }
-    }
     public void showPopupSubStatus(final View imgMember) {
         showPopupSubStatus(imgMember, true);
     }
