@@ -183,22 +183,23 @@ public class DrawerActivity extends AppCompatActivity {
             @Override
             public void onCheckedChanged(IDrawerItem drawerItem, CompoundButton buttonView, boolean isChecked) {
 
+                bShowSubMembers = isChecked;
+                if (isChecked) {
+                    switchShowSubMembers.withIcon(R.drawable.sub_members_on);
+                } else {
+                    switchShowSubMembers.withIcon(R.drawable.sub_members_off);
+                }
+
                 if (getSelectedGroup() != null) {
-                    bShowSubMembers = isChecked;
                     initMembersDrawer(getSelectedGroupId());
-                    if (isChecked) {
-                        switchShowSubMembers.withIcon(R.drawable.sub_members_on);
-                    } else {
-                        switchShowSubMembers.withIcon(R.drawable.sub_members_off);
-                    }
-
-                    result.updateItem(switchShowSubMembers);
-
                     refreshCurrFragment();
                 }
                 else {
                     Toast.makeText(DrawerActivity.this, R.string.select_group_message, Toast.LENGTH_SHORT).show();
                 }
+
+                result.updateItem(switchShowSubMembers);
+
             }
         };
 
@@ -607,7 +608,9 @@ public class DrawerActivity extends AppCompatActivity {
             }
             else{
                 newFragment = MainFragment.instance();
-                newFragment.setArguments(getBundleForMainFragment());
+                if (!newFragment.isVisible()) {
+                    newFragment.setArguments(getBundleForMainFragment());
+                }
             }
         }
         else if (identifier == 3) {

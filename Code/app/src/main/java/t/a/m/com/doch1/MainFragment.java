@@ -1,5 +1,6 @@
 package t.a.m.com.doch1;
 
+import android.app.Dialog;
 import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
@@ -19,6 +20,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
@@ -364,7 +367,7 @@ public class MainFragment extends Fragment {
     class MyDragListener implements View.OnDragListener {
         @Override
         public boolean onDrag(View v, DragEvent event) {
-            CircleImageView imgMember = (CircleImageView) event.getLocalState();
+            View imgMember = (View) event.getLocalState();
 
             if (imgMember != null) {
                 ViewGroup oldLayout = (ViewGroup) imgMember.getParent();
@@ -430,7 +433,7 @@ public class MainFragment extends Fragment {
         }
     }
 
-    private void removeImageFromView(ViewGroup oldLayout, CircleImageView memberImage) {
+    private void removeImageFromView(ViewGroup oldLayout, View memberImage) {
         oldLayout.removeView(memberImage);
         mapLayoutToImages.get(oldLayout).remove(memberImage);
 
@@ -453,9 +456,9 @@ public class MainFragment extends Fragment {
         }
     }
 
-    private void addImageToView(FlowLayout newLayout, CircleImageView memberImage) {
+    private void addImageToView(FlowLayout newLayout, View memberImage) {
         newLayout.addView(memberImage);
-        mapLayoutToImages.get(newLayout).add(memberImage);
+        mapLayoutToImages.get(newLayout).add((CircleImageView) memberImage);
 
         // If we now have too much images for (before the addition it was ok)
         if (mapLayoutToImages.get(newLayout).size() - 1 == MAX_MEMBERS_IN_STATUS) {
@@ -471,12 +474,20 @@ public class MainFragment extends Fragment {
             cluster.setImageResource(mapNumberToImage.get(mapLayoutToImages.get(newLayout).size()));
             cluster.setTag("cluster");
 
+            cluster.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View arg0) {
+                    statusClusterDialog();
+                }
+            });
+
             newLayout.addView(cluster);
         }
         //  If we have too much but there is already cluster
         else if (mapLayoutToImages.get(newLayout).size() - 1 > MAX_MEMBERS_IN_STATUS) {
             memberImage.setVisibility(View.GONE);
             CircleImageView cluster = null;
+            // todo: fix with hashmap or something
             for (int i = 0; i < newLayout.getChildCount(); i++) {
                 if ((newLayout.getChildAt(i).getTag() != null) &&
                     (newLayout.getChildAt(i).getTag().equals("cluster"))) {
@@ -489,6 +500,36 @@ public class MainFragment extends Fragment {
                 cluster.setImageResource(mapNumberToImage.get(mapLayoutToImages.get(newLayout).size()));
             }
         }
+    }
+
+    public void statusClusterDialog() {
+        // custom dialog
+        final Dialog dialog = new Dialog(getActivity());
+        dialog.setContentView(R.layout.custom);
+        dialog.setTitle("Title...");
+
+        RelativeLayout rl = (RelativeLayout) dialog.findViewById(R.id.cluster_layout);
+        rl.setOnDragListener(new MyDragListener());
+
+        // set the custom dialog components - text, image and button
+        TextView text = (TextView) dialog.findViewById(R.id.text);
+        text.setText("Android custom dialog example!");
+        ImageView image = (ImageView) dialog.findViewById(R.id.image);
+
+        image.setImageResource(R.drawable.ic_launcher);
+        image.setOnTouchListener(new MyTouchListener());
+
+
+        Button dialogButton = (Button) dialog.findViewById(R.id.dialogButtonOK);
+        // if button is clicked, close the custom dialog
+        dialogButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+
+        dialog.show();
     }
 
     private static class MyDragShadowBuilder extends View.DragShadowBuilder {
