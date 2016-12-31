@@ -52,8 +52,19 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
     private static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE_FOR_PICK_IMAGE = 36411; // must be 16 bit
     private static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE_FOR_SET_IMAGE = 36302;
 
-    private FirebaseUser mCurrentUser;
 
+    private static ProfileFragment mInstance;
+
+    public static Fragment instance() {
+
+        if(mInstance == null){
+            mInstance = new ProfileFragment();
+        }
+        return mInstance;
+    }
+
+
+    private FirebaseUser mCurrentUser;
     private RoundedImageView mProfilePictureView;
     private TextView mProfileDisplayName;
     private TextInputLayout mEditNameInputLayout;
@@ -66,6 +77,8 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
 
     private Uri mPicUri;
 
+
+    private ProfileFragment(){}
 
     @Override
     public void onCreate(Bundle savedInstanceState) {

@@ -327,15 +327,7 @@ public class DrawerActivity extends AppCompatActivity {
     private void refreshCurrFragment() {
         Fragment fCurrentDisplayedFragment = getFragmentManager().findFragmentById(R.id.frame_container);
         if (fCurrentDisplayedFragment instanceof MainFragment) {
-
-            // TODO: create new only if not exist - take from the manager
-            Fragment newFragment = new MainFragment();
-            newFragment.setArguments(getBundleForMainFragment());
-
-            FragmentManager fragmentManager = getFragmentManager();
-            fragmentManager.beginTransaction()
-                    .replace(R.id.frame_container, newFragment, newFragment.getClass().getSimpleName())
-                    .commit();
+            ((MainFragment)fCurrentDisplayedFragment).refresh(getSelectedGroup(), bShowSubMembers);
         }
     }
 
@@ -343,7 +335,6 @@ public class DrawerActivity extends AppCompatActivity {
     private Bundle getBundleForMainFragment() {
         Bundle bundle = new Bundle();
         bundle.putSerializable(getString(R.string.group), getSelectedGroup());
-
         bundle.putSerializable(getString(R.string.login_user), loginUser);
         bundle.putBoolean(getString(R.string.is_show_sub_members), bShowSubMembers);
         return bundle;
@@ -607,7 +598,7 @@ public class DrawerActivity extends AppCompatActivity {
 
         // Create a new fragment and specify the planet to show based on position
         if (identifier == 1) {
-            newFragment = new ProfileFragment();
+            newFragment = ProfileFragment.instance();
         }
         else if (identifier == 2) {
             if (headerResult.getActiveProfile() == null) {
@@ -615,7 +606,7 @@ public class DrawerActivity extends AppCompatActivity {
                 newFragment = fCurrentDisplayedFragment;
             }
             else{
-                newFragment = new MainFragment();
+                newFragment = MainFragment.instance();
                 newFragment.setArguments(getBundleForMainFragment());
             }
         }
@@ -653,11 +644,6 @@ public class DrawerActivity extends AppCompatActivity {
         else {
             newFragment = fCurrentDisplayedFragment;
         }
-//        Bundle args = new Bundle();
-//        args.putInt(MainFragment.ARG_PLANET_NUMBER, position);
-//        fragment.setArguments(args);
-
-
 
         // If the current displayed is the same as the one we want to switch to - do nothing. else - switch.
         if ((fCurrentDisplayedFragment == null) ||

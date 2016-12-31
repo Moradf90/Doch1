@@ -41,25 +41,36 @@ import t.a.m.com.doch1.Models.StatusesInGroup;
 import t.a.m.com.doch1.Models.User;
 import t.a.m.com.doch1.Models.UserInGroup;
 import t.a.m.com.doch1.common.SQLHelper;
+import t.a.m.com.doch1.common.Utils;
 import t.a.m.com.doch1.views.CircleImageView;
 import t.a.m.com.doch1.views.MySpinner;
 
 public class MainFragment extends Fragment {
 
     private static final int STATUSES_IN_ROW_AMOUNT = 3;
-    Group shownGroup;
     private static final int ENLARGE_ON_DARG = 2;
+
+    private static MainFragment mInstance;
+    public static Fragment instance() {
+        if(mInstance == null){
+            mInstance = new MainFragment();
+        }
+        return mInstance;
+    }
+
+    private Group shownGroup;
+    private long mStatusesId;
     private int ImageSizeOnDrop = 125;
     private int CLUSTER_SIZE = 200;
-    List<User> lstMembers;
-    Map<String, List<String>> mapMainStatusToSub;
-    List<String> lstMain;
-    LinearLayout rootLinearLayout;
-    View vFragmentLayout;
-    ProgressDialog progress;
+    private List<User> lstMembers;
+    private Map<String, List<String>> mapMainStatusToSub;
+    private List<String> lstMain;
+    private LinearLayout rootLinearLayout;
+    private View vFragmentLayout;
+    private ProgressDialog progress;
     public static User loginUser;
-    Map<String, ViewGroup> mapMainStatusToView;
-    Map<ViewGroup, List<CircleImageView>> mapLayoutToImages;
+    private Map<String, ViewGroup> mapMainStatusToView;
+    private Map<ViewGroup, List<CircleImageView>> mapLayoutToImages;
     private BroadcastReceiver mUserStatusReceiver;
     private Boolean bShowSubMembers;
     private int MAX_MEMBERS_IN_STATUS = 5;
@@ -77,53 +88,46 @@ public class MainFragment extends Fragment {
         mapNumberToImage.put(12, R.drawable.twelve);
     }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
 
-        Bundle bundle = this.getArguments();
-        if (bundle != null) {
-            this.shownGroup = (Group) bundle.getSerializable(getString(R.string.group));
-            this.loginUser = (User) bundle.getSerializable(getString(R.string.login_user));
-            this.bShowSubMembers = bundle.getBoolean(getString(R.string.is_show_sub_members));
-        }
-
-        getActivity().setTitle(R.string.main_fragment_title);
-
+    private MainFragment(){
         lstMembers = new ArrayList<>();
         mapMainStatusToSub = new HashMap<>();
         mapLayoutToImages = new HashMap<>();
         mapMainStatusToView = new HashMap<>();
-
         lstMain = new ArrayList<>();
+    }
 
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+
+        getActivity().setTitle(R.string.main_fragment_title);
+
+        if(vFragmentLayout == null) {
+            vFragmentLayout = inflater.inflate(R.layout.activity_main, container, false);
+            rootLinearLayout = (LinearLayout) vFragmentLayout.findViewById(R.id.root);
+        }
+
+        showProgress();
+
+        Bundle bundle = this.getArguments();
+        if (bundle != null) {
+
+            loginUser = (User) bundle.getSerializable(getString(R.string.login_user));
+
+            refresh((Group) bundle.getSerializable(getString(R.string.group)),
+                    bundle.getBoolean(getString(R.string.is_show_sub_members)));
+        }
+
+        return vFragmentLayout;
+    }
+
+    private void showProgress() {
         progress = new ProgressDialog(getActivity());
         progress.setTitle(getString(R.string.loading_title));
         progress.setMessage(getString(R.string.loading_message));
         progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
         progress.show();
-
-        vFragmentLayout = inflater.inflate(R.layout.activity_main, container, false);
-
-        getActivity().setTitle(R.string.main_fragment_title);
-
-        rootLinearLayout = (LinearLayout) vFragmentLayout.findViewById(R.id.root);
-
-        List<StatusesInGroup> statusesInGroup =
-                new Select().from(StatusesInGroup.class).where(StatusesInGroup.STATUSES_ID_PROPERTY + " = " + shownGroup.getStatusesId()).execute();
-
-        for (StatusesInGroup mainStatus : statusesInGroup) {
-            mapMainStatusToSub.put(mainStatus.getName(), mainStatus.getSubStatuses() != null ? mainStatus.getSubStatuses() : new ArrayList<String>());
-            lstMain.add(mainStatus.getName());
-        }
-
-        calculateImageSizeByStatuses(statusesInGroup);
-
-        // TODO: buildLayout should be called once. - not any creation
-        buildLayout();
-        pullMembers(shownGroup);
-
-        return vFragmentLayout;
     }
 
     private void calculateImageSizeByStatuses(List<StatusesInGroup> statusesInGroup) {
@@ -137,6 +141,9 @@ public class MainFragment extends Fragment {
         int rowsSize = lstMain.size() / colsSize;
 
         rootLinearLayout.setWeightSum(rowsSize);
+        rootLinearLayout.removeAllViewsInLayout();
+        mapLayoutToImages.clear();
+        mapMainStatusToView.clear();
 
         for (int rowIndex = 0; rowIndex < rowsSize; rowIndex++) {
             // Create new row
@@ -183,22 +190,25 @@ public class MainFragment extends Fragment {
     }
 
     // todo: should be called on broadcast
-    private void pullMembers(Group g) {
-        handleUsersOfGroup(g, g.getUsers(), vFragmentLayout, progress);
+    private void pullMembers(Group group) {
+        handleUsersOfGroup(group);
 
         if (bShowSubMembers) {
-            List<Group> subGroups =  new Select().from(Group.class).where(Group.PARENT_ID_PROPERTY + " = " + g.getId()).execute();
+            List<Group> subGroups =  new Select().from(Group.class)
+                    .where(Group.PARENT_ID_PROPERTY + " = " + group.getId()).execute();
             for (Group currSubGroup : subGroups) {
                 pullMembers(currSubGroup);
             }
         }
     }
 
-    private void handleUsersOfGroup(Group groupOfUsers, final List<Long> usersID, final View vFragmentLayout, final ProgressDialog progress) {
+    private void handleUsersOfGroup(Group group) {
 
-        List<User> groupUsers = new Select().from(User.class).where("id " + SQLHelper.getInQuery(usersID)).execute();
+        List<User> groupUsers = new Select().from(User.class)
+                .where(User.ID_PROPERTY + SQLHelper.getInQuery(group.getUsers())).execute();
 
-        List<UserInGroup> usersInGroups = new Select().from(UserInGroup.class).where(UserInGroup.GROUP_PROPERTY + " = " + groupOfUsers.getId()).execute();
+        List<UserInGroup> usersInGroups = new Select().from(UserInGroup.class)
+                .where(UserInGroup.GROUP_PROPERTY + " = " + group.getId()).execute();
 
         HashMap<Long, UserInGroup> mapUserIdToStatus = new HashMap<>();
 
@@ -209,6 +219,7 @@ public class MainFragment extends Fragment {
             }
         }
 
+
         for (User currUser : groupUsers) {
             UserInGroup userInGroup = mapUserIdToStatus.get(currUser.getId());
 
@@ -218,16 +229,15 @@ public class MainFragment extends Fragment {
                 currUser.setSubStatus(userInGroup.getSubStatus());
                 currUser.setLastUpdateDate(userInGroup.getLastUpdateDate());
             }
-            currUser.setGroupId(groupOfUsers.getId());
+
+            currUser.setGroupId(group.getId());
             lstMembers.add(currUser);
         }
 
-        setMembersOnStatuses(vFragmentLayout, groupUsers);
-
-        progress.dismiss();
+        setMembersOnStatuses(groupUsers);
     }
 
-    private void setMembersOnStatuses(View vFragmentLayout, List<User> users) {
+    private void setMembersOnStatuses(List<User> users) {
 
         FlowLayout btm = (FlowLayout) vFragmentLayout.findViewById(R.id.defaultStatus);
 
@@ -281,7 +291,58 @@ public class MainFragment extends Fragment {
         }
     }
 
+    public void refresh(Group group, Boolean showSubMembers) {
+        if(shownGroup == null || !Utils.isLongsEquals(group.getId(), shownGroup.getId())
+                || bShowSubMembers != showSubMembers) {
+            shownGroup = group;
+            bShowSubMembers = showSubMembers;
+            clearMembersViews();
+            initStatusesOfGroup(shownGroup);
+            lstMembers.clear();
+            pullMembers(shownGroup);
+        }
 
+        progress.dismiss();
+    }
+
+    private void clearMembersViews() {
+        for (ViewGroup view : mapLayoutToImages.keySet()) {
+            List<View> viewsToRemove = new ArrayList<>();
+            for(int index = 0; index < view.getChildCount(); index ++){
+                View child = view.getChildAt(index);
+                if(child instanceof CircleImageView){
+                    viewsToRemove.add(child);
+                }
+            }
+
+            for (View v : viewsToRemove) {
+                view.removeView(v);
+            }
+
+            mapLayoutToImages.get(view).clear();
+        }
+    }
+
+    private void initStatusesOfGroup(Group group) {
+
+        if(mStatusesId != group.getStatusesId().longValue()) {
+            mStatusesId = shownGroup.getStatusesId();
+            mapMainStatusToSub.clear();
+            lstMain.clear();
+            List<StatusesInGroup> statusesInGroup =
+                    new Select().from(StatusesInGroup.class)
+                            .where(StatusesInGroup.STATUSES_ID_PROPERTY + " = " + shownGroup.getStatusesId())
+                            .execute();
+
+            for (StatusesInGroup mainStatus : statusesInGroup) {
+                mapMainStatusToSub.put(mainStatus.getName(), mainStatus.getSubStatuses() != null ? mainStatus.getSubStatuses() : new ArrayList<String>());
+                lstMain.add(mainStatus.getName());
+            }
+
+            calculateImageSizeByStatuses(statusesInGroup);
+            buildLayout();
+        }
+    }
 
     private final class MyTouchListener implements View.OnTouchListener {
         public boolean onTouch(View view, MotionEvent motionEvent) {
