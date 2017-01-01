@@ -10,6 +10,7 @@ import android.graphics.Color;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.SystemClock;
 import android.text.format.DateUtils;
 import android.view.DragEvent;
 import android.view.Gravity;
@@ -54,7 +55,7 @@ public class MainFragment extends Fragment {
     private static final int STATUSES_IN_ROW_AMOUNT = 3;
 
     private static MainFragment mInstance;
-    public static Fragment instance() {
+    public static MainFragment instance() {
         if(mInstance == null){
             mInstance = new MainFragment();
         }
@@ -181,6 +182,26 @@ public class MainFragment extends Fragment {
 
                 newCol.addView(textView);
 
+                newCol.setOnTouchListener(new View.OnTouchListener() {
+                    @Override
+                    public boolean onTouch(View view, MotionEvent motionEvent) {
+//                        if(motionEvent.getAction() == 141) {
+                            FlowLayout l = (FlowLayout) view;
+                            if (l.getChildCount() > 1) {
+                                long downTime = SystemClock.uptimeMillis();
+                                long eventTime = SystemClock.uptimeMillis() + 1000 * 60;
+                                MotionEvent event = MotionEvent.obtain(
+                                        downTime,
+                                        eventTime,
+                                        MotionEvent.ACTION_DOWN, 0, 0, 0);
+
+                                l.getChildAt(1).dispatchTouchEvent(event);
+                            }
+//                        }
+                        return false;
+                    }
+                });
+
                 Random rnd = new Random();
                 int color = Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256));
                 newCol.setBackgroundColor(color);
@@ -278,11 +299,11 @@ public class MainFragment extends Fragment {
 
             // the member's image will be able to be dragged only if the logged on user is manager or
             // he is the specific member itself
-            if ((shownGroup.getIsManager()) ||
-                (currGroupMember.getId().equals(loginUser.getId()))) {
+//            if ((shownGroup.getIsManager()) ||
+//                (currGroupMember.getId().equals(loginUser.getId()))) {
                 memberImage.setOnTouchListener(new MyTouchListener());
-            }
-            else {
+//            }
+//            else {
                 // Even if it's isnt dragable we want to show the sub status when click
                 memberImage.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -290,7 +311,7 @@ public class MainFragment extends Fragment {
                         showPopupSubStatus(view, false);
                     }
                 });
-            }
+//            }
         }
     }
 
@@ -441,7 +462,7 @@ public class MainFragment extends Fragment {
         }
     }
 
-    private void addImageToView(FlowLayout newLayout, View memberImage) {
+    private void addImageToView(final FlowLayout newLayout, View memberImage) {
         newLayout.addView(memberImage);
         mapLayoutToImages.get(newLayout).add((CircleImageView) memberImage);
 
@@ -462,7 +483,7 @@ public class MainFragment extends Fragment {
             cluster.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View arg0) {
-                    statusClusterDialog();
+                    statusClusterDialog(newLayout, mapLayoutToImages.get(newLayout));
                 }
             });
 
@@ -487,11 +508,11 @@ public class MainFragment extends Fragment {
         }
     }
 
-    public void statusClusterDialog() {
+    public void statusClusterDialog(FlowLayout newLayout, List<CircleImageView> circleImageViews) {
         // custom dialog
 
         FragmentManager fm = getFragmentManager();
-        ClusterDialogFragment clusterDialogFragment = new ClusterDialogFragment();
+        ClusterDialogFragment clusterDialogFragment = new ClusterDialogFragment(newLayout, circleImageViews);
         clusterDialogFragment.show(fm, "Sample Fragment");
 
 
@@ -522,6 +543,21 @@ public class MainFragment extends Fragment {
 //        });
 //
 //        dialog.show();
+    }
+
+
+    public void test(ViewGroup parent, int index){
+        FlowLayout l = (FlowLayout)parent;
+        if(l.getChildCount() >= index){
+            long downTime = SystemClock.uptimeMillis();
+            long eventTime = SystemClock.uptimeMillis() + 1000 * 60;
+            MotionEvent event = MotionEvent.obtain(
+                    downTime,
+                    eventTime,
+                    MotionEvent.ACTION_DOWN, 0, 0, 0);
+
+            l.getChildAt(index).dispatchTouchEvent(event);
+        }
     }
 
 
