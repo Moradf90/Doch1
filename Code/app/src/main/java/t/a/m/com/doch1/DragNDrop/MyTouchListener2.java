@@ -7,7 +7,7 @@ import android.view.View;
 /**
  * Created by tom on 31-Dec-16.
  */
-public final class MyTouchListener implements View.OnTouchListener {
+public final class MyTouchListener2 implements View.OnTouchListener {
     public boolean onTouch(View view, MotionEvent motionEvent) {
         if (motionEvent.getAction() == MotionEvent.ACTION_DOWN)
         {

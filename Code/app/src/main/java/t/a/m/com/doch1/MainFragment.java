@@ -1,13 +1,10 @@
 package t.a.m.com.doch1;
 
 import android.app.Fragment;
-import android.app.FragmentManager;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.ClipData;
-import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Point;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
@@ -20,8 +17,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
@@ -39,7 +34,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import t.a.m.com.doch1.DragNDrop.MyTouchListener;
+import t.a.m.com.doch1.DragNDrop.MyDragShadowBuilder;
+//import t.a.m.com.doch1.DragNDrop.MyTouchListener;
 import t.a.m.com.doch1.Models.Group;
 import t.a.m.com.doch1.Models.StatusesInGroup;
 import t.a.m.com.doch1.Models.User;
@@ -48,7 +44,6 @@ import t.a.m.com.doch1.common.SQLHelper;
 import t.a.m.com.doch1.common.Utils;
 import t.a.m.com.doch1.views.CircleImageView;
 import t.a.m.com.doch1.views.MySpinner;
-import t.a.m.com.doch1.views.ClusterDialogFragment;
 
 public class MainFragment extends Fragment {
 
@@ -69,7 +64,10 @@ public class MainFragment extends Fragment {
     private List<User> lstMembers;
     private Map<String, List<String>> mapMainStatusToSub;
     private List<String> lstMain;
+
     private LinearLayout rootLinearLayoutStatuses;
+    private FlowLayout clusterDialogLayout;
+
     private View vFragmentLayout;
     private ProgressDialog progress;
     public static User loginUser;
@@ -79,6 +77,7 @@ public class MainFragment extends Fragment {
     private Boolean bShowSubMembers;
     private int MAX_MEMBERS_IN_STATUS = 5;
 
+    // todo: fix more than 12...
     private static HashMap<Integer, Integer> mapNumberToImage;
     static
     {
@@ -107,10 +106,23 @@ public class MainFragment extends Fragment {
 
         getActivity().setTitle(R.string.main_fragment_title);
 
-        if(vFragmentLayout == null) {
+        if (vFragmentLayout == null) {
             vFragmentLayout = inflater.inflate(R.layout.activity_main, container, false);
             rootLinearLayoutStatuses = (LinearLayout) vFragmentLayout.findViewById(R.id.statuses_root);
+            clusterDialogLayout = (FlowLayout) vFragmentLayout.findViewById(R.id.dialog_layout);
+            clusterDialogLayout.setOnDragListener(new MyDragListener());
         }
+
+        clusterDialogLayout.setVisibility(View.GONE);
+
+        // If we click outside the cluster dialog - close it
+        rootLinearLayoutStatuses.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                removeAllImagesOfView(clusterDialogLayout);
+                clusterDialogLayout.setVisibility(View.GONE);
+            }
+        });
 
         showProgress();
 
@@ -181,26 +193,26 @@ public class MainFragment extends Fragment {
                 textView.setText(lstMain.get(rowIndex * colsSize + colIndex));
 
                 newCol.addView(textView);
-
-                newCol.setOnTouchListener(new View.OnTouchListener() {
-                    @Override
-                    public boolean onTouch(View view, MotionEvent motionEvent) {
-//                        if(motionEvent.getAction() == 141) {
-                            FlowLayout l = (FlowLayout) view;
-                            if (l.getChildCount() > 1) {
-                                long downTime = SystemClock.uptimeMillis();
-                                long eventTime = SystemClock.uptimeMillis() + 1000 * 60;
-                                MotionEvent event = MotionEvent.obtain(
-                                        downTime,
-                                        eventTime,
-                                        MotionEvent.ACTION_DOWN, 0, 0, 0);
-
-                                l.getChildAt(1).dispatchTouchEvent(event);
-                            }
-//                        }
-                        return false;
-                    }
-                });
+// Morad try
+//                newCol.setOnTouchListener(new View.OnTouchListener() {
+//                    @Override
+//                    public boolean onTouch(View view, MotionEvent motionEvent) {
+////                        if(motionEvent.getAction() == 141) {
+//                            FlowLayout l = (FlowLayout) view;
+//                            if (l.getChildCount() > 1) {
+//                                long downTime = SystemClock.uptimeMillis();
+//                                long eventTime = SystemClock.uptimeMillis() + 1000 * 60;
+//                                MotionEvent event = MotionEvent.obtain(
+//                                        downTime,
+//                                        eventTime,
+//                                        MotionEvent.ACTION_DOWN, 0, 0, 0);
+//
+//                                l.getChildAt(1).dispatchTouchEvent(event);
+//                            }
+////                        }
+//                        return false;
+//                    }
+//                });
 
                 Random rnd = new Random();
                 int color = Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256));
@@ -242,7 +254,6 @@ public class MainFragment extends Fragment {
                 mapUserIdToStatus.put(userInGroup.getUserId(), userInGroup);
             }
         }
-
 
         for (User currUser : groupUsers) {
             UserInGroup userInGroup = mapUserIdToStatus.get(currUser.getId());
@@ -299,11 +310,11 @@ public class MainFragment extends Fragment {
 
             // the member's image will be able to be dragged only if the logged on user is manager or
             // he is the specific member itself
-//            if ((shownGroup.getIsManager()) ||
-//                (currGroupMember.getId().equals(loginUser.getId()))) {
+            if ((shownGroup.getIsManager()) ||
+                (currGroupMember.getId().equals(loginUser.getId()))) {
                 memberImage.setOnTouchListener(new MyTouchListener());
-//            }
-//            else {
+            }
+            else {
                 // Even if it's isnt dragable we want to show the sub status when click
                 memberImage.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -311,7 +322,7 @@ public class MainFragment extends Fragment {
                         showPopupSubStatus(view, false);
                     }
                 });
-//            }
+            }
         }
     }
 
@@ -331,19 +342,23 @@ public class MainFragment extends Fragment {
 
     private void clearMembersViews() {
         for (ViewGroup view : mapLayoutToImages.keySet()) {
-            List<View> viewsToRemove = new ArrayList<>();
-            for(int index = 0; index < view.getChildCount(); index ++){
-                View child = view.getChildAt(index);
-                if(child instanceof CircleImageView){
-                    viewsToRemove.add(child);
-                }
-            }
-
-            for (View v : viewsToRemove) {
-                view.removeView(v);
-            }
+            removeAllImagesOfView(view);
 
             mapLayoutToImages.get(view).clear();
+        }
+    }
+
+    private void removeAllImagesOfView(ViewGroup view) {
+        List<View> viewsToRemove = new ArrayList<>();
+        for(int index = 0; index < view.getChildCount(); index ++){
+            View child = view.getChildAt(index);
+            if(child instanceof CircleImageView){
+                viewsToRemove.add(child);
+            }
+        }
+
+        for (View v : viewsToRemove) {
+            view.removeView(v);
         }
     }
 
@@ -368,7 +383,22 @@ public class MainFragment extends Fragment {
         }
     }
 
-
+    public final class MyTouchListener implements View.OnTouchListener {
+        public boolean onTouch(View view, MotionEvent motionEvent) {
+            if (motionEvent.getAction() == MotionEvent.ACTION_DOWN)
+            {
+                ClipData data = ClipData.newPlainText("", "");
+                View.DragShadowBuilder shadowBuilder = new MyDragShadowBuilder(
+                        view);
+                view.startDrag(data, shadowBuilder, view, 0);
+                // TODO: if you click many times fast it remains invisible so think about timeout or something
+//                view.setVisibility(View.INVISIBLE);
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
 
     class MyDragListener implements View.OnDragListener {
         @Override
@@ -385,13 +415,48 @@ public class MainFragment extends Fragment {
                     case DragEvent.ACTION_DRAG_ENTERED:
                         break;
                     case DragEvent.ACTION_DRAG_EXITED:
+                        clusterDialogLayout.setVisibility(View.GONE);
                         break;
                     case DragEvent.ACTION_DROP:
 
                         FlowLayout newLayout = (FlowLayout) v;
                         imgMember.setVisibility(View.VISIBLE);
+                        Boolean bIsFromCluster = false;
 
-                        if (oldLayout == newLayout) {
+                        // If we just finished dragging image from cluster to layout
+                        if (oldLayout.getTag(R.string.is_from_cluster) != null &&
+                                oldLayout.getTag(R.string.is_from_cluster).equals(true)) {
+
+                            bIsFromCluster = true;
+
+                            // If we drag from cluster dialog to itself
+                            // todo: make sure this can happen = so we will be able to change sub status in cluster
+                            if (newLayout == oldLayout) {
+                                // Get the index of the image in the previous (real, clustered) layout
+                                int imgMemberIndex = (int) imgMember.getTag(R.string.image_member_index);
+
+                                // Get the actual image in the previous (real, clustered) layout
+                                showPopupSubStatus(mapLayoutToImages.get(oldLayout.getTag(R.string.repesented_by_cluster_layout)).get(imgMemberIndex), imgMember);
+                                return true;
+                            }
+
+                            removeAllImagesOfView(oldLayout);
+                            oldLayout.setVisibility(View.GONE);
+
+                            // Treat the old layout as the layout that contains the member
+                            oldLayout = (ViewGroup) oldLayout.getTag(R.string.repesented_by_cluster_layout);
+
+                            // Get the index of the image in the previous (real, clustered) layout
+                            int imgMemberIndex = (int) imgMember.getTag(R.string.image_member_index);
+
+                            // Get the actual image in the previous (real, clustered) layout
+                            imgMember = mapLayoutToImages.get(oldLayout).get(imgMemberIndex);
+                            imgMember.setVisibility(View.VISIBLE);
+                        }
+
+                        // If we got this from cluster and we return it to the same layout -> so the image
+                        // should get back to cluster and not open popup
+                        if (oldLayout == newLayout && !bIsFromCluster) {
                             showPopupSubStatus(imgMember);
                         }
                         // New mainStatus, Clear the sub status
@@ -407,6 +472,7 @@ public class MainFragment extends Fragment {
                             sld.setSubStatus(null);
                             sld.updateUserStatuses();
                         }
+
                         break;
                     case DragEvent.ACTION_DRAG_ENDED:
 
@@ -448,17 +514,15 @@ public class MainFragment extends Fragment {
 
             // Make all images visible
             for (CircleImageView circleImageView : mapLayoutToImages.get(oldLayout)) {
-                circleImageView.setVisibility(View.INVISIBLE);
+                circleImageView.setVisibility(View.VISIBLE);
             }
 
-            for (int i = 0; i < oldLayout.getChildCount(); i++) {
-                if ((oldLayout.getChildAt(i).getTag() != null) &&
-                        (oldLayout.getChildAt(i).getTag().equals("cluster"))) {
-                    CircleImageView cluster = (CircleImageView) oldLayout.getChildAt(i);
-                    oldLayout.removeView(cluster);
-                    break;
-                }
-            }
+            oldLayout.removeView(getClusterByLayout(oldLayout));
+        }
+        // If we still can't show - decrease the number on the cluster
+        else if (mapLayoutToImages.get(oldLayout).size() > MAX_MEMBERS_IN_STATUS) {
+            CircleImageView cluster = getClusterByLayout(oldLayout);
+            cluster.setImageResource(mapNumberToImage.get(mapLayoutToImages.get(oldLayout).size()));
         }
     }
 
@@ -483,7 +547,8 @@ public class MainFragment extends Fragment {
             cluster.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View arg0) {
-                    statusClusterDialog(newLayout, mapLayoutToImages.get(newLayout));
+                    removeAllImagesOfView(clusterDialogLayout);
+                    statusClusterDialog(newLayout);
                 }
             });
 
@@ -492,15 +557,7 @@ public class MainFragment extends Fragment {
         //  If we have too much but there is already cluster
         else if (mapLayoutToImages.get(newLayout).size() - 1 > MAX_MEMBERS_IN_STATUS) {
             memberImage.setVisibility(View.GONE);
-            CircleImageView cluster = null;
-            // todo: fix with hashmap or something
-            for (int i = 0; i < newLayout.getChildCount(); i++) {
-                if ((newLayout.getChildAt(i).getTag() != null) &&
-                    (newLayout.getChildAt(i).getTag().equals("cluster"))) {
-                    cluster = (CircleImageView) newLayout.getChildAt(i);
-                    break;
-                }
-            }
+            CircleImageView cluster = getClusterByLayout(newLayout);
 
             if (cluster != null) {
                 cluster.setImageResource(mapNumberToImage.get(mapLayoutToImages.get(newLayout).size()));
@@ -508,14 +565,42 @@ public class MainFragment extends Fragment {
         }
     }
 
-    public void statusClusterDialog(FlowLayout newLayout, List<CircleImageView> circleImageViews) {
+    // todo: fix with hashmap or something
+    private CircleImageView getClusterByLayout(ViewGroup newLayout) {
+        for (int i = 0; i < newLayout.getChildCount(); i++) {
+            if ((newLayout.getChildAt(i).getTag() != null) &&
+                (newLayout.getChildAt(i).getTag().equals("cluster"))) {
+                return (CircleImageView) newLayout.getChildAt(i);
+            }
+        }
+        return null;
+    }
+
+    public void statusClusterDialog(FlowLayout newLayout) {
+        List<CircleImageView> circleImageViews = mapLayoutToImages.get(newLayout);
+
         // custom dialog
+        clusterDialogLayout.setVisibility(View.VISIBLE);
 
-        FragmentManager fm = getFragmentManager();
-        ClusterDialogFragment clusterDialogFragment = new ClusterDialogFragment(newLayout, circleImageViews);
-        clusterDialogFragment.show(fm, "Sample Fragment");
+        clusterDialogLayout.setTag(R.string.is_from_cluster, true);
+        clusterDialogLayout.setTag(R.string.repesented_by_cluster_layout, newLayout);
 
+        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(ImageSizeOnDrop, ImageSizeOnDrop);
 
+        for(int index = 0; index < circleImageViews.size(); index++){
+            CircleImageView copy = new CircleImageView(getActivity());
+            copy.setImageDrawable(circleImageViews.get(index).getDrawable());
+            copy.setTag(R.string.image_member_index, index);
+//            copy.setTag(R.string.user, circleImageViews.get(index).getTag(R.string.user));
+            copy.setOnTouchListener(new MyTouchListener());
+            copy.setLayoutParams(layoutParams);
+
+            clusterDialogLayout.addView(copy);
+        }
+
+//        FragmentManager fm = getFragmentManager();
+//        ClusterDialogFragment clusterDialogFragment = new ClusterDialogFragment(newLayout, circleImageViews);
+//        clusterDialogFragment.show(fm, "Sample Fragment");
 
 //        final Dialog dialog = new Dialog(getActivity());
 //        dialog.setContentView(R.layout.custom);
@@ -562,10 +647,21 @@ public class MainFragment extends Fragment {
 
 
     public void showPopupSubStatus(final View imgMember) {
-        showPopupSubStatus(imgMember, true);
+        showPopupSubStatus(imgMember, true, null);
+    }
+
+    public void showPopupSubStatus(final View imgMember, View anchor) {
+        showPopupSubStatus(imgMember, true, anchor);
     }
 
     public void showPopupSubStatus(final View imgMember, final boolean bEnabled) {
+        showPopupSubStatus(imgMember, bEnabled, null);
+    }
+
+    public void showPopupSubStatus(final View imgMember, final boolean bEnabled, View anchor) {
+        if (anchor == null) {
+            anchor = imgMember;
+        }
 
         User user = null;
         // If there is already selected sub status - select it

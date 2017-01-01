@@ -1,23 +1,17 @@
 package t.a.m.com.doch1.views;
 
 import android.app.DialogFragment;
-import android.content.ClipData;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Parcel;
 import android.os.SystemClock;
-import android.view.DragEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
 import java.util.List;
 
-import t.a.m.com.doch1.DragNDrop.MyDragShadowBuilder;
-import t.a.m.com.doch1.DragNDrop.MyTouchListener;
 import t.a.m.com.doch1.MainFragment;
 import t.a.m.com.doch1.R;
 

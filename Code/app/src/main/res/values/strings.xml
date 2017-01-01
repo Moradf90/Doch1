@@ -61,4 +61,7 @@
     <string name="login_user">loginUser</string>
     <string name="is_show_sub_members">isShowSubMembers</string>
     <string name="add_group">Add Group</string>
+    <string name="is_from_cluster">isFromCluster</string>
+    <string name="image_member_index">memberImageIndex</string>
+    <string name="repesented_by_cluster_layout">repesentedByClusterLayout</string>
 </resources>
