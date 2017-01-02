@@ -64,4 +64,8 @@
     <string name="is_from_cluster">isFromCluster</string>
     <string name="image_member_index">memberImageIndex</string>
     <string name="repesented_by_cluster_layout">repesentedByClusterLayout</string>
+    <string name="choose_sub_status">בחר סטטוס משנה</string>
+    <string name="sub_status">סטטוס משנה:</string>
+    <string name="no_sub_status">אין סטטוס משנה</string>
+    <string name="this_is_member">thisIsMember</string>
 </resources>

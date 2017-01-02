@@ -22,14 +22,12 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/txt_member_name"
                 android:textSize="14dp" />
-            <!--<ImageView-->
-                <!--android:layout_width="fill_parent"-->
-                <!--android:layout_height="fill_parent"-->
-                <!--android:id="@+id/img_small_member"/>-->
+
             <TextView
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:text="בחר סטטוס משנה"
+                android:text="@string/choose_sub_status"
+                android:id="@+id/txt_choose_sub_status"
                 android:textSize="14dp" />
             <t.a.m.com.doch1.views.MySpinner
                 android:id="@+id/popupspinner"

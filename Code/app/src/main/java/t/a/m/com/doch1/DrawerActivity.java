@@ -32,6 +32,7 @@ import com.mikepenz.materialdrawer.DrawerBuilder;
 import com.mikepenz.materialdrawer.interfaces.OnCheckedChangeListener;
 import com.mikepenz.materialdrawer.model.AbstractBadgeableDrawerItem;
 import com.mikepenz.materialdrawer.model.DividerDrawerItem;
+import com.mikepenz.materialdrawer.model.ExpandableBadgeDrawerItem;
 import com.mikepenz.materialdrawer.model.ExpandableDrawerItem;
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
 import com.mikepenz.materialdrawer.model.ProfileDrawerItem;
@@ -66,7 +67,7 @@ public class DrawerActivity extends AppCompatActivity {
     private Drawer result = null;
     public static FirebaseUser mCurrentUser;
     List<IDrawerItem> lstMembersToExpand;
-    ExpandableDrawerItem MembersDrawerItem;
+    ExpandableBadgeDrawerItem MembersDrawerItem;
     private final Long MY_MEMBERS_IDENTIFIERS = 20l;
 
     public static User loginUser;
@@ -207,7 +208,7 @@ public class DrawerActivity extends AppCompatActivity {
 
         PrimaryDrawerItem FillStatusesDrawerItem = new PrimaryDrawerItem().withName(R.string.main_fragment).withDescription(R.string.dsc_main_statuses).withIcon(R.drawable.statuses).withIdentifier(2);
 
-        MembersDrawerItem = new ExpandableDrawerItem().withName(R.string.my_members).withIcon(R.drawable.conference).withIdentifier(19);
+        MembersDrawerItem = new ExpandableBadgeDrawerItem().withName(R.string.my_members).withIcon(R.drawable.conference).withIdentifier(19);
 
         final PrimaryDrawerItem SendDrawerItem = new PrimaryDrawerItem().withName(R.string.send_statuses).withEnabled(true).withIcon(R.drawable.send).withIdentifier(9);
 
@@ -394,12 +395,25 @@ public class DrawerActivity extends AppCompatActivity {
 
         handleMemberDrawerOfGroup(group);
 
-        MembersDrawerItem.withSubItems(lstMembersToExpand);
+        MembersDrawerItem.withSubItems(lstMembersToExpand).withBadge(getAmountOfMembers(lstMembersToExpand));
         // TODO: should fix problem
 //        synchronized(MembersDrawerItem){
 //            MembersDrawerItem.notifyAll();
 //        }
+
         result.updateItem(MembersDrawerItem);
+    }
+
+    private String getAmountOfMembers(List<IDrawerItem> lstMembersToExpand) {
+        int nCount = 0;
+
+        for (IDrawerItem iDrawerItem : lstMembersToExpand) {
+            if (iDrawerItem.getTag() != null && iDrawerItem.getTag().equals(R.string.this_is_member)) {
+                nCount++;
+            }
+        }
+
+        return String.valueOf(nCount);
     }
 
     // todo: should be called on broadcast
@@ -410,6 +424,8 @@ public class DrawerActivity extends AppCompatActivity {
         if (bShowSubMembers) {
             List<Group> subGroups =  new Select().from(Group.class).where(Group.PARENT_ID_PROPERTY + " = " + g.getId()).execute();
             for (Group currSubGroup : subGroups) {
+                // Add divider between different groups of members
+                lstMembersToExpand.add(new DividerDrawerItem());
                 handleMemberDrawerOfGroup(currSubGroup);
             }
         }
@@ -417,6 +433,13 @@ public class DrawerActivity extends AppCompatActivity {
 
     private void handleMembersOfGroup(Group group) {
         if (group != null) {
+
+            // Add group details
+            SecondaryDrawerItem groupItem = new SecondaryDrawerItem().withName(group.getName()).withLevel(2)
+                    .withSelectable(false).withTextColor(Color.rgb(66, 33, 175));
+            drawableFromUrl(group.getImage(), groupItem);
+            lstMembersToExpand.add(groupItem);
+
             List<User> groupUsers = new Select().from(User.class).where("id " + SQLHelper.getInQuery(group.getUsers())).execute();
 
             List<UserInGroup> usersInGroups = new Select().from(UserInGroup.class).where(UserInGroup.GROUP_PROPERTY + " = " + group.getId()).execute();
@@ -431,32 +454,40 @@ public class DrawerActivity extends AppCompatActivity {
             }
 
             for (User user : groupUsers) {
-                final SecondaryDrawerItem currMemberDrawer = new SecondaryDrawerItem().withName(user.getName()).withLevel(2)
-                        .withIdentifier(Long.parseLong(user.getPersonalId()))
-                        .withSelectable(false);
-
-                drawableFromUrl(user.getImage(), currMemberDrawer);
-
-                UserInGroup userInGroup = mapUserIdToStatus.get(user.getId());
-
-                // If there is main status
-                if ((userInGroup != null) && (userInGroup.getMainStatus() != "")) {
-                    currMemberDrawer.withDescription(getDescription(userInGroup)).withTextColor(Color.rgb(20, 170, 20));
-                } else {
-                    currMemberDrawer.withDescription(R.string.no_status).withTextColor(Color.rgb(170, 20, 20));
-                }
+                final SecondaryDrawerItem currMemberDrawer = getSecondaryDrawerItemForUser(mapUserIdToStatus, user);
 
                 addDrawerToList(lstMembersToExpand, currMemberDrawer);
             }
         }
     }
 
+    @NonNull
+    private SecondaryDrawerItem getSecondaryDrawerItemForUser(HashMap<Long, UserInGroup> mapUserIdToStatus, User user) {
+        final SecondaryDrawerItem currMemberDrawer = new SecondaryDrawerItem().withName(user.getName()).withLevel(2)
+                .withIdentifier(Long.parseLong(user.getPersonalId()))
+                .withSelectable(false).withTag(R.string.this_is_member);
+
+        drawableFromUrl(user.getImage(), currMemberDrawer);
+
+        UserInGroup userInGroup = mapUserIdToStatus.get(user.getId());
+
+        // If there is main status
+        if ((userInGroup != null) && (userInGroup.getMainStatus() != "")) {
+            currMemberDrawer.withDescription(getDescription(userInGroup)).withTextColor(Color.rgb(20, 170, 20));
+        } else {
+            currMemberDrawer.withDescription(R.string.no_status).withTextColor(Color.rgb(170, 20, 20));
+        }
+        return currMemberDrawer;
+    }
+
     private void addDrawerToList(List<IDrawerItem> lstMembersToExpand, SecondaryDrawerItem currMemberDrawer) {
         int indexToRemove = -1;
         for (int i = 0; i < lstMembersToExpand.size(); i++) {
-            if (((SecondaryDrawerItem) lstMembersToExpand.get(i)).getName().getText().equals(currMemberDrawer.getName().getText())) {
-                indexToRemove = i;
-                break;
+            if (lstMembersToExpand.get(i) instanceof SecondaryDrawerItem) {
+                if (((SecondaryDrawerItem) lstMembersToExpand.get(i)).getName().getText().equals(currMemberDrawer.getName().getText())) {
+                    indexToRemove = i;
+                    break;
+                }
             }
         }
 

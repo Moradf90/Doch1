@@ -1,6 +1,7 @@
 package t.a.m.com.doch1;
 
 import android.app.Fragment;
+import android.app.FragmentManager;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.ClipData;
@@ -43,6 +44,7 @@ import t.a.m.com.doch1.Models.UserInGroup;
 import t.a.m.com.doch1.common.SQLHelper;
 import t.a.m.com.doch1.common.Utils;
 import t.a.m.com.doch1.views.CircleImageView;
+import t.a.m.com.doch1.views.ClusterDialogFragment;
 import t.a.m.com.doch1.views.MySpinner;
 
 public class MainFragment extends Fragment {
@@ -393,6 +395,7 @@ public class MainFragment extends Fragment {
                 view.startDrag(data, shadowBuilder, view, 0);
                 // TODO: if you click many times fast it remains invisible so think about timeout or something
 //                view.setVisibility(View.INVISIBLE);
+
                 return true;
             } else {
                 return false;
@@ -410,11 +413,11 @@ public class MainFragment extends Fragment {
 
                 switch (event.getAction()) {
                     case DragEvent.ACTION_DRAG_STARTED:
-                        // do nothing
                         break;
                     case DragEvent.ACTION_DRAG_ENTERED:
                         break;
                     case DragEvent.ACTION_DRAG_EXITED:
+                        clusterDialogLayout.setOnDragListener(null);
                         clusterDialogLayout.setVisibility(View.GONE);
                         break;
                     case DragEvent.ACTION_DROP:
@@ -685,24 +688,29 @@ public class MainFragment extends Fragment {
                 final MySpinner popupSpinner = (MySpinner) popupView.findViewById(R.id.popupspinner);
                 TextView txtMemberName = (TextView) popupView.findViewById(R.id.txt_member_name);
 
-                popupSpinner.setEnabled(bEnabled);
-                popupSpinner.setClickable(bEnabled);
+                if (!bEnabled) {
+                    popupSpinner.setVisibility(View.GONE);
+                    TextView txtSubStatus = (TextView)popupView.findViewById(R.id.txt_choose_sub_status);
 
-                txtMemberName.setText(user.getName());
+                    // If there is sub status to show (but no to edit - cause boolean is false)
+                    if (user.getSubStatus() != null && !user.getSubStatus().equals("")) {
+                        txtSubStatus.setText(getString(R.string.sub_status) + " " + user.getSubStatus());
+                    }
+                    else {
+                        txtSubStatus.setText(getString(R.string.no_sub_status));
+                    }
+                }
+                else {
+                    ArrayAdapter<String> adapter =
+                            new ArrayAdapter<String>(getActivity(),
+                                    android.R.layout.simple_spinner_item, subStatuses);
+                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    popupSpinner.setAdapter(adapter);
 
-//                ImageView imgSmallImageMember = (ImageView) popupView.findViewById(R.id.img_small_member);
-//                imgSmallImageMember.setImageDrawable(((ImageView)imgMember).getDrawable());
+                    final Integer[] nTimesSelected = {0};
 
-                ArrayAdapter<String> adapter =
-                        new ArrayAdapter<String>(getActivity(),
-                                android.R.layout.simple_spinner_item, subStatuses);
-                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                popupSpinner.setAdapter(adapter);
+                    final User finalMember = user;
 
-                final Integer[] nTimesSelected = {0};
-
-                final User finalMember = user;
-                if (bEnabled) {
                     popupSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                         @Override
                         public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
@@ -739,6 +747,8 @@ public class MainFragment extends Fragment {
                         popupSpinner.setSelection(((ArrayAdapter<String>) popupSpinner.getAdapter()).getPosition(selectedOptionValue));
                     }
                 }
+
+                txtMemberName.setText(user.getName());
 
                 popupWindow.setFocusable(true);
                 popupWindow.showAsDropDown(anchor, 0, 0);
