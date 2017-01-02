@@ -702,44 +702,46 @@ public class MainFragment extends Fragment {
                 final Integer[] nTimesSelected = {0};
 
                 final User finalMember = user;
-                popupSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                    @Override
-                    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                        finalMember.setSubStatus(popupSpinner.getSelectedItem().toString());
-                        finalMember.updateUserStatuses();
+                if (bEnabled) {
+                    popupSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                        @Override
+                        public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                            finalMember.setSubStatus(popupSpinner.getSelectedItem().toString());
+                            finalMember.updateUserStatuses();
 
-                        if (nTimesSelected[0] > 1) {
-                            final Handler handler = new Handler();
+                            if (nTimesSelected[0] > 1) {
+                                final Handler handler = new Handler();
 
-                            final Runnable runnable = new Runnable() {
-                                @Override
-                                public void run() {
-                                    if (popupWindow.isShowing()) {
-                                        popupWindow.dismiss();
+                                final Runnable runnable = new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        if (popupWindow.isShowing()) {
+                                            popupWindow.dismiss();
+                                        }
                                     }
-                                }
-                            };
+                                };
 
-                            handler.postDelayed(runnable, 1500);
+                                handler.postDelayed(runnable, 1500);
+                            }
+                            nTimesSelected[0]++;
                         }
-                        nTimesSelected[0]++;
+
+                        @Override
+                        public void onNothingSelected(AdapterView<?> adapterView) {
+
+                        }
+                    });
+
+                    // If there is already selected sub status - select it
+                    if ((user.getSubStatus() != null) && (!user.getSubStatus().equals(""))) {
+
+                        String selectedOptionValue = user.getSubStatus();
+                        popupSpinner.setSelection(((ArrayAdapter<String>) popupSpinner.getAdapter()).getPosition(selectedOptionValue));
                     }
-
-                    @Override
-                    public void onNothingSelected(AdapterView<?> adapterView) {
-
-                    }
-                });
-
-                // If there is already selected sub status - select it
-                if ((user.getSubStatus() != null) && (!user.getSubStatus().equals(""))) {
-
-                    String selectedOptionValue = user.getSubStatus();
-                    popupSpinner.setSelection(((ArrayAdapter<String>) popupSpinner.getAdapter()).getPosition(selectedOptionValue));
                 }
 
                 popupWindow.setFocusable(true);
-                popupWindow.showAsDropDown(imgMember, 0, 0);
+                popupWindow.showAsDropDown(anchor, 0, 0);
             }
         }
     }
