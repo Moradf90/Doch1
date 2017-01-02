@@ -47,6 +47,8 @@ import t.a.m.com.doch1.views.CircleImageView;
 import t.a.m.com.doch1.views.ClusterDialogFragment;
 import t.a.m.com.doch1.views.MySpinner;
 
+
+// todo: cant change sub status in cluster
 public class MainFragment extends Fragment {
 
     private static final int STATUSES_IN_ROW_AMOUNT = 3;
