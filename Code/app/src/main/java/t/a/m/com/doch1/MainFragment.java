@@ -1,7 +1,6 @@
 package t.a.m.com.doch1;
 
 import android.app.Fragment;
-import android.app.FragmentManager;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.ClipData;
@@ -44,7 +43,6 @@ import t.a.m.com.doch1.Models.UserInGroup;
 import t.a.m.com.doch1.common.SQLHelper;
 import t.a.m.com.doch1.common.Utils;
 import t.a.m.com.doch1.views.CircleImageView;
-import t.a.m.com.doch1.views.ClusterDialogFragment;
 import t.a.m.com.doch1.views.MySpinner;
 
 
@@ -553,7 +551,7 @@ public class MainFragment extends Fragment {
                 @Override
                 public void onClick(View arg0) {
                     removeAllImagesOfView(clusterDialogLayout);
-                    statusClusterDialog(newLayout);
+                    showClusterDialog(newLayout);
                 }
             });
 
@@ -581,16 +579,19 @@ public class MainFragment extends Fragment {
         return null;
     }
 
-    public void statusClusterDialog(FlowLayout newLayout) {
+    public void showClusterDialog(FlowLayout newLayout) {
         List<CircleImageView> circleImageViews = mapLayoutToImages.get(newLayout);
 
         // custom dialog
         clusterDialogLayout.setVisibility(View.VISIBLE);
+        clusterDialogLayout.setOnDragListener(new MyDragListener());
 
         clusterDialogLayout.setTag(R.string.is_from_cluster, true);
         clusterDialogLayout.setTag(R.string.repesented_by_cluster_layout, newLayout);
 
-        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(ImageSizeOnDrop, ImageSizeOnDrop);
+        int nImageSize = (480 / (int)(Math.sqrt(circleImageViews.size() / 2) + 1));
+
+        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(nImageSize, nImageSize);
 
         for(int index = 0; index < circleImageViews.size(); index++){
             CircleImageView copy = new CircleImageView(getActivity());
@@ -602,37 +603,6 @@ public class MainFragment extends Fragment {
 
             clusterDialogLayout.addView(copy);
         }
-
-//        FragmentManager fm = getFragmentManager();
-//        ClusterDialogFragment clusterDialogFragment = new ClusterDialogFragment(newLayout, circleImageViews);
-//        clusterDialogFragment.show(fm, "Sample Fragment");
-
-//        final Dialog dialog = new Dialog(getActivity());
-//        dialog.setContentView(R.layout.custom);
-//        dialog.setTitle("Title...");
-//
-//        RelativeLayout rl = (RelativeLayout) dialog.findViewById(R.id.cluster_layout);
-//        rl.setOnDragListener(new MyDragListener());
-//
-//        // set the custom dialog components - text, image and button
-//        TextView text = (TextView) dialog.findViewById(R.id.text);
-//        text.setText("Android custom dialog example!");
-//        ImageView image = (ImageView) dialog.findViewById(R.id.image);
-//
-//        image.setImageResource(R.drawable.ic_launcher);
-//        image.setOnTouchListener(new MyTouchListener());
-//
-//
-//        Button dialogButton = (Button) dialog.findViewById(R.id.dialogButtonOK);
-//        // if button is clicked, close the custom dialog
-//        dialogButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                dialog.dismiss();
-//            }
-//        });
-//
-//        dialog.show();
     }
 
 

@@ -24,7 +24,7 @@
 
     <org.apmem.tools.layouts.FlowLayout
         android:layout_width="200dp"
-        android:layout_height="200dp"
+        android:layout_height="400dp"
         android:scaleType="fitCenter"
         android:background="@color/md_white_1000"
         android:id="@+id/dialog_layout"
