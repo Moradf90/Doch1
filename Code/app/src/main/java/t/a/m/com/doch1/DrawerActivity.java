@@ -23,7 +23,6 @@ import com.activeandroid.query.Select;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.mikepenz.fastadapter.commons.utils.RecyclerViewCacheUtil;
-import com.mikepenz.google_material_typeface_library.GoogleMaterial;
 import com.mikepenz.itemanimators.AlphaCrossFadeAnimator;
 import com.mikepenz.materialdrawer.AccountHeader;
 import com.mikepenz.materialdrawer.AccountHeaderBuilder;
@@ -33,7 +32,6 @@ import com.mikepenz.materialdrawer.interfaces.OnCheckedChangeListener;
 import com.mikepenz.materialdrawer.model.AbstractBadgeableDrawerItem;
 import com.mikepenz.materialdrawer.model.DividerDrawerItem;
 import com.mikepenz.materialdrawer.model.ExpandableBadgeDrawerItem;
-import com.mikepenz.materialdrawer.model.ExpandableDrawerItem;
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
 import com.mikepenz.materialdrawer.model.ProfileDrawerItem;
 import com.mikepenz.materialdrawer.model.ProfileSettingDrawerItem;
@@ -61,12 +59,15 @@ import t.a.m.com.doch1.services.tasks.UsersStatusUpdaterTask;
 
 public class DrawerActivity extends AppCompatActivity {
     private static final int PROFILE_SETTING = 100000;
+    public static final int SEND_IDENTIFIER = 9;
 
     //save our header or result
     private AccountHeader headerResult = null;
     private Drawer result = null;
     public static FirebaseUser mCurrentUser;
     List<IDrawerItem> lstMembersToExpand;
+
+    PrimaryDrawerItem SendDrawerItem;
     ExpandableBadgeDrawerItem MembersDrawerItem;
     private final Long MY_MEMBERS_IDENTIFIERS = 20l;
 
@@ -149,7 +150,7 @@ public class DrawerActivity extends AppCompatActivity {
                 .withOnAccountHeaderListener(
                         new AccountHeader.OnAccountHeaderListener() {
                             @Override
-                            // TODO: why yaalom cant be chosen
+                            // TODO: maybe when click on already selected profile -> replace picture (as splitwise)
                             public boolean onProfileChanged(View view, IProfile profile, boolean current) {
                                 Group selectedProfileGroup = getSelectedGroup();
 
@@ -208,14 +209,21 @@ public class DrawerActivity extends AppCompatActivity {
 
         PrimaryDrawerItem FillStatusesDrawerItem = new PrimaryDrawerItem().withName(R.string.main_fragment).withDescription(R.string.dsc_main_statuses).withIcon(R.drawable.statuses).withIdentifier(2);
 
+        PrimaryDrawerItem rateUsDrawerItem = new PrimaryDrawerItem().withName(R.string.rate_us).withIcon(R.drawable.rating).withIdentifier(1199);
+
+
         MembersDrawerItem = new ExpandableBadgeDrawerItem().withName(R.string.my_members).withIcon(R.drawable.conference).withIdentifier(19);
 
-        final PrimaryDrawerItem SendDrawerItem = new PrimaryDrawerItem().withName(R.string.send_statuses).withEnabled(true).withIcon(R.drawable.send).withIdentifier(9);
+        SendDrawerItem = new PrimaryDrawerItem().withName(R.string.send_statuses).withEnabled(true).withIcon(R.drawable.send).withIdentifier(SEND_IDENTIFIER);
 
-        ExpandableDrawerItem contactDrawerItem = new ExpandableDrawerItem().withName("Contact developer").withIcon(GoogleMaterial.Icon.gmd_code).withIdentifier(25).withSelectable(false).withSubItems(
-                new SecondaryDrawerItem().withName("By Phone").withLevel(2).withIcon(GoogleMaterial.Icon.gmd_phone).withIdentifier(2501),
-                new SecondaryDrawerItem().withName("By SMS").withLevel(2).withIcon(GoogleMaterial.Icon.gmd_tumblr).withIdentifier(2502),
-                new SecondaryDrawerItem().withName("By Email").withLevel(2).withIcon(GoogleMaterial.Icon.gmd_email).withIdentifier(2503));
+//        ExpandableDrawerItem contactDrawerItem = new ExpandableDrawerItem().withName("Contact developer").withIcon(GoogleMaterial.Icon.gmd_code).withIdentifier(25).withSelectable(false).withSubItems(
+//                new SecondaryDrawerItem().withName("By Phone").withLevel(2).withIcon(GoogleMaterial.Icon.gmd_phone).withIdentifier(2501),
+//                new SecondaryDrawerItem().withName("By SMS").withLevel(2).withIcon(GoogleMaterial.Icon.gmd_tumblr).withIdentifier(2502),
+//                new SecondaryDrawerItem().withName("By Email").withLevel(2).withIcon(GoogleMaterial.Icon.gmd_email).withIdentifier(2503));
+
+        PrimaryDrawerItem contactDrawerItem = new PrimaryDrawerItem().withName(R.string.contact_us).withIcon(R.drawable.contact).withIdentifier(1120);
+
+        PrimaryDrawerItem logOutDrawerItem = new PrimaryDrawerItem().withName(R.string.log_out).withIcon(R.drawable.log_out).withIdentifier(1121);
 
 
         //Create the drawer
@@ -235,10 +243,14 @@ public class DrawerActivity extends AppCompatActivity {
                         SendDrawerItem,
                         new DividerDrawerItem(),
 
-                        contactDrawerItem
+                        rateUsDrawerItem,
+                        contactDrawerItem,
+                        logOutDrawerItem
+
                         //                        new SwitchDrawerItem().withName("Switch").withIcon(Octicons.Icon.oct_tools).withChecked(true).withOnCheckedChangeListener(onCheckedChangeListener),
 //                        new DividerDrawerItem(),
 //                        new SecondarySwitchDrawerItem().withName("Secondary switch").withIcon(Octicons.Icon.oct_tools).withChecked(true).withOnCheckedChangeListener(onCheckedChangeListener),
+//                        new SecondarySwitchDrawerItem().withName("Secondary Switch2").withIcon(Octicons.Icon.oct_tools).withChecked(true).withOnCheckedChangeListener(onCheckedChangeListener).withSelectable(false),
 //                        new SecondarySwitchDrawerItem().withName("Secondary Switch2").withIcon(Octicons.Icon.oct_tools).withChecked(true).withOnCheckedChangeListener(onCheckedChangeListener).withSelectable(false),
                 ) // add the items we want to use with our Drawer
                 .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
@@ -253,12 +265,14 @@ public class DrawerActivity extends AppCompatActivity {
 
                         if (drawerItem != null) {
                             selectItem((int) drawerItem.getIdentifier());
+
+                            // Keep the drawer open
+                            if (drawerItem.getIdentifier() == SEND_IDENTIFIER) {
+                                return true;
+                            }
                         }
 
-                        if (drawerItem.getIdentifier() == 9) {
-                            SendDrawerItem.withName("Sent...").withDescription("You can update your doch1").withIcon(GoogleMaterial.Icon.gmd_airplane);
-                            result.updateItem(SendDrawerItem);
-                        }
+
 
                         return false;
                     }
@@ -644,9 +658,14 @@ public class DrawerActivity extends AppCompatActivity {
         else if (identifier == 3) {
             newFragment = new ManagementFragment();
         }
-        else if (identifier == 9) {
+        else if (identifier == SEND_IDENTIFIER) {
             Toast.makeText(DrawerActivity.this, "Send...", Toast.LENGTH_SHORT).show();
             newFragment = fCurrentDisplayedFragment;
+
+//            if (drawerItem.getIdentifier() == 9) {
+                SendDrawerItem.withName("Sent...").withDescription("You can update your doch1").withIcon(R.drawable.sent);
+                result.updateItem(SendDrawerItem);
+//            }
         }
         else if (identifier == 19) {
             // No change

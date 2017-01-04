@@ -68,4 +68,7 @@
     <string name="sub_status">סטטוס משנה:</string>
     <string name="no_sub_status">אין סטטוס משנה</string>
     <string name="this_is_member">thisIsMember</string>
+    <string name="rate_us">Rate Doch1</string>
+    <string name="contact_us">Contact us</string>
+    <string name="log_out">Log out</string>
 </resources>

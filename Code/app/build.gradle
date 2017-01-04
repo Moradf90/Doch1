@@ -62,7 +62,7 @@ dependencies {
 
     // icon fonts used inside the sample
     // https://github.com/mikepenz/Android-Iconics
-    compile 'com.mikepenz:google-material-typeface:2.2.0.1@aar'
+//    compile 'com.mikepenz:google-material-typeface:2.2.0.1@aar'
 //    compile 'com.mikepenz:fontawesome-typeface:4.6.0.3@aar'
 //    compile 'com.mikepenz:octicons-typeface:3.0.0.1@aar'
 
