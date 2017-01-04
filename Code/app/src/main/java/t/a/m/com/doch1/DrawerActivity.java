@@ -659,7 +659,6 @@ public class DrawerActivity extends AppCompatActivity {
             newFragment = new ManagementFragment();
         }
         else if (identifier == SEND_IDENTIFIER) {
-            Toast.makeText(DrawerActivity.this, "Send...", Toast.LENGTH_SHORT).show();
             newFragment = fCurrentDisplayedFragment;
 
 //            if (drawerItem.getIdentifier() == 9) {
