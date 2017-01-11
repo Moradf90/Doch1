@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.Random;
 
 import t.a.m.com.doch1.DragNDrop.MyDragShadowBuilder;
-//import t.a.m.com.doch1.DragNDrop.MyTouchListener;
 import t.a.m.com.doch1.Models.Group;
 import t.a.m.com.doch1.Models.StatusesInGroup;
 import t.a.m.com.doch1.Models.User;
@@ -81,6 +80,9 @@ public class MainFragment extends Fragment {
 
     // todo: fix more than 12...
     private static HashMap<Integer, Integer> mapNumberToImage;
+
+    public static final int MANY_MEMBERS = 99;
+
     static
     {
         mapNumberToImage = new HashMap<>();
@@ -91,6 +93,7 @@ public class MainFragment extends Fragment {
         mapNumberToImage.put(10, R.drawable.ten);
         mapNumberToImage.put(11, R.drawable.eleven);
         mapNumberToImage.put(12, R.drawable.twelve);
+        mapNumberToImage.put(MANY_MEMBERS, R.drawable.many_people);
     }
 
 
@@ -525,7 +528,7 @@ public class MainFragment extends Fragment {
         // If we still can't show - decrease the number on the cluster
         else if (mapLayoutToImages.get(oldLayout).size() > MAX_MEMBERS_IN_STATUS) {
             CircleImageView cluster = getClusterByLayout(oldLayout);
-            cluster.setImageResource(mapNumberToImage.get(mapLayoutToImages.get(oldLayout).size()));
+            setImageToCluster(cluster, oldLayout);
         }
     }
 
@@ -544,7 +547,7 @@ public class MainFragment extends Fragment {
             RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(CLUSTER_SIZE, CLUSTER_SIZE);
             CircleImageView cluster = new CircleImageView(getActivity());
             cluster.setLayoutParams(layoutParams);
-            cluster.setImageResource(mapNumberToImage.get(mapLayoutToImages.get(newLayout).size()));
+            setImageToCluster(cluster, newLayout);
             cluster.setTag("cluster");
 
             cluster.setOnClickListener(new View.OnClickListener() {
@@ -565,6 +568,15 @@ public class MainFragment extends Fragment {
             if (cluster != null) {
                 cluster.setImageResource(mapNumberToImage.get(mapLayoutToImages.get(newLayout).size()));
             }
+        }
+    }
+
+    private void setImageToCluster(CircleImageView cluster, ViewGroup newLayout) {
+        int nCountInCluster = mapLayoutToImages.get(newLayout).size();
+        if (mapNumberToImage.containsKey(nCountInCluster)) {
+            cluster.setImageResource(mapNumberToImage.get(nCountInCluster));
+        } else {
+            cluster.setImageResource(mapNumberToImage.get(MANY_MEMBERS));
         }
     }
 
@@ -728,4 +740,3 @@ public class MainFragment extends Fragment {
         }
     }
 }
-

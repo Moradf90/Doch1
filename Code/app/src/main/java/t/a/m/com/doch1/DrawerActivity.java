@@ -69,6 +69,8 @@ public class DrawerActivity extends AppCompatActivity {
 
     PrimaryDrawerItem SendDrawerItem;
     ExpandableBadgeDrawerItem MembersDrawerItem;
+    SwitchDrawerItem switchShowSubMembers;
+
     private final Long MY_MEMBERS_IDENTIFIERS = 20l;
 
     public static User loginUser;
@@ -156,6 +158,7 @@ public class DrawerActivity extends AppCompatActivity {
 
                                 if (selectedProfileGroup != null) {
                                     initMembersDrawer(selectedProfileGroup.getId());
+                                    handleSwitchDrawer(selectedProfileGroup);
                                     refreshCurrFragment();
                                 }
                                 // Add group
@@ -176,8 +179,7 @@ public class DrawerActivity extends AppCompatActivity {
                 .build();
 
 
-
-        final SwitchDrawerItem switchShowSubMembers = new SwitchDrawerItem().withName(R.string.show_sub_members).withIcon(R.drawable.sub_members_off).withChecked(bShowSubMembers).withSelectable(false);
+        switchShowSubMembers = new SwitchDrawerItem().withName(R.string.show_sub_members).withIcon(R.drawable.sub_members_off).withChecked(bShowSubMembers).withSelectable(false);
         OnCheckedChangeListener switchListener = new OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(IDrawerItem drawerItem, CompoundButton buttonView, boolean isChecked) {
@@ -192,8 +194,7 @@ public class DrawerActivity extends AppCompatActivity {
                 if (getSelectedGroup() != null) {
                     initMembersDrawer(getSelectedGroupId());
                     refreshCurrFragment();
-                }
-                else {
+                } else {
                     Toast.makeText(DrawerActivity.this, R.string.select_group_message, Toast.LENGTH_SHORT).show();
                 }
 
@@ -202,6 +203,7 @@ public class DrawerActivity extends AppCompatActivity {
             }
         };
 
+        // todo: visible = gone when no sum members available
         switchShowSubMembers.withOnCheckedChangeListener(switchListener);
 
         PrimaryDrawerItem MyProfileDrawerItem = new PrimaryDrawerItem().withName(R.string.profile_fragment).withIcon(R.drawable.profile).withIdentifier(1);
@@ -273,7 +275,6 @@ public class DrawerActivity extends AppCompatActivity {
                         }
 
 
-
                         return false;
                     }
                 })
@@ -340,7 +341,7 @@ public class DrawerActivity extends AppCompatActivity {
     private void refreshCurrFragment() {
         Fragment fCurrentDisplayedFragment = getFragmentManager().findFragmentById(R.id.frame_container);
         if (fCurrentDisplayedFragment instanceof MainFragment) {
-            ((MainFragment)fCurrentDisplayedFragment).refresh(getSelectedGroup(), bShowSubMembers);
+            ((MainFragment) fCurrentDisplayedFragment).refresh(getSelectedGroup(), bShowSubMembers);
         }
     }
 
@@ -384,7 +385,7 @@ public class DrawerActivity extends AppCompatActivity {
 
     private void addAllSubUnitsToProfiles(long groupID, Boolean isManager) {
 
-        List<Group> subGroups =  new Select().from(Group.class).where(Group.PARENT_ID_PROPERTY + " = " + groupID).execute();
+        List<Group> subGroups = new Select().from(Group.class).where(Group.PARENT_ID_PROPERTY + " = " + groupID).execute();
 
         for (Group subGroup : subGroups) {
             handleGroupRecursive(subGroup, isManager);
@@ -418,6 +419,20 @@ public class DrawerActivity extends AppCompatActivity {
         result.updateItem(MembersDrawerItem);
     }
 
+    private void handleSwitchDrawer(Group SelectedGroup) {
+        List<Group> subGroups = new Select().from(Group.class).where(Group.PARENT_ID_PROPERTY + " = " + SelectedGroup.getId()).execute();
+        // If the current group is parent group
+        if (subGroups.size() > 0) {
+            switchShowSubMembers.withName(R.string.show_sub_members).withIcon(R.drawable.sub_members_off).withChecked(false).withEnabled(true);
+        }
+        // If it's not parent group
+        else {
+            switchShowSubMembers.withName(R.string.not_parent_group).withIcon(R.drawable.no_sub_members).withChecked(false).withEnabled(false);
+        }
+
+        result.updateItem(switchShowSubMembers);
+    }
+
     private String getAmountOfMembers(List<IDrawerItem> lstMembersToExpand) {
         int nCount = 0;
 
@@ -435,8 +450,9 @@ public class DrawerActivity extends AppCompatActivity {
         handleMembersOfGroup(g);
 
         // If we want to show sub members - start recursive
+        List<Group> subGroups = new Select().from(Group.class).where(Group.PARENT_ID_PROPERTY + " = " + g.getId()).execute();
+        // If the current group is parent group
         if (bShowSubMembers) {
-            List<Group> subGroups =  new Select().from(Group.class).where(Group.PARENT_ID_PROPERTY + " = " + g.getId()).execute();
             for (Group currSubGroup : subGroups) {
                 // Add divider between different groups of members
                 lstMembersToExpand.add(new DividerDrawerItem());
