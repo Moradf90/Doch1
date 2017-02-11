@@ -1,11 +1,13 @@
 package t.a.m.com.doch1;
 
+import android.*;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -13,8 +15,14 @@ import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.Toast;
@@ -53,13 +61,15 @@ import t.a.m.com.doch1.Models.Group;
 import t.a.m.com.doch1.Models.User;
 import t.a.m.com.doch1.Models.UserInGroup;
 import t.a.m.com.doch1.common.SQLHelper;
+import t.a.m.com.doch1.common.VoiceRecognitionTest;
 import t.a.m.com.doch1.management.ManagementFragment;
 import t.a.m.com.doch1.services.tasks.GroupsUpdaterTask;
 import t.a.m.com.doch1.services.tasks.UsersStatusUpdaterTask;
 
-public class DrawerActivity extends AppCompatActivity {
+public class DrawerActivity extends ActionBarActivity {
     private static final int PROFILE_SETTING = 100000;
     public static final int SEND_IDENTIFIER = 9;
+
 
     //save our header or result
     private AccountHeader headerResult = null;
@@ -80,6 +90,8 @@ public class DrawerActivity extends AppCompatActivity {
     private Boolean bShowSubMembers = false;
 
     private HashMap<Long, ProfileDrawerItem> mapGroupIDToProfile;
+
+
 
 
     @Override
@@ -104,6 +116,7 @@ public class DrawerActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_sample_dark_toolbar);
+        VoiceRecognitionTest.vVoiceRecognitionTest1.init(this);
 
         mCurrentUser = FirebaseAuth.getInstance().getCurrentUser();
         initCurrentUser();
