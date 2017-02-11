@@ -10,7 +10,6 @@
     <application
         android:name=".StatusesApplication"
         android:allowBackup="true"
-        android:hardwareAccelerated="false"
         android:icon="@drawable/superman_app_icon"
         android:label="@string/app_name"
         android:largeHeap="true"
