@@ -674,7 +674,6 @@ public class DrawerActivity extends ActionBarActivity implements Drawer.OnDrawer
 
         // Create a new fragment and specify the planet to show based on position
         if (identifier == 1) {
-           // newFragment = ProfileFragment.instance();
             newFragment = t.a.m.com.doch1.profile.ProfileFragment.of(User.current(this).getId());
         }
         else if (identifier == 2) {
