@@ -7,6 +7,7 @@
     <color name="disabled_black_color">#45181818</color>
     <color name="background_gray">#ededed</color>
     <color name="colorPrimaryBackground">#ffffff</color>
+    <color name="colorPrimaryBackgroundLabel">#f7f7f7</color>
     <color name="inputLabelColor">#fff</color>
     <color name="errorTextColor">#eb7d61</color>
     <color name="errorColor">#DD2C00</color>

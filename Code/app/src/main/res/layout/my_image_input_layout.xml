@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <t.a.m.com.doch1.views.CircleImageView
+        android:layout_centerHorizontal="true"
+        android:id="@+id/picture"
+        android:layout_width="180sp"
+        android:layout_height="180sp"
+        app:civ_border_color="@color/colorPrimaryDark"
+        app:civ_border_width="1dp"
+        android:padding="8dp"/>
+
+    <ImageButton
+        android:id="@+id/edit_pic"
+        android:src="@drawable/ic_edit"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:layout_width="wrap_content"
+        android:layout_alignEnd="@+id/picture"
+        android:layout_alignBottom="@+id/picture"
+        android:layout_height="wrap_content" />
+
+</merge>
