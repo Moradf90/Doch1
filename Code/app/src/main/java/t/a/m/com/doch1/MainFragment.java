@@ -30,7 +30,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.activeandroid.query.Select;
-import com.squareup.picasso.Picasso;
+import com.bumptech.glide.Glide;
 
 import org.apmem.tools.layouts.FlowLayout;
 
@@ -405,7 +405,7 @@ public class MainFragment extends Fragment {
             User currGroupMember = users.get(i);
 
             memberImage.setLayoutParams(layoutParams);
-            Picasso.with(getActivity()).load(currGroupMember.getImage()).into(memberImage);
+            Glide.with(this).load(currGroupMember.getImage()).into(memberImage);
 
             String memberMainStatus = currGroupMember.getMainStatus();
             // If there is no status,

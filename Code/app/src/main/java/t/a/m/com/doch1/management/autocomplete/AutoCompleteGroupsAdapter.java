@@ -9,13 +9,12 @@ import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.TextView;
 
-import com.squareup.picasso.Picasso;
+import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import t.a.m.com.doch1.Models.Group;
-import t.a.m.com.doch1.Models.User;
 import t.a.m.com.doch1.R;
 import t.a.m.com.doch1.views.CircleImageView;
 
@@ -73,8 +72,8 @@ public class AutoCompleteGroupsAdapter extends BaseAdapter implements Filterable
 
         if(value.getImage() != null) {
             CircleImageView image = (CircleImageView) view.findViewById(R.id.image);
-            Picasso.with(mContext).load(value.getImage())
-                    .placeholder(R.drawable.profile_pic).into(image);
+            Glide.with(mContext).load(value.getImage())
+                    .error(R.drawable.profile_pic).into(image);
         }
 
         return view;

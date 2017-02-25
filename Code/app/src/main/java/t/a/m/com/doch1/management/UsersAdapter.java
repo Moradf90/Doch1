@@ -9,7 +9,7 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
-import com.squareup.picasso.Picasso;
+import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,9 +45,9 @@ public class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.UserHolder>
 
         if(mUsers.get(position).getImage() != null) {
 
-            Picasso.with(mContext)
+            Glide.with(mContext)
                     .load(mUsers.get(position).getImage())
-                    .placeholder(R.drawable.profile_pic)
+                    .error(R.drawable.profile_pic)
                     .into(holder.mImage);
         }
     }

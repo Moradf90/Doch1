@@ -29,11 +29,11 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.squareup.picasso.Picasso;
 
 import java.io.ByteArrayOutputStream;
 
@@ -109,8 +109,8 @@ public class GroupManagementActivity extends Activity implements AdapterView.OnI
 
                 mSubGroupImageView.setImageDrawable(getDrawable(R.drawable.profile_group_pic));
                 if(group.getImage() != null){
-                    Picasso.with(GroupManagementActivity.this).load(group.getImage())
-                            .placeholder(R.drawable.profile_group_pic)
+                    Glide.with(GroupManagementActivity.this).load(group.getImage())
+                            .error(R.drawable.profile_group_pic)
                             .into(mSubGroupImageView);
                 }
                 // hide the keyboard
@@ -201,8 +201,9 @@ public class GroupManagementActivity extends Activity implements AdapterView.OnI
 
     private void initUi(Group group) {
         if(group.getImage() != null){
-            Picasso.with(this).load(group.getImage())
-                    .placeholder(R.drawable.profile_group_pic)
+            Glide.with(this)
+                    .load(group.getImage())
+                    .error(R.drawable.profile_group_pic)
                     .into(mGroupImageView);
         }
         mGroupNameDisplayView.setVisibility(View.VISIBLE);
@@ -223,9 +224,9 @@ public class GroupManagementActivity extends Activity implements AdapterView.OnI
                                 mSubGroupLayout.setVisibility(View.VISIBLE);
                                 mSubGroupName.setText(parent.getName());
                                 if(parent.getImage()!= null){
-                                    Picasso.with(GroupManagementActivity.this)
+                                    Glide.with(GroupManagementActivity.this)
                                             .load(parent.getImage())
-                                            .placeholder(R.drawable.profile_group_pic)
+                                            .error(R.drawable.profile_group_pic)
                                             .into(mSubGroupImageView);
                                 }
                             }

@@ -9,7 +9,7 @@ import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.TextView;
 
-import com.squareup.picasso.Picasso;
+import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -73,8 +73,8 @@ public class AutoCompleteUsersAdapter extends BaseAdapter implements Filterable 
         CircleImageView image = (CircleImageView) view.findViewById(R.id.image);
         image.setImageDrawable(view.getContext().getDrawable(R.drawable.profile_pic));
         if(value.getImage() != null) {
-            Picasso.with(mContext).load(value.getImage())
-                    .placeholder(R.drawable.profile_pic).into(image);
+            Glide.with(mContext).load(value.getImage())
+                    .error(R.drawable.profile_pic).into(image);
         }
 
        // view.findViewById(R.id.delete).setVisibility(View.GONE);
