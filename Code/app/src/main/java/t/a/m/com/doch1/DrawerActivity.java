@@ -63,10 +63,11 @@ import t.a.m.com.doch1.Models.UserInGroup;
 import t.a.m.com.doch1.common.SQLHelper;
 import t.a.m.com.doch1.common.VoiceRecognitionTest;
 import t.a.m.com.doch1.management.ManagementFragment;
+import t.a.m.com.doch1.profile.*;
 import t.a.m.com.doch1.services.tasks.GroupsUpdaterTask;
 import t.a.m.com.doch1.services.tasks.UsersStatusUpdaterTask;
 
-public class DrawerActivity extends ActionBarActivity {
+public class DrawerActivity extends ActionBarActivity implements Drawer.OnDrawerItemClickListener {
     private static final int PROFILE_SETTING = 100000;
     public static final int SEND_IDENTIFIER = 9;
 
@@ -498,7 +499,7 @@ public class DrawerActivity extends ActionBarActivity {
 
             for (User user : groupUsers) {
                 final SecondaryDrawerItem currMemberDrawer = getSecondaryDrawerItemForUser(mapUserIdToStatus, user);
-
+                currMemberDrawer.withOnDrawerItemClickListener(this);
                 addDrawerToList(lstMembersToExpand, currMemberDrawer);
             }
         }
@@ -506,8 +507,11 @@ public class DrawerActivity extends ActionBarActivity {
 
     @NonNull
     private SecondaryDrawerItem getSecondaryDrawerItemForUser(HashMap<Long, UserInGroup> mapUserIdToStatus, User user) {
-        final SecondaryDrawerItem currMemberDrawer = new SecondaryDrawerItem().withName(user.getName()).withLevel(2)
-                .withIdentifier(Long.parseLong(user.getPersonalId()))
+        final SecondaryDrawerItem currMemberDrawer = new SecondaryDrawerItem()
+                .withName(user.getName()).withLevel(2)
+                .withIdentifier(user.getId())
+                // TODO: check
+                //.withIdentifier(Long.parseLong(user.getPersonalId()))
                 .withSelectable(false).withTag(R.string.this_is_member);
 
         drawableFromUrl(user.getImage(), currMemberDrawer);
@@ -556,33 +560,33 @@ public class DrawerActivity extends ActionBarActivity {
 
     public void drawableFromUrl(String url, final AbstractBadgeableDrawerItem item) {
 
-            AsyncTask<String, Void, Bitmap> task = new AsyncTask<String, Void, Bitmap>(){
-                @Override
-                protected Bitmap doInBackground(String... params) {
-                    Bitmap x = null;
-                    try {
-                        HttpURLConnection connection = (HttpURLConnection) new URL(params[0]).openConnection();
-                        connection.connect();
-                        InputStream input = connection.getInputStream();
+        AsyncTask<String, Void, Bitmap> task = new AsyncTask<String, Void, Bitmap>(){
+            @Override
+            protected Bitmap doInBackground(String... params) {
+                Bitmap x = null;
+                try {
+                    HttpURLConnection connection = (HttpURLConnection) new URL(params[0]).openConnection();
+                    connection.connect();
+                    InputStream input = connection.getInputStream();
 
-                        x = BitmapFactory.decodeStream(input);
-                    }
-                    catch (Exception ex){}
-
-                    return x;
+                    x = BitmapFactory.decodeStream(input);
                 }
+                catch (Exception ex){}
 
-                @Override
-                protected void onPostExecute(Bitmap bitmap) {
-                    if(bitmap != null){
-                        item.withIcon(new BitmapDrawable(bitmap));
-                    }
-                    else {
-                        item.withIcon(DrawerActivity.this.getResources().getDrawable(R.drawable.face_icon));
-                    }
+                return x;
+            }
+
+            @Override
+            protected void onPostExecute(Bitmap bitmap) {
+                if(bitmap != null){
+                    item.withIcon(new BitmapDrawable(bitmap));
                 }
-            };
-        
+                else {
+                    item.withIcon(DrawerActivity.this.getResources().getDrawable(R.drawable.face_icon));
+                }
+            }
+        };
+
         task.execute(url);
     }
 
@@ -670,7 +674,8 @@ public class DrawerActivity extends ActionBarActivity {
 
         // Create a new fragment and specify the planet to show based on position
         if (identifier == 1) {
-            newFragment = ProfileFragment.instance();
+           // newFragment = ProfileFragment.instance();
+            newFragment = t.a.m.com.doch1.profile.ProfileFragment.of(User.current(this).getId());
         }
         else if (identifier == 2) {
             if (headerResult.getActiveProfile() == null) {
@@ -691,8 +696,8 @@ public class DrawerActivity extends ActionBarActivity {
             newFragment = fCurrentDisplayedFragment;
 
 //            if (drawerItem.getIdentifier() == 9) {
-                SendDrawerItem.withName("Sent...").withDescription("You can update your doch1").withIcon(R.drawable.sent);
-                result.updateItem(SendDrawerItem);
+            SendDrawerItem.withName("Sent...").withDescription("You can update your doch1").withIcon(R.drawable.sent);
+            result.updateItem(SendDrawerItem);
 //            }
         }
         else if (identifier == 19) {
@@ -725,7 +730,7 @@ public class DrawerActivity extends ActionBarActivity {
 
         // If the current displayed is the same as the one we want to switch to - do nothing. else - switch.
         if ((fCurrentDisplayedFragment == null) ||
-            (!fCurrentDisplayedFragment.getClass().getSimpleName().equals(newFragment.getClass().getSimpleName()))) {
+                (!fCurrentDisplayedFragment.getClass().getSimpleName().equals(newFragment.getClass().getSimpleName()))) {
 
             // Insert the fragment by replacing any existing fragment
             FragmentManager fragmentManager = getFragmentManager();
@@ -759,5 +764,18 @@ public class DrawerActivity extends ActionBarActivity {
         if(mCurrentUser != null && loginUser == null) {
             loginUser = new Select().from(User.class).where(User.EMAIL_PROPERTY + " = '" + mCurrentUser.getEmail() + "'").executeSingle();
         }
+    }
+
+    @Override
+    public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
+
+        Fragment newFragment = t.a.m.com.doch1.profile.ProfileFragment.of(drawerItem.getIdentifier());
+
+        FragmentManager fragmentManager = getFragmentManager();
+        fragmentManager.beginTransaction()
+                .replace(R.id.frame_container, newFragment, newFragment.getClass().getSimpleName())
+                .commit();
+
+        return false;
     }
 }

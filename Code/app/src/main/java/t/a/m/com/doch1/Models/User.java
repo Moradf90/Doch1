@@ -1,5 +1,6 @@
 package t.a.m.com.doch1.Models;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
@@ -194,7 +195,6 @@ public class User extends Model implements Serializable{
 
     public static User current(Context context){
 
-
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
         Long userId = pref.getLong("userId", -1);
         if(userId != -1){
@@ -210,5 +210,9 @@ public class User extends Model implements Serializable{
         }
 
         return current;
+    }
+
+    public boolean isCurrentUser(Context context) {
+        return mId.equals(current(context).mId);
     }
 }
